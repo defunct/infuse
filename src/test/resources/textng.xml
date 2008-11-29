@@ -1,0 +1,9 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+
+<suite name="Dirt Simple Path Language Suite" verbose="1" >
+  <test name="Unit">
+    <packages>
+      <package name="com.goodworkalan.dspl" />
+   </packages>
+ </test>
+</suite>
