@@ -24,7 +24,7 @@ import java.util.Map;
  * 
  * @author Alan Gutierrez
  */
-public class BeanPath
+public class PropertyPath
 {
     /** The bean path. */
     private final Property[] properties;
@@ -40,12 +40,12 @@ public class BeanPath
      * @param path
      *            The bean path.
      */
-    public BeanPath(String path) throws BeanPath.Error
+    public PropertyPath(String path) throws PropertyPath.Error
     {
         this(path, false);
     }
 
-    public BeanPath(String path, boolean nullIsError) throws BeanPath.Error
+    public PropertyPath(String path, boolean nullIsError) throws PropertyPath.Error
     {
         String[] parts = path.split("\\.");
         Property[] properties = new Property[parts.length];
@@ -62,11 +62,11 @@ public class BeanPath
      * 
      * @param bean
      *            The root bean of an object graph.
-     * @throws BeanPath.Error
+     * @throws PropertyPath.Error
      *             If the path does not exist or if an error occurs in
      *             reflection.
      */
-    public Object get(Object bean) throws BeanPath.Error
+    public Object get(Object bean) throws PropertyPath.Error
     {
         for (int i = 0; bean != null && i < properties.length - 1; i++)
         {
@@ -79,10 +79,10 @@ public class BeanPath
         }
         else if (nullIsError)
         {
-            throw new BeanPath.Error();
+            throw new PropertyPath.Error();
         }
         
-        throw new BeanPath.Error();
+        throw new PropertyPath.Error();
     }
 
     /**
@@ -92,11 +92,11 @@ public class BeanPath
      *            The root bean of an object graph.
      * @param value
      *            The value to set.
-     * @throws BeanPath.Error
+     * @throws PropertyPath.Error
      *             If the path does not exist, if the value is of the incorrect
      *             type, or if an error occurs in reflection.
      */
-    public void set(Object bean, Object value) throws BeanPath.Error
+    public void set(Object bean, Object value) throws PropertyPath.Error
     {
         for (int i = 0; bean != null && i < properties.length - 1; i++)
         {
@@ -108,7 +108,7 @@ public class BeanPath
         }
         else if (nullIsError)
         {
-            throw new BeanPath.Error();
+            throw new PropertyPath.Error();
         }
     }
     
@@ -154,9 +154,9 @@ public class BeanPath
     
     private interface Property
     {
-        public Object get(Object bean) throws BeanPath.Error;
+        public Object get(Object bean) throws PropertyPath.Error;
         
-        public void set(Object bean, Object value) throws BeanPath.Error;
+        public void set(Object bean, Object value) throws PropertyPath.Error;
     }
 
     public final static class BeanProperty implements Property
@@ -173,7 +173,7 @@ public class BeanPath
             return name;
         }
         
-        public Object get(Object bean) throws BeanPath.Error
+        public Object get(Object bean) throws PropertyPath.Error
         {
             BeanInfo beanInfo;
             try
@@ -182,7 +182,7 @@ public class BeanPath
             }
             catch (IntrospectionException e)
             {
-                throw new BeanPath.Error(e);
+                throw new PropertyPath.Error(e);
             }
             for (PropertyDescriptor descriptor : beanInfo.getPropertyDescriptors())
             {
@@ -198,11 +198,11 @@ public class BeanPath
                     }
                     catch (Exception e)
                     {
-                        throw new BeanPath.Error(e);
+                        throw new PropertyPath.Error(e);
                     }
                 }
             }
-            throw new BeanPath.Error();
+            throw new PropertyPath.Error();
         }
         
         public void set(Object bean, Object value) throws Error
@@ -214,7 +214,7 @@ public class BeanPath
             }
             catch (IntrospectionException e)
             {
-                throw new BeanPath.Error(e);
+                throw new PropertyPath.Error(e);
             }
             for (PropertyDescriptor descriptor : beanInfo.getPropertyDescriptors())
             {
@@ -222,7 +222,7 @@ public class BeanPath
                 {
                     if (descriptor.getWriteMethod() == null)
                     {
-                        throw new BeanPath.Error();
+                        throw new PropertyPath.Error();
                     }
                     try
                     {
@@ -231,11 +231,11 @@ public class BeanPath
                     }
                     catch (Exception e)
                     {
-                        throw new BeanPath.Error(e);
+                        throw new PropertyPath.Error(e);
                     }
                 }
             }
-            throw new BeanPath.Error();
+            throw new PropertyPath.Error();
         }
     }
     
@@ -254,7 +254,7 @@ public class BeanPath
             this.nullIsError = nullIsError;
         }
         
-        public Object get(Object bean) throws BeanPath.Error
+        public Object get(Object bean) throws PropertyPath.Error
         {
             @SuppressWarnings("unchecked")
             Map map = (Map) property.get(bean); 
@@ -264,13 +264,13 @@ public class BeanPath
             }
             else if (nullIsError)
             {
-                throw new BeanPath.Error();
+                throw new PropertyPath.Error();
             }
             return null;
         }
         
         @SuppressWarnings("unchecked")
-        public void set(Object bean, Object value) throws BeanPath.Error
+        public void set(Object bean, Object value) throws PropertyPath.Error
         {
             try
             {
@@ -281,12 +281,12 @@ public class BeanPath
                 }
                 else if (nullIsError)
                 {
-                    throw new BeanPath.Error();
+                    throw new PropertyPath.Error();
                 }
             }
             catch (ClassCastException e)
             {
-                throw new BeanPath.Error(e);
+                throw new PropertyPath.Error(e);
             }
             
         }
@@ -308,7 +308,7 @@ public class BeanPath
         }
         
         @SuppressWarnings("unchecked")
-        public Object get(Object bean) throws BeanPath.Error
+        public Object get(Object bean) throws PropertyPath.Error
         {
             Object object = property.get(bean);
             if (object != null)
@@ -321,17 +321,17 @@ public class BeanPath
                 {
                     return ((List) object).get(index);
                 }
-                throw new BeanPath.Error();
+                throw new PropertyPath.Error();
             }
             else if (nullIsError) 
             {
-                throw new BeanPath.Error();
+                throw new PropertyPath.Error();
             }
             return null;
         }
         
         @SuppressWarnings("unchecked")
-        public void set(Object bean, Object value) throws BeanPath.Error
+        public void set(Object bean, Object value) throws PropertyPath.Error
         {
             Object list = property.get(value);
             if (list != null)
@@ -346,22 +346,22 @@ public class BeanPath
                 }
                 else
                 {
-                    throw new BeanPath.Error();
+                    throw new PropertyPath.Error();
                 }
             }
             else if (nullIsError) 
             {
-                throw new BeanPath.Error();
+                throw new PropertyPath.Error();
             }
         }
     }
     
-    public Property newProperty(String part, boolean nullIsError) throws BeanPath.Error
+    public Property newProperty(String part, boolean nullIsError) throws PropertyPath.Error
     {
         part = part.trim();
         if (part.length() == 0 || !Character.isJavaIdentifierStart(part.charAt(0)))
         {
-            throw new BeanPath.Error();
+            throw new PropertyPath.Error();
         }
 
         // Read the Java bean identifier.
@@ -381,11 +381,11 @@ public class BeanPath
             }
             catch (StringIndexOutOfBoundsException e)
             {
-                throw new BeanPath.Error(e);
+                throw new PropertyPath.Error(e);
             }
             catch (NumberFormatException e)
             {
-                throw new BeanPath.Error(e);
+                throw new PropertyPath.Error(e);
             }
         }
         
@@ -393,11 +393,11 @@ public class BeanPath
         
     }
     
-    public Property newIndexProperty(String name, String part, int i, boolean nullIsError) throws BeanPath.Error
+    public Property newIndexProperty(String name, String part, int i, boolean nullIsError) throws PropertyPath.Error
     {
         if (part.charAt(i) != '[')
         {
-            throw new BeanPath.Error();
+            throw new PropertyPath.Error();
         }
         i = eatWhite(part, i);
         if ("\"'".indexOf(part.charAt(i)) != -1)
@@ -412,7 +412,7 @@ public class BeanPath
                 case 0:
                 case '\'':
                 case '"':
-                    throw new BeanPath.Error();
+                    throw new PropertyPath.Error();
                 case '\\':
                     ch = part.charAt(i++);
                     switch (ch)
@@ -439,7 +439,7 @@ public class BeanPath
                         newKey.append((char) Integer.parseInt(part.substring(i, i += 2), 16));
                         break;
                     default:
-                        throw new BeanPath.Error();
+                        throw new PropertyPath.Error();
                     }
                 default:
                     if (ch == quote)

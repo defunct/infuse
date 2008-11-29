@@ -4,32 +4,32 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-public class BeanPathTest
+public class PropertyPathTest
 {
-    @Test public void constructor() throws BeanPath.Error 
+    @Test public void constructor() throws PropertyPath.Error 
     {
-        new BeanPath("name");
+        new PropertyPath("name");
     }
     
-    @Test public void get() throws BeanPath.Error
+    @Test public void get() throws PropertyPath.Error
     {
-        BeanPath path = new BeanPath("name");
+        PropertyPath path = new PropertyPath("name");
         Department department = new Department();
         department.setName("Accounting");
         assertEquals(path.get(department), "Accounting");
     }
     
-    @Test public void set() throws BeanPath.Error
+    @Test public void set() throws PropertyPath.Error
     {
-        BeanPath path = new BeanPath("name");
+        PropertyPath path = new PropertyPath("name");
         Department department = new Department();
         path.set(department, "Accounting");
         assertEquals(department.getName(), "Accounting");
     }
     
-    @Test public void getChild() throws BeanPath.Error
+    @Test public void getChild() throws PropertyPath.Error
     {
-        BeanPath path = new BeanPath("phone.number");
+        PropertyPath path = new PropertyPath("phone.number");
         
         Department department = new Department();
         Phone phone = new Phone();
@@ -39,9 +39,9 @@ public class BeanPathTest
         assertEquals(path.get(department), "504.717.1428");
     }
     
-    @Test public void setChild() throws BeanPath.Error
+    @Test public void setChild() throws PropertyPath.Error
     {
-        BeanPath path = new BeanPath("phone.number");
+        PropertyPath path = new PropertyPath("phone.number");
         
         Department department = new Department();
         Phone phone = new Phone();
