@@ -8,9 +8,9 @@
     <packaging>jar</packaging>
     <version>0.1.X</version>
 
-    <name>dslp</name>
+    <name>dspl</name>
     <description>
-        Dirt Simple Plath Language (DSLP) is a  minimal bean path
+        Dirt Simple Path Language (DSPL) is a  minimal bean path
         language for mapping flattened key value properties to beans
         properties in nested beans.
     </description>
