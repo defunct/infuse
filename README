@@ -1,0 +1,15 @@
+DSPL
+
+Dirt Simple Path Language (DSPL) is a minimal path langauge for getting
+and setting Java bean properties nested in object graphs.
+
+    Issues and Tasks: http://blogometer.com/trac/incubator
+    Source: http://github.com/bigeasy/dspl/tree/master
+    Contact: alan@blogometer.com
+
+MOTIVATION
+
+Used to map HTTP request parameters to bean properties during an HTTP
+request. DSPL is a minimal path language. It is able to descend into an
+object graph, navigating maps, lists, and arrays. However only gets and
+sets properties, it does not evaluate conditions or create new objects.
