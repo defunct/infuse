@@ -29,8 +29,6 @@ public class PropertyPath
     /** The bean path. */
     private final Property[] properties;
     
-    private final boolean nullIsError;
-    
     /**
      * Create a bean path from the specified string. The bean path will be
      * checked for syntax. The syntax check will not check the path against a
@@ -42,19 +40,13 @@ public class PropertyPath
      */
     public PropertyPath(String path) throws PropertyPath.Error
     {
-        this(path, false);
-    }
-
-    public PropertyPath(String path, boolean nullIsError) throws PropertyPath.Error
-    {
         String[] parts = path.split("\\.");
         Property[] properties = new Property[parts.length];
         for (int i = 0; i < parts.length; i++)
         {
-            properties[i] = newProperty(parts[i], nullIsError);
+            properties[i] = newProperty(parts[i]);
         }
         this.properties = properties;
-        this.nullIsError = nullIsError;
     }
 
     /**
@@ -76,10 +68,6 @@ public class PropertyPath
         if (bean != null)
         {
             return properties[properties.length - 1].get(bean);
-        }
-        else if (nullIsError)
-        {
-            throw new PropertyPath.Error();
         }
         
         throw new PropertyPath.Error();
@@ -105,10 +93,6 @@ public class PropertyPath
         if (bean != null)
         {
             properties[properties.length - 1].set(bean, value);
-        }
-        else if (nullIsError)
-        {
-            throw new PropertyPath.Error();
         }
     }
     
@@ -245,13 +229,10 @@ public class PropertyPath
         
         private final String key;
         
-        private final boolean nullIsError;
-        
-        public MapProperty(String name, String key, boolean nullIsError)
+        public MapProperty(String name, String key)
         {
             this.property = new BeanProperty(name);
             this.key = key;
-            this.nullIsError = nullIsError;
         }
         
         public Object get(Object bean) throws PropertyPath.Error
@@ -261,10 +242,6 @@ public class PropertyPath
             if (map != null)
             {
                 return map.get(key);
-            }
-            else if (nullIsError)
-            {
-                throw new PropertyPath.Error();
             }
             return null;
         }
@@ -278,10 +255,6 @@ public class PropertyPath
                 if (map != null)
                 {
                     map.put(key, value);
-                }
-                else if (nullIsError)
-                {
-                    throw new PropertyPath.Error();
                 }
             }
             catch (ClassCastException e)
@@ -298,13 +271,10 @@ public class PropertyPath
         
         private final int index;
         
-        private final boolean nullIsError;
-        
-        public ListProperty(String name, int index, boolean nullIsError)
+        public ListProperty(String name, int index)
         {
             this.property = new BeanProperty(name);
             this.index = index;
-            this.nullIsError = nullIsError;
         }
         
         @SuppressWarnings("unchecked")
@@ -321,10 +291,6 @@ public class PropertyPath
                 {
                     return ((List) object).get(index);
                 }
-                throw new PropertyPath.Error();
-            }
-            else if (nullIsError) 
-            {
                 throw new PropertyPath.Error();
             }
             return null;
@@ -349,14 +315,10 @@ public class PropertyPath
                     throw new PropertyPath.Error();
                 }
             }
-            else if (nullIsError) 
-            {
-                throw new PropertyPath.Error();
-            }
         }
     }
     
-    public Property newProperty(String part, boolean nullIsError) throws PropertyPath.Error
+    public Property newProperty(String part) throws PropertyPath.Error
     {
         part = part.trim();
         if (part.length() == 0 || !Character.isJavaIdentifierStart(part.charAt(0)))
@@ -377,7 +339,7 @@ public class PropertyPath
         {
             try
             {
-                return newIndexProperty(identifier, part, i, nullIsError);
+                return newIndexProperty(identifier, part, i);
             }
             catch (StringIndexOutOfBoundsException e)
             {
@@ -393,7 +355,7 @@ public class PropertyPath
         
     }
     
-    public Property newIndexProperty(String name, String part, int i, boolean nullIsError) throws PropertyPath.Error
+    public Property newIndexProperty(String name, String part, int i) throws PropertyPath.Error
     {
         if (part.charAt(i) != '[')
         {
@@ -449,7 +411,7 @@ public class PropertyPath
                     newKey.append(ch);
                 }
             }
-            return new MapProperty(name, newKey.toString(), nullIsError);
+            return new MapProperty(name, newKey.toString());
         }
         else
         {
@@ -460,7 +422,7 @@ public class PropertyPath
                 index = index * 10 + n;
             }
             while ("] ".indexOf(part.charAt(i)) == -1);
-            return new ListProperty(name, index, nullIsError);
+            return new ListProperty(name, index);
         }
     }
 
