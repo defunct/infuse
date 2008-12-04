@@ -50,4 +50,11 @@ public class PropertyPathTest
         path.set(department, "504.717.1428");
         assertEquals(department.getPhone().getNumber(), "504.717.1428");
     }
+    
+    @Test public void reflectMap() throws Exception
+    {
+        PropertyPath path = new PropertyPath("phone.foo['item'].name");
+        Department department = new Department();
+        path.set(department, "temp");
+    }
 }

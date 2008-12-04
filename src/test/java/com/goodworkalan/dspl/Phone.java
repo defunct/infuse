@@ -1,10 +1,14 @@
 package com.goodworkalan.dspl;
 
+import java.util.Map;
+
 public class Phone
 {
     private String type;
     
     private String number;
+    
+    private Map<String, Department> foo;
     
     public void setType(String type)
     {
@@ -24,5 +28,15 @@ public class Phone
     public String getNumber()
     {
         return number;
+    }
+    
+    public Map<String, Department> getDepartment()
+    {
+        return foo;
+    }
+    
+    public void setDepartment(Map<String, Department> foo)
+    {
+        this.foo = foo;
     }
 }

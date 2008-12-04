@@ -5,8 +5,15 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * <p>
@@ -62,12 +69,27 @@ public class PropertyPath
     {
         for (int i = 0; bean != null && i < properties.length - 1; i++)
         {
-            bean = properties[i].get(bean);
+            bean = properties[i].get(bean, false);
         }
 
         if (bean != null)
         {
-            return properties[properties.length - 1].get(bean);
+            return properties[properties.length - 1].get(bean, false);
+        }
+        
+        throw new PropertyPath.Error();
+    }
+    
+    public Type typeOf(Object bean) throws PropertyPath.Error
+    {
+        for (int i = 0; bean != null && i < properties.length - 1; i++)
+        {
+            bean = properties[i].get(bean, true);
+        }
+
+        if (bean != null)
+        {
+            return properties[properties.length - 1].typeOf(bean);
         }
         
         throw new PropertyPath.Error();
@@ -88,7 +110,7 @@ public class PropertyPath
     {
         for (int i = 0; bean != null && i < properties.length - 1; i++)
         {
-            bean = properties[i].get(bean);
+            bean = properties[i].get(bean, true);
         }
         if (bean != null)
         {
@@ -138,7 +160,9 @@ public class PropertyPath
     
     private interface Property
     {
-        public Object get(Object bean) throws PropertyPath.Error;
+        public Object get(Object bean, boolean create) throws PropertyPath.Error;
+        
+        public Type typeOf(Object bean) throws PropertyPath.Error;
         
         public void set(Object bean, Object value) throws PropertyPath.Error;
     }
@@ -157,7 +181,7 @@ public class PropertyPath
             return name;
         }
         
-        public Object get(Object bean) throws PropertyPath.Error
+        public Object get(Object bean, boolean create) throws PropertyPath.Error
         {
             BeanInfo beanInfo;
             try
@@ -176,14 +200,114 @@ public class PropertyPath
                     {
                         throw new Error();
                     }
+                    Object object = null;
                     try
                     {
-                        return descriptor.getReadMethod().invoke(bean);
+                        object = descriptor.getReadMethod().invoke(bean);
                     }
                     catch (Exception e)
                     {
                         throw new PropertyPath.Error(e);
                     }
+                    if (object == null && create && descriptor.getWriteMethod() != null)
+                    {
+                        Type type = typeOf(bean);
+                        if (type instanceof ParameterizedType)
+                        {
+                            ParameterizedType parameterized = (ParameterizedType) type;
+                            Type rawType = parameterized.getRawType();
+                            if (rawType instanceof Class<?>)
+                            {
+                                Class<?> cls = (Class<?>) rawType;
+                                if (!cls.isInterface())
+                                {
+                                    if (cls.isArray())
+                                    {
+                                        object = Array.newInstance(cls.getComponentType(), 0);
+                                    }
+                                    else
+                                    {
+                                        try
+                                        {
+                                            object = cls.newInstance();
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            throw new PropertyPath.Error(e);
+                                        }
+                                    }
+                                }
+                                else if (SortedMap.class.isAssignableFrom(cls))
+                                {
+                                    if (parameterized.getActualTypeArguments()[0] instanceof Class<?>
+                                    && parameterized.getActualTypeArguments()[1] instanceof Class<?>)
+                                {
+                                    object = new TreeMap<Object, Object>(); 
+                                }
+                                }
+                                else if (Map.class.isAssignableFrom(cls))
+                                {
+                                    object = new HashMap<Object, Object>(); 
+                                }
+                                else if (List.class.isAssignableFrom(cls))
+                                {
+                                    object = new ArrayList<Object>();
+                                }
+                            }
+                        }
+                        else if (type instanceof Class<?>)
+                        {
+                            try
+                            {
+                                object = descriptor.getPropertyType().newInstance();
+                            }
+                            catch (Exception e)
+                            {
+                                throw new PropertyPath.Error(e);
+                            }
+                        }
+                        if (object != null)
+                        {
+                            try
+                            {
+                                descriptor.getWriteMethod().invoke(bean, object);
+                            }
+                            catch (Exception e)
+                            {
+                                throw new PropertyPath.Error(e);
+                            }
+                        }
+                    }
+                    return object;
+                }
+            }
+            throw new PropertyPath.Error();
+        }
+        
+        public Type typeOf(Object bean) throws Error
+        {
+            BeanInfo beanInfo;
+            try
+            {
+                beanInfo = Introspector.getBeanInfo(bean.getClass());
+            }
+            catch (IntrospectionException e)
+            {
+                throw new PropertyPath.Error(e);
+            }
+            for (PropertyDescriptor descriptor : beanInfo.getPropertyDescriptors())
+            {
+                if (descriptor.getName().equals(name))
+                {
+                    if (descriptor.getReadMethod() != null)
+                    {
+                        return descriptor.getReadMethod().getGenericReturnType();
+                    }
+                    else if (descriptor.getWriteMethod() != null)
+                    {
+                        return descriptor.getWriteMethod().getGenericParameterTypes()[0];
+                    }
+                    throw new PropertyPath.Error();
                 }
             }
             throw new PropertyPath.Error();
@@ -235,13 +359,41 @@ public class PropertyPath
             this.key = key;
         }
         
-        public Object get(Object bean) throws PropertyPath.Error
+        @SuppressWarnings("unchecked")
+        public Object get(Object bean, boolean create) throws PropertyPath.Error
         {
-            @SuppressWarnings("unchecked")
-            Map map = (Map) property.get(bean); 
+            Map map = (Map) property.get(bean, create);
             if (map != null)
             {
-                return map.get(key);
+                Object object = map.get(key);
+                if (object == null)
+                {
+                    Type type = typeOf(bean);
+                    if (type instanceof Class)
+                    {
+                        try
+                        {
+                            object = ((Class<?>) type).newInstance();
+                        }
+                        catch (Exception e)
+                        {
+                            throw new PropertyPath.Error(e);
+                        }
+                        map.put(key, object);
+                    }
+                }
+                return object;
+            }
+            return null;
+        }
+        
+        public Type typeOf(Object bean) throws Error
+        {
+            Type type = property.typeOf(bean);
+            if (type != null)
+            {
+                ParameterizedType pt = (ParameterizedType) type;
+                return pt.getActualTypeArguments()[1];
             }
             return null;
         }
@@ -251,7 +403,7 @@ public class PropertyPath
         {
             try
             {
-                Map map = (Map) property.get(bean); 
+                Map map = (Map) property.get(bean, true); 
                 if (map != null)
                 {
                     map.put(key, value);
@@ -278,20 +430,90 @@ public class PropertyPath
         }
         
         @SuppressWarnings("unchecked")
-        public Object get(Object bean) throws PropertyPath.Error
+        public Object get(Object bean, boolean create) throws PropertyPath.Error
         {
-            Object object = property.get(bean);
-            if (object != null)
+            Object list = property.get(bean, create);
+            if (list != null)
             {
-                if (object.getClass().isArray())
+                if (list.getClass().isArray())
                 {
-                    return Array.get(object, index);
+                    Object object = null;
+                    Object[] array = (Object[]) list;
+                    if (index < array.length)
+                    {
+                        object = array[index];
+                    }
+                    if (object == null && create)
+                    {
+                        try
+                        {
+                            object = list.getClass().getComponentType().newInstance();
+                        }
+                        catch (Exception e)
+                        {
+                            throw new PropertyPath.Error(e);
+                        }
+                        if (index >= array.length)
+                        {
+                            array = (Object[]) Array.newInstance(list.getClass().getComponentType(), index + 1);
+                        }
+                        array[index] = object;
+                    }
+                    return object;
                 }
-                else if (object instanceof List)
+                else if (list instanceof List)
                 {
-                    return ((List) object).get(index);
+                    Object object = null;
+                    List snert = (List) list;
+                    if (index < snert.size())
+                    {
+                        object = snert.get(index);
+                    }
+                    if (object == null && create)
+                    {
+                        Type type = typeOf(bean);
+                        if (type instanceof Class)
+                        {
+                            try
+                            {
+                                object = ((Class<?>) type).newInstance();
+                            }
+                            catch (Exception e)
+                            {
+                                throw new PropertyPath.Error(e);
+                            }
+                            snert.add(index, object);
+                        }
+                    }
+                    return object;
                 }
                 throw new PropertyPath.Error();
+            }
+            return null;
+        }
+        
+        public Type typeOf(Object bean) throws Error
+        {
+            Object list = property.get(bean, true);
+            if (list != null)
+            {
+                if (list.getClass().isArray())
+                {
+                    list.getClass().getComponentType();
+                }
+                else if (list instanceof List)
+                {
+                    Method method;
+                    try
+                    {
+                        method = list.getClass().getMethod("get", Integer.class);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new PropertyPath.Error(e);
+                    }
+                    return method.getGenericReturnType();
+                }
             }
             return null;
         }
@@ -299,7 +521,7 @@ public class PropertyPath
         @SuppressWarnings("unchecked")
         public void set(Object bean, Object value) throws PropertyPath.Error
         {
-            Object list = property.get(value);
+            Object list = property.get(value, true);
             if (list != null)
             {
                 if (list.getClass().isArray())
@@ -352,12 +574,11 @@ public class PropertyPath
         }
         
         return new BeanProperty(identifier);
-        
     }
     
     public Property newIndexProperty(String name, String part, int i) throws PropertyPath.Error
     {
-        if (part.charAt(i) != '[')
+        if (part.charAt(i++) != '[')
         {
             throw new PropertyPath.Error();
         }
@@ -372,8 +593,13 @@ public class PropertyPath
                 switch (ch)
                 {
                 case 0:
+                    throw new PropertyPath.Error();
                 case '\'':
                 case '"':
+                    if (ch == quote)
+                    {
+                        break KEY;
+                    }
                     throw new PropertyPath.Error();
                 case '\\':
                     ch = part.charAt(i++);
@@ -400,16 +626,28 @@ public class PropertyPath
                     case 'x':
                         newKey.append((char) Integer.parseInt(part.substring(i, i += 2), 16));
                         break;
+                    case '\'':
+                        newKey.append('\'');
+                        break;
+                    case '"':
+                        newKey.append('"');
+                        break;
                     default:
                         throw new PropertyPath.Error();
                     }
                 default:
-                    if (ch == quote)
-                    {
-                        break KEY;
-                    }
                     newKey.append(ch);
                 }
+            }
+            i = eatWhite(part, i);
+            if (part.charAt(i++) != ']')
+            {
+                throw new PropertyPath.Error();
+            }
+            i = eatWhite(part, i);
+            if (i != part.length())
+            {
+                throw new PropertyPath.Error();
             }
             return new MapProperty(name, newKey.toString());
         }
