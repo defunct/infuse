@@ -33,7 +33,7 @@ public class PropertyPathTest
     {
         PropertyPath path = new PropertyPath("name");
         Department department = new Department();
-        path.set(department, "Accounting");
+        path.set(department, "Accounting", new PropertyPath.Factory());
         assertEquals(department.getName(), "Accounting");
     }
     
@@ -57,7 +57,7 @@ public class PropertyPathTest
         Phone phone = new Phone();
         department.setPhone(phone);
 
-        path.set(department, "504.717.1428");
+        path.set(department, "504.717.1428", new PropertyPath.Factory());
         assertEquals(department.getPhone().getNumber(), "504.717.1428");
     }
     
@@ -76,9 +76,9 @@ public class PropertyPathTest
         PropertyPath.Index index = new PropertyPath.ListIndex(0);
         assertNull(index.typeOf(Object.class));
         Object bean = new Widget();
-        PropertyPath.BeanProperty property = new PropertyPath.BeanProperty("stringMapMap");
+        PropertyPath.Property property = new PropertyPath.Property("stringMapMap");
         assertNull(index.typeOf(property.typeOf(bean)));
-        property = new PropertyPath.BeanProperty("stringListList");
+        property = new PropertyPath.Property("stringListList");
         Type type = property.typeOf(bean);
         type = index.typeOf(type);
         type = index.typeOf(type);
@@ -86,7 +86,7 @@ public class PropertyPathTest
 
         PropertyPath.Factory factory = new PropertyPath.Factory();
         type = property.typeOf(bean);
-        Object list = property.get(bean, false);
+        Object list = property.get(bean, null);
         type = index.typeOf(type);
         list = index.get(type, list, factory);
         type = index.typeOf(type);
@@ -97,12 +97,12 @@ public class PropertyPathTest
     @Test
     public void mapIndex() throws Exception
     {
-        PropertyPath.Index index = new PropertyPath.MapIndex();
+        PropertyPath.Index index = new PropertyPath.MapIndex("foo");
         assertNull(index.typeOf(Object.class));
         Object bean = new Widget();
-        PropertyPath.BeanProperty property = new PropertyPath.BeanProperty("stringListList");
+        PropertyPath.Property property = new PropertyPath.Property("stringListList");
         assertNull(index.typeOf(property.typeOf(bean)));
-        property = new PropertyPath.BeanProperty("stringMapMap");
+        property = new PropertyPath.Property("stringMapMap");
         Type type = property.typeOf(bean);
         type = index.typeOf(type);
         type = index.typeOf(type);
@@ -126,5 +126,30 @@ public class PropertyPathTest
         catch (PropertyPath.Error e)
         {
         }
+    }
+    
+    @Test
+    public void eatWhite()
+    {
+        String part = "   ab";
+        int i = 0;
+        i = PropertyPath.eatWhite(part, i);
+        assertEquals(i, 3);
+        i = PropertyPath.eatWhite(part, ++i);
+        assertEquals(i, 4);
+        i = PropertyPath.eatWhite(part, ++i);
+        assertEquals(i, 5);
+    }
+    
+    @Test
+    public void newIndex() throws PropertyPath.Error
+    {
+        List<PropertyPath.Index> indexes = new ArrayList<PropertyPath.Index>();
+
+        String part = "[ 1 ] "; 
+        int i = PropertyPath.newIndex(part, 0, indexes);
+        
+        assertEquals(indexes.get(0).getClass(), PropertyPath.ListIndex.class);
+        assertEquals(part.length(), i);
     }
 }

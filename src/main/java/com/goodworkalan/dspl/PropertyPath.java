@@ -4,8 +4,6 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.lang.reflect.Array;
-import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -69,22 +67,22 @@ public class PropertyPath
     {
         for (int i = 0; bean != null && i < properties.length - 1; i++)
         {
-            bean = properties[i].get(bean, false);
+            bean = properties[i].get(bean, null);
         }
 
         if (bean != null)
         {
-            return properties[properties.length - 1].get(bean, false);
+            return properties[properties.length - 1].get(bean, null);
         }
         
         throw new PropertyPath.Error();
     }
     
-    public Type typeOf(Object bean) throws PropertyPath.Error
+    public Type typeOf(Object bean, Factory factory) throws PropertyPath.Error
     {
         for (int i = 0; bean != null && i < properties.length - 1; i++)
         {
-            bean = properties[i].get(bean, true);
+            bean = properties[i].get(bean, factory);
         }
 
         if (bean != null)
@@ -106,11 +104,11 @@ public class PropertyPath
      *             If the path does not exist, if the value is of the incorrect
      *             type, or if an error occurs in reflection.
      */
-    public void set(Object bean, Object value) throws PropertyPath.Error
+    public void set(Object bean, Object value, Factory factory) throws PropertyPath.Error
     {
         for (int i = 0; bean != null && i < properties.length - 1; i++)
         {
-            bean = properties[i].get(bean, true);
+            bean = properties[i].get(bean, factory);
         }
         if (bean != null)
         {
@@ -129,7 +127,7 @@ public class PropertyPath
      * @return The index of the first non-whitespace character, current index
      *         included.
      */
-    int eatWhite(String part, int i)
+    static int eatWhite(String part, int i)
     {
         for (; i < part.length() && Character.isWhitespace(part.charAt(i)); i++)
         {
@@ -156,15 +154,6 @@ public class PropertyPath
             identifier.append(part.charAt(i));
         }
         return i;
-    }
-    
-    interface Property
-    {
-        public Object get(Object bean, boolean create) throws PropertyPath.Error;
-        
-        public Type typeOf(Object bean) throws PropertyPath.Error;
-        
-        public void set(Object bean, Object value) throws PropertyPath.Error;
     }
     
     interface Index
@@ -235,6 +224,20 @@ public class PropertyPath
     
     final static class Factory
     {
+        public Object create(Type type) throws PropertyPath.Error
+        {
+            Object created = null;
+            if (type instanceof ParameterizedType)
+            {
+                created = create((Class<?>) ((ParameterizedType) type).getRawType());
+            }
+            else if (type instanceof Class)
+            {
+                created = create((Class<?>) type);
+            }
+            return created;
+        }
+        
         public Object create(Class<?> cls) throws PropertyPath.Error
         {
             if (!cls.isInterface())
@@ -266,6 +269,13 @@ public class PropertyPath
 
     final static class MapIndex implements Index
     {
+        private final String index;
+        
+        public MapIndex(String index)
+        {
+            this.index = index;
+        }
+
         public Type typeOf(Type type) throws Error
         {
             if (type instanceof ParameterizedType)
@@ -281,17 +291,21 @@ public class PropertyPath
         
         public Object get(Type type, Object object, Factory factory) throws PropertyPath.Error
         {
+            index.charAt(0);
             return null;
         }
     }
 
-    final static class BeanProperty implements Property
+    final static class Property
     {
         private final String name;
         
-        public BeanProperty(String name)
+        private final Index[] indexes;
+        
+        public Property(String name, Index...indexes)
         {
             this.name = name;
+            this.indexes = indexes;
         }
         
         public String getName()
@@ -299,7 +313,7 @@ public class PropertyPath
             return name;
         }
         
-        public Object get(Object bean, boolean create) throws PropertyPath.Error
+        public Object get(Object bean, Factory factory) throws PropertyPath.Error
         {
             BeanInfo beanInfo;
             try
@@ -327,63 +341,9 @@ public class PropertyPath
                     {
                         throw new PropertyPath.Error(e);
                     }
-                    if (object == null && create && descriptor.getWriteMethod() != null)
+                    if (object == null && factory != null && descriptor.getWriteMethod() != null)
                     {
-                        Type type = typeOf(bean);
-                        if (type instanceof ParameterizedType)
-                        {
-                            ParameterizedType parameterized = (ParameterizedType) type;
-                            Type rawType = parameterized.getRawType();
-                            if (rawType instanceof Class<?>)
-                            {
-                                Class<?> cls = (Class<?>) rawType;
-                                if (!cls.isInterface())
-                                {
-                                    if (cls.isArray())
-                                    {
-                                        object = Array.newInstance(cls.getComponentType(), 0);
-                                    }
-                                    else
-                                    {
-                                        try
-                                        {
-                                            object = cls.newInstance();
-                                        }
-                                        catch (Exception e)
-                                        {
-                                            throw new PropertyPath.Error(e);
-                                        }
-                                    }
-                                }
-                                else if (SortedMap.class.isAssignableFrom(cls))
-                                {
-                                    if (parameterized.getActualTypeArguments()[0] instanceof Class<?>
-                                    && parameterized.getActualTypeArguments()[1] instanceof Class<?>)
-                                {
-                                    object = new TreeMap<Object, Object>(); 
-                                }
-                                }
-                                else if (Map.class.isAssignableFrom(cls))
-                                {
-                                    object = new HashMap<Object, Object>(); 
-                                }
-                                else if (List.class.isAssignableFrom(cls))
-                                {
-                                    object = new ArrayList<Object>();
-                                }
-                            }
-                        }
-                        else if (type instanceof Class<?>)
-                        {
-                            try
-                            {
-                                object = descriptor.getPropertyType().newInstance();
-                            }
-                            catch (Exception e)
-                            {
-                                throw new PropertyPath.Error(e);
-                            }
-                        }
+                        object = factory.create(typeOf(bean));
                         if (object != null)
                         {
                             try
@@ -395,6 +355,16 @@ public class PropertyPath
                                 throw new PropertyPath.Error(e);
                             }
                         }
+                    }
+                    Type type = typeOf(bean);
+                    for (Index index : indexes)
+                    {
+                        if (object == null)
+                        {
+                            break;
+                        }
+                        type = index.typeOf(type);
+                        object = index.get(type, object, factory);
                     }
                     return object;
                 }
@@ -465,200 +435,9 @@ public class PropertyPath
         }
     }
     
-    public final static class MapProperty implements Property
-    {
-        private final Property property;
-        
-        private final String key;
-        
-        public MapProperty(String name, String key)
-        {
-            this.property = new BeanProperty(name);
-            this.key = key;
-        }
-        
-        @SuppressWarnings("unchecked")
-        public Object get(Object bean, boolean create) throws PropertyPath.Error
-        {
-            Map map = (Map) property.get(bean, create);
-            if (map != null)
-            {
-                Object object = map.get(key);
-                if (object == null)
-                {
-                    Type type = typeOf(bean);
-                    if (type instanceof Class)
-                    {
-                        try
-                        {
-                            object = ((Class<?>) type).newInstance();
-                        }
-                        catch (Exception e)
-                        {
-                            throw new PropertyPath.Error(e);
-                        }
-                        map.put(key, object);
-                    }
-                }
-                return object;
-            }
-            return null;
-        }
-        
-        public Type typeOf(Object bean) throws Error
-        {
-            Type type = property.typeOf(bean);
-            if (type != null)
-            {
-                ParameterizedType pt = (ParameterizedType) type;
-                return pt.getActualTypeArguments()[1];
-            }
-            return null;
-        }
-        
-        @SuppressWarnings("unchecked")
-        public void set(Object bean, Object value) throws PropertyPath.Error
-        {
-            try
-            {
-                Map map = (Map) property.get(bean, true); 
-                if (map != null)
-                {
-                    map.put(key, value);
-                }
-            }
-            catch (ClassCastException e)
-            {
-                throw new PropertyPath.Error(e);
-            }
-            
-        }
-    }
 
-    final static class ListProperty implements Property
-    {
-        private final Property property;
-        
-        private final int index;
-        
-        public ListProperty(String name, int index)
-        {
-            this.property = new BeanProperty(name);
-            this.index = index;
-        }
-        
-        @SuppressWarnings("unchecked")
-        public Object get(Object bean, boolean create) throws PropertyPath.Error
-        {
-            Object list = property.get(bean, create);
-            if (list != null)
-            {
-                if (list.getClass().isArray())
-                {
-                    Object object = null;
-                    Object[] array = (Object[]) list;
-                    if (index < array.length)
-                    {
-                        object = array[index];
-                    }
-                    if (object == null && create)
-                    {
-                        try
-                        {
-                            object = list.getClass().getComponentType().newInstance();
-                        }
-                        catch (Exception e)
-                        {
-                            throw new PropertyPath.Error(e);
-                        }
-                        if (index >= array.length)
-                        {
-                            array = (Object[]) Array.newInstance(list.getClass().getComponentType(), index + 1);
-                        }
-                        array[index] = object;
-                    }
-                    return object;
-                }
-                else if (list instanceof List)
-                {
-                    Object object = null;
-                    List snert = (List) list;
-                    if (index < snert.size())
-                    {
-                        object = snert.get(index);
-                    }
-                    if (object == null && create)
-                    {
-                        Type type = typeOf(bean);
-                        if (type instanceof Class)
-                        {
-                            try
-                            {
-                                object = ((Class<?>) type).newInstance();
-                            }
-                            catch (Exception e)
-                            {
-                                throw new PropertyPath.Error(e);
-                            }
-                            snert.add(index, object);
-                        }
-                    }
-                    return object;
-                }
-                throw new PropertyPath.Error();
-            }
-            return null;
-        }
-        
-        public Type typeOf(Object bean) throws Error
-        {
-            Object list = property.get(bean, true);
-            if (list != null)
-            {
-                if (list.getClass().isArray())
-                {
-                    list.getClass().getComponentType();
-                }
-                else if (list instanceof List)
-                {
-                    Method method;
-                    try
-                    {
-                        method = list.getClass().getMethod("get", Integer.class);
-                    }
-                    catch (Exception e)
-                    {
-                        throw new PropertyPath.Error(e);
-                    }
-                    return method.getGenericReturnType();
-                }
-            }
-            return null;
-        }
-        
-        @SuppressWarnings("unchecked")
-        public void set(Object bean, Object value) throws PropertyPath.Error
-        {
-            Object list = property.get(value, true);
-            if (list != null)
-            {
-                if (list.getClass().isArray())
-                {
-                    Array.set(list, index, value);
-                }
-                else if (list instanceof List)
-                {
-                    ((List) list).add(index, value);
-                }
-                else
-                {
-                    throw new PropertyPath.Error();
-                }
-            }
-        }
-    }
-    
-    public Property newProperty(String part) throws PropertyPath.Error
+
+    Property newProperty(String part) throws PropertyPath.Error
     {
         part = part.trim();
         if (part.length() == 0 || !Character.isJavaIdentifierStart(part.charAt(0)))
@@ -675,11 +454,12 @@ public class PropertyPath
         i = eatWhite(part, i);
         
         // Check for an optional indexed parameter.
-        if (i != part.length())
+        while (i != part.length())
         {
+            List<Index> indices = new ArrayList<Index>();
             try
             {
-                return newIndexProperty(identifier, part, i);
+                i = newIndex(part, i, indices);
             }
             catch (StringIndexOutOfBoundsException e)
             {
@@ -691,10 +471,11 @@ public class PropertyPath
             }
         }
         
-        return new BeanProperty(identifier);
+        return new Property(identifier);
     }
     
-    public Property newIndexProperty(String name, String part, int i) throws PropertyPath.Error
+    static int newIndex(String part, int i, List<Index> indexes)
+        throws PropertyPath.Error
     {
         if (part.charAt(i++) != '[')
         {
@@ -762,24 +543,30 @@ public class PropertyPath
             {
                 throw new PropertyPath.Error();
             }
-            i = eatWhite(part, i);
-            if (i != part.length())
-            {
-                throw new PropertyPath.Error();
-            }
-            return new MapProperty(name, newKey.toString());
+
+            indexes.add( new MapIndex(newKey.toString()));
+            
+            return eatWhite(part, i);
         }
-        else
+
+        int index = 0;
+        do
         {
-            int index = 0;
-            do
-            {
-                int n = Integer.parseInt(new Character(part.charAt(i++)).toString(), 10);
-                index = index * 10 + n;
-            }
-            while ("] ".indexOf(part.charAt(i)) == -1);
-            return new ListProperty(name, index);
+            int n = Integer.parseInt(new Character(part.charAt(i++)).toString(), 10);
+            index = index * 10 + n;
         }
+        while ("] ".indexOf(part.charAt(i)) == -1);
+        
+        i = eatWhite(part, i);
+        
+        if (part.charAt(i) != ']')
+        {
+            throw new PropertyPath.Error();
+        }
+        
+        indexes.add(new ListIndex(index));
+        
+        return eatWhite(part, i + 1);
     }
 
     public final static class Error extends Exception
