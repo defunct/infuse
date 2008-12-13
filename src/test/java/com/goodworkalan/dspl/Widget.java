@@ -1,25 +1,43 @@
 package com.goodworkalan.dspl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Widget
 {
+    private Widget widget;
+
     private List<List<String>> stringListList;
     
     private Map<String, Map<String, String>> stringMapMap;
 
     public Widget()
     {
-        stringListList = new ArrayList<List<String>>();
-        stringMapMap = new HashMap<String, Map<String,String>>();
+    }
+
+    public void setWidget(Widget widget)
+    {
+        this.widget = widget;
+    }
+
+    public Widget getWidget()
+    {
+        return widget;
+    }
+    
+    public void setStringListList(List<List<String>> stringListList)
+    {
+        this.stringListList = stringListList;
     }
     
     public List<List<String>> getStringListList()
     {
         return stringListList;
+    }
+    
+    public void setStringMapMap(Map<String, Map<String, String>> stringMapMap)
+    {
+        this.stringMapMap = stringMapMap;
     }
     
     public Map<String, Map<String, String>> getStringMapMap()

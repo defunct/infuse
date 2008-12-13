@@ -1,15 +1,15 @@
 package com.goodworkalan.dspl;
 
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -116,6 +116,11 @@ public class PropertyPath
         }
     }
     
+    public void set(Object bean, Object value, boolean create) throws PropertyPath.Error
+    {
+        set(bean, value, create ? new Factory() : null);
+    }
+    
     /**
      * Skip whitespace between property names, array brackets, and property
      * indices.
@@ -158,11 +163,15 @@ public class PropertyPath
     
     interface Index
     {
+        public boolean indexedBy(Class<?> cls);
+        
+        public Object getIndex();
+
         public Type typeOf(Type type) throws PropertyPath.Error;
         
         public Object get(Type type, Object object, Factory factory) throws PropertyPath.Error;
     }
-    
+
     final static class ListIndex implements Index
     {
         private final int index;
@@ -170,6 +179,16 @@ public class PropertyPath
         public ListIndex(int index)
         {
             this.index = index;
+        }
+
+        public Object getIndex()
+        {
+            return index;
+        }
+
+        public boolean indexedBy(Class<?> cls)
+        {
+            return int.class.isAssignableFrom(cls) || Integer.class.isAssignableFrom(cls);
         }
 
         public Type typeOf(Type type) throws PropertyPath.Error
@@ -267,6 +286,23 @@ public class PropertyPath
         }
     }
 
+    final static Class<?> toClass(Type type)
+    {
+        if (type instanceof Class)
+        {
+            return (Class<?>) type;
+        }
+        else if (type instanceof ParameterizedType)
+        {
+            if (((ParameterizedType) type).getRawType() instanceof
+                     Class)
+            {
+                return (Class<?>) ((ParameterizedType) type).getRawType();
+            }
+        }
+        return null;
+    }
+
     final static class MapIndex implements Index
     {
         final String index;
@@ -274,6 +310,16 @@ public class PropertyPath
         public MapIndex(String index)
         {
             this.index = index;
+        }
+        
+        public Object getIndex()
+        {
+            return index;
+        }
+        
+        public boolean indexedBy(Class<?> cls)
+        {
+            return String.class.isAssignableFrom(cls);
         }
 
         public Type typeOf(Type type) throws Error
@@ -312,126 +358,157 @@ public class PropertyPath
         {
             return name;
         }
-        
-        public Object get(Object bean, Factory factory) throws PropertyPath.Error
+
+        public String methodName()
         {
-            BeanInfo beanInfo;
-            try
+            return name.substring(0, 1).toUpperCase() + name.substring(1);
+        }
+
+        public Map<Class<?>, String> writeMethodNames()
+        {
+            Map<Class<?>, String> map = new HashMap<Class<?>, String>();
+            map.put(Object.class, "set" + methodName());
+            return map;
+        }
+
+        public Map<Class<?>, String> readMethodNames()
+        {
+            Map<Class<?>, String> map = new HashMap<Class<?>, String>();
+            map.put(Boolean.class, "is" + methodName());
+            map.put(boolean.class, "is" + methodName());
+            map.put(Object.class, "get" + methodName());
+            return map;
+        }
+
+        public Set<Method> readMethods(Object bean, boolean set)
+        {
+            Map<Class<?>, String> readerNames = readMethodNames();
+            Set<Method> readers = new HashSet<Method>();
+            for (Method method : bean.getClass().getMethods())
             {
-                beanInfo = Introspector.getBeanInfo(bean.getClass());
-            }
-            catch (IntrospectionException e)
-            {
-                throw new PropertyPath.Error(e);
-            }
-            for (PropertyDescriptor descriptor : beanInfo.getPropertyDescriptors())
-            {
-                if (descriptor.getName().equals(name))
+                if (readerNames.values().contains(method.getName()))
                 {
-                    if (descriptor.getReadMethod() == null)
+                    for (Class<?> result : readerNames.keySet())
                     {
-                        throw new Error();
-                    }
-                    Object object = null;
-                    try
-                    {
-                        object = descriptor.getReadMethod().invoke(bean);
-                    }
-                    catch (Exception e)
-                    {
-                        throw new PropertyPath.Error(e);
-                    }
-                    if (object == null && factory != null && descriptor.getWriteMethod() != null)
-                    {
-                        object = factory.create(typeOf(bean));
-                        if (object != null)
+                        if (result.isAssignableFrom(toClass(method.getGenericReturnType()))
+                                && readerNames.get(result).equals(method.getName()))
                         {
-                            try
-                            {
-                                descriptor.getWriteMethod().invoke(bean, object);
-                            }
-                            catch (Exception e)
-                            {
-                                throw new PropertyPath.Error(e);
-                            }
+                            readers.add(method);
                         }
                     }
-                    Type type = typeOf(bean);
-                    for (Index index : indexes)
-                    {
-                        if (object == null)
-                        {
-                            break;
-                        }
-                        type = index.typeOf(type);
-                        object = index.get(type, object, factory);
-                    }
-                    return object;
                 }
             }
-            throw new PropertyPath.Error();
+            Iterator<Method> methods = readers.iterator();
+            while (methods.hasNext())
+            {
+                Method method = methods.next();
+                Type[] types = method.getGenericParameterTypes();
+                if (indexes.length - (set ? 1 : 0) < types.length)
+                {
+                    methods.remove();
+                }
+                else
+                {
+                    for (int i = 0; i < types.length; i++)
+                    {
+                        Class<?> cls = toClass(types[i]);
+                        if (!indexes[i].indexedBy(cls))
+                        {
+                            methods.remove();
+                            break;
+                        }
+                    }
+                }
+            }
+            return readers;
+        }
+
+        public Object get(Object bean, Factory factory) throws PropertyPath.Error
+        {
+            Set<Method> readers = readMethods(bean, false);
+            Object object = null;
+            for (Method method : readers)
+            {
+                Object[] args = new Object[method.getParameterTypes().length];
+                for (int i = 0; i < args.length; i++)
+                {
+                    args[i] = indexes[i].getIndex();
+                }
+                try
+                {
+                    object = method.invoke(bean, args);
+                }
+                catch (Exception e)
+                {
+                    throw new PropertyPath.Error(e);
+                }
+                Type type = method.getGenericReturnType();
+                for (int i = args.length; i < indexes.length; i++)
+                {
+                    type = indexes[i].typeOf(type);
+                    object = indexes[i].get(type, object, factory);
+                }
+            }
+            return object;
         }
         
         public Type typeOf(Object bean) throws Error
         {
-            BeanInfo beanInfo;
-            try
+            Set<Method> readers = readMethods(bean, false);
+            Type type = null;
+            Iterator<Method> methods = readers.iterator();
+            while (type == null && methods.hasNext())
             {
-                beanInfo = Introspector.getBeanInfo(bean.getClass());
-            }
-            catch (IntrospectionException e)
-            {
-                throw new PropertyPath.Error(e);
-            }
-            for (PropertyDescriptor descriptor : beanInfo.getPropertyDescriptors())
-            {
-                if (descriptor.getName().equals(name))
+                Method method = methods.next();
+                int args = method.getParameterTypes().length;
+                type = method.getGenericReturnType();
+                for (int i = args; i < indexes.length; i++)
                 {
-                    if (descriptor.getReadMethod() != null)
-                    {
-                        return descriptor.getReadMethod().getGenericReturnType();
-                    }
-                    else if (descriptor.getWriteMethod() != null)
-                    {
-                        return descriptor.getWriteMethod().getGenericParameterTypes()[0];
-                    }
-                    throw new PropertyPath.Error();
+                    type = indexes[i].typeOf(type);
                 }
             }
-            throw new PropertyPath.Error();
+            return type;
         }
         
         public void set(Object bean, Object value) throws Error
         {
-            BeanInfo beanInfo;
-            try
+            Set<Method> writers = new HashSet<Method>();
+            String methodName = "set" + methodName();
+            METHOD: for (Method method : bean.getClass().getMethods())
             {
-                beanInfo = Introspector.getBeanInfo(bean.getClass());
-            }
-            catch (IntrospectionException e)
-            {
-                throw new PropertyPath.Error(e);
-            }
-            for (PropertyDescriptor descriptor : beanInfo.getPropertyDescriptors())
-            {
-                if (descriptor.getName().equals(name))
+                Type[] types = method.getGenericParameterTypes();
+                if (method.getName().equals(methodName)
+                    && types.length == indexes.length + 1
+                    && (value == null || value.getClass().isAssignableFrom(toClass(types[types.length - 1]))))
                 {
-                    if (descriptor.getWriteMethod() == null)
+                    for (int i = 0; i < indexes.length; i++)
                     {
-                        throw new PropertyPath.Error();
+                        if (!indexes[i].indexedBy(toClass(types[i])))
+                        {
+                            continue METHOD;
+                        }
                     }
-                    try
-                    {
-                        descriptor.getWriteMethod().invoke(bean, value);
-                        return;
-                    }
-                    catch (Exception e)
-                    {
-                        throw new PropertyPath.Error(e);
-                    }
+                    writers.add(method);
                 }
             }
-            throw new PropertyPath.Error();
+            if (writers.size() == 1)
+            {
+                Method method = writers.iterator().next();
+                Object[] args = new Object[indexes.length + 1];
+                for (int i = 0; i < indexes.length; i++)
+                {
+                    args[i] = indexes[i].getIndex();
+                }
+                args[args.length - 1] = value;
+                try
+                {
+                    method.invoke(bean, args);
+                }
+                catch (Exception e)
+                {
+                    throw new PropertyPath.Error(e);
+                }
+            }
         }
     }
     

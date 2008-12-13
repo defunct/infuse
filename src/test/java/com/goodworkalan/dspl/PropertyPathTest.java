@@ -14,8 +14,6 @@ import java.util.TreeMap;
 
 import org.testng.annotations.Test;
 
-import com.goodworkalan.dspl.PropertyPath.Error;
-
 public class PropertyPathTest
 {
     @Test public void constructor() throws PropertyPath.Error 
@@ -91,7 +89,7 @@ public class PropertyPathTest
     {
         PropertyPath.Index index = new PropertyPath.ListIndex(0);
         assertNull(index.typeOf(Object.class));
-        Object bean = new Widget();
+        Widget bean = new Widget();
         PropertyPath.Property property = new PropertyPath.Property("stringMapMap");
         assertNull(index.typeOf(property.typeOf(bean)));
         property = new PropertyPath.Property("stringListList");
@@ -99,6 +97,8 @@ public class PropertyPathTest
         type = index.typeOf(type);
         type = index.typeOf(type);
         assertEquals(String.class, type);
+        
+        bean.setStringListList(new ArrayList<List<String>>());
 
         PropertyPath.Factory factory = new PropertyPath.Factory();
         type = property.typeOf(bean);
@@ -260,5 +260,15 @@ public class PropertyPathTest
     public void nonJavaIdentifierStart() throws PropertyPath.Error
     {
         PropertyPath.newProperty("1");
+    }
+    
+    public void setListProperty() throws PropertyPath.Error
+    {
+        PropertyPath path = new PropertyPath("stringListList[0][0]");
+        Widget widget = new Widget();
+        path.set(widget, "hello", false);
+        assertNull(widget.getStringListList());
+        path.set(widget, "hello", true);
+        assertEquals(widget.getStringListList().get(0).get(0), "hello");
     }
 }
