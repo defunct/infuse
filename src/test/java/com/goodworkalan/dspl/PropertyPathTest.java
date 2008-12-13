@@ -23,42 +23,40 @@ public class PropertyPathTest
     
     @Test public void get() throws PropertyPath.Error
     {
-        PropertyPath path = new PropertyPath("name");
-        Department department = new Department();
-        department.setName("Accounting");
-        assertEquals(path.get(department), "Accounting");
+        PropertyPath path = new PropertyPath("string");
+        Widget widget = new Widget();
+        widget.setString("foo");
+        assertEquals(path.get(widget), "foo");
     }
     
     @Test public void set() throws PropertyPath.Error
     {
-        PropertyPath path = new PropertyPath("name");
-        Department department = new Department();
-        path.set(department, "Accounting", new PropertyPath.Factory());
-        assertEquals(department.getName(), "Accounting");
+        PropertyPath path = new PropertyPath("string");
+        Widget widget = new Widget();
+        path.set(widget, "foo", new PropertyPath.Factory());
+        assertEquals(widget.getString(), "foo");
     }
     
     @Test public void getChild() throws PropertyPath.Error
     {
-        PropertyPath path = new PropertyPath("phone.number");
+        PropertyPath path = new PropertyPath("widget.string");
         
-        Department department = new Department();
-        Phone phone = new Phone();
-        phone.setNumber("504.717.1428");
-        department.setPhone(phone);
+        Widget widget = new Widget();
+        widget.setString("foo");
+        Widget parent = new Widget();
+        parent.setWidget(widget);
         
-        assertEquals(path.get(department), "504.717.1428");
+        assertEquals(path.get(parent), "foo");
     }
     
     @Test public void setChild() throws PropertyPath.Error
     {
-        PropertyPath path = new PropertyPath("phone.number");
+        PropertyPath path = new PropertyPath("widget.string");
         
-        Department department = new Department();
-        Phone phone = new Phone();
-        department.setPhone(phone);
-
-        path.set(department, "504.717.1428", new PropertyPath.Factory());
-        assertEquals(department.getPhone().getNumber(), "504.717.1428");
+        Widget widget = new Widget();
+        
+        path.set(widget, "foo", new PropertyPath.Factory());
+        assertEquals(widget.getWidget().getString(), "foo");
     }
     
     @Test
@@ -262,13 +260,17 @@ public class PropertyPathTest
         PropertyPath.newProperty("1");
     }
     
+    @Test
     public void setListProperty() throws PropertyPath.Error
     {
         PropertyPath path = new PropertyPath("stringListList[0][0]");
+     
         Widget widget = new Widget();
         path.set(widget, "hello", false);
         assertNull(widget.getStringListList());
+        /*
         path.set(widget, "hello", true);
         assertEquals(widget.getStringListList().get(0).get(0), "hello");
+        */
     }
 }

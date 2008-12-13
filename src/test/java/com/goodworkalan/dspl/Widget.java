@@ -5,6 +5,10 @@ import java.util.Map;
 
 public class Widget
 {
+    private String string;
+    
+    private int number;
+    
     private Widget widget;
 
     private List<List<String>> stringListList;
@@ -13,6 +17,26 @@ public class Widget
 
     public Widget()
     {
+    }
+
+    public void setNumber(int number)
+    {
+        this.number = number;
+    }
+    
+    public int getNumber()
+    {
+        return number;
+    }
+
+    public void setString(String string)
+    {
+        this.string = string;
+    }
+    
+    public String getString()
+    {
+        return string;
     }
 
     public void setWidget(Widget widget)

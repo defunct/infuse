@@ -364,13 +364,6 @@ public class PropertyPath
             return name.substring(0, 1).toUpperCase() + name.substring(1);
         }
 
-        public Map<Class<?>, String> writeMethodNames()
-        {
-            Map<Class<?>, String> map = new HashMap<Class<?>, String>();
-            map.put(Object.class, "set" + methodName());
-            return map;
-        }
-
         public Map<Class<?>, String> readMethodNames()
         {
             Map<Class<?>, String> map = new HashMap<Class<?>, String>();
@@ -423,12 +416,26 @@ public class PropertyPath
             return readers;
         }
 
+        boolean create(Object bean, Type type, int indexLength, Factory factory) throws Error
+        {
+            Method method = explicitSet(bean, type, indexLength);
+            if (method != null)
+            {
+                Object value = factory.create(type);
+                set(method, bean, value);
+                return true;
+            }
+            return false;
+        }
+
         public Object get(Object bean, Factory factory) throws PropertyPath.Error
         {
             Set<Method> readers = readMethods(bean, false);
             Object object = null;
-            for (Method method : readers)
+            Iterator<Method> methods = readers.iterator();
+            while (object == null && methods.hasNext())
             {
+                Method method = methods.next();
                 Object[] args = new Object[method.getParameterTypes().length];
                 for (int i = 0; i < args.length; i++)
                 {
@@ -442,11 +449,18 @@ public class PropertyPath
                 {
                     throw new PropertyPath.Error(e);
                 }
-                Type type = method.getGenericReturnType();
-                for (int i = args.length; i < indexes.length; i++)
+                if (object == null && factory != null && create(bean, method.getGenericReturnType(), args.length, factory))
                 {
-                    type = indexes[i].typeOf(type);
-                    object = indexes[i].get(type, object, factory);
+                    object = get(bean, factory);
+                }
+                else
+                {
+                    Type type = method.getGenericReturnType();
+                    for (int i = args.length; i < indexes.length; i++)
+                    {
+                        type = indexes[i].typeOf(type);
+                        object = indexes[i].get(type, object, factory);
+                    }
                 }
             }
             return object;
@@ -469,19 +483,47 @@ public class PropertyPath
             }
             return type;
         }
-        
+
         public void set(Object bean, Object value) throws Error
         {
+            Method method = explicitSet(bean, value == null ? null : value.getClass(), indexes.length);
+            if (method != null)
+            {
+                set(method, bean, value);
+            }
+        }
+        
+        void set(Method method, Object bean, Object value) throws Error
+        {
+            Object[] args = new Object[method.getParameterTypes().length];
+            for (int i = 0; i < args.length - 1; i++)
+            {
+                args[i] = indexes[i].getIndex();
+            }
+            args[args.length - 1] = value;
+            try
+            {
+                method.invoke(bean, args);
+            }
+            catch (Exception e)
+            {
+                throw new PropertyPath.Error(e);
+            }
+        }
+        
+        Method explicitSet(Object bean, Type type, int indexLength) throws Error
+        {
+            Class<?> cls = toClass(type);
             Set<Method> writers = new HashSet<Method>();
             String methodName = "set" + methodName();
             METHOD: for (Method method : bean.getClass().getMethods())
             {
                 Type[] types = method.getGenericParameterTypes();
                 if (method.getName().equals(methodName)
-                    && types.length == indexes.length + 1
-                    && (value == null || value.getClass().isAssignableFrom(toClass(types[types.length - 1]))))
+                    && types.length == indexLength + 1
+                    && (cls == null || cls.isAssignableFrom(toClass(types[indexLength]))))
                 {
-                    for (int i = 0; i < indexes.length; i++)
+                    for (int i = 0; i < indexLength; i++)
                     {
                         if (!indexes[i].indexedBy(toClass(types[i])))
                         {
@@ -493,22 +535,9 @@ public class PropertyPath
             }
             if (writers.size() == 1)
             {
-                Method method = writers.iterator().next();
-                Object[] args = new Object[indexes.length + 1];
-                for (int i = 0; i < indexes.length; i++)
-                {
-                    args[i] = indexes[i].getIndex();
-                }
-                args[args.length - 1] = value;
-                try
-                {
-                    method.invoke(bean, args);
-                }
-                catch (Exception e)
-                {
-                    throw new PropertyPath.Error(e);
-                }
+                return writers.iterator().next();
             }
+            return null;
         }
     }
     
