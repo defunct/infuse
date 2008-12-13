@@ -3,6 +3,7 @@ package com.goodworkalan.dspl;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -106,5 +107,24 @@ public class PropertyPathTest
         type = index.typeOf(type);
         type = index.typeOf(type);
         assertEquals(String.class, type);
+    }
+    
+    @Test
+    public void error()
+    {
+        try
+        {
+            throw new PropertyPath.Error();
+        }
+        catch (PropertyPath.Error e)
+        {
+        }
+        try
+        {
+            throw new PropertyPath.Error(new IOException());
+        }
+        catch (PropertyPath.Error e)
+        {
+        }
     }
 }
