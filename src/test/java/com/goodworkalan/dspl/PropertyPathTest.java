@@ -72,6 +72,20 @@ public class PropertyPathTest
         assertEquals(factory.create(List.class).getClass(), ArrayList.class);
     }
 
+    @Test(expectedExceptions=UnsupportedOperationException.class)
+    public void notFound() throws Exception
+    {
+        PropertyPath.Factory factory = new PropertyPath.Factory();
+        factory.create(Runnable.class);
+    }
+
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void noDefaultConstructor() throws Exception
+    {
+        PropertyPath.Factory factory = new PropertyPath.Factory();
+        factory.create(Integer.class);
+    }
+
     @Test
     public void listIndex() throws Exception
     {
@@ -194,12 +208,57 @@ public class PropertyPathTest
     public void stringIndex() throws PropertyPath.Error
     {
         assertName("a ['a']", "a");
+        assertName("a ['abcdef']", "abcdef");
         assertName("a ['\\'']", "'");
         assertName("a [\"\\\"\"]", "\"");
         assertName("a ['\\b']", "\b");
+        assertName("a ['\\t']", "\t");
         assertName("a ['\\f']", "\f");
         assertName("a ['\\r']", "\r");
         assertName("a ['\\n']", "\n");
         assertName("a ['\\u0041']", "A");
+        assertName("a ['\\x41']", "A");
+    }
+    
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void stringIndexBadClosingBracket() throws PropertyPath.Error
+    {
+        PropertyPath.newProperty("a['a'a");
+    }
+    
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void stringIndexIncomplete() throws PropertyPath.Error
+    {
+        PropertyPath.newProperty("a['a");
+    }
+
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void stringIndexMismatchQuotes() throws PropertyPath.Error
+    {
+        PropertyPath.newProperty("a['a\"]");
+    }
+    
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void stringIndexBadEscape() throws PropertyPath.Error
+    {
+        PropertyPath.newProperty("a['\\a']");
+    }
+    
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void stringIndexWithZero() throws PropertyPath.Error
+    {
+        PropertyPath.newProperty("a['\0']");
+    }
+    
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void emptyString() throws PropertyPath.Error
+    {
+        PropertyPath.newProperty("");
+    }
+    
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void nonJavaIdentifierStart() throws PropertyPath.Error
+    {
+        PropertyPath.newProperty("1");
     }
 }
