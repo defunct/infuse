@@ -269,7 +269,7 @@ public class PropertyPath
 
     final static class MapIndex implements Index
     {
-        private final String index;
+        final String index;
         
         public MapIndex(String index)
         {
@@ -298,9 +298,9 @@ public class PropertyPath
 
     final static class Property
     {
-        private final String name;
+        final String name;
         
-        private final Index[] indexes;
+        final Index[] indexes;
         
         public Property(String name, Index...indexes)
         {
@@ -437,7 +437,7 @@ public class PropertyPath
     
 
 
-    Property newProperty(String part) throws PropertyPath.Error
+    static Property newProperty(String part) throws PropertyPath.Error
     {
         part = part.trim();
         if (part.length() == 0 || !Character.isJavaIdentifierStart(part.charAt(0)))
@@ -453,10 +453,11 @@ public class PropertyPath
         // Skip an whitespace.
         i = eatWhite(part, i);
         
+        List<Index> indices = new ArrayList<Index>();
+
         // Check for an optional indexed parameter.
         while (i != part.length())
         {
-            List<Index> indices = new ArrayList<Index>();
             try
             {
                 i = newIndex(part, i, indices);
@@ -471,7 +472,7 @@ public class PropertyPath
             }
         }
         
-        return new Property(identifier);
+        return new Property(identifier, indices.toArray(new Index[indices.size()]));
     }
     
     static int newIndex(String part, int i, List<Index> indexes)
@@ -481,7 +482,9 @@ public class PropertyPath
         {
             throw new PropertyPath.Error();
         }
+
         i = eatWhite(part, i);
+        
         if ("\"'".indexOf(part.charAt(i)) != -1)
         {
             StringBuilder newKey = new StringBuilder();
@@ -534,6 +537,7 @@ public class PropertyPath
                     default:
                         throw new PropertyPath.Error();
                     }
+                    break;
                 default:
                     newKey.append(ch);
                 }
@@ -558,11 +562,6 @@ public class PropertyPath
         while ("] ".indexOf(part.charAt(i)) == -1);
         
         i = eatWhite(part, i);
-        
-        if (part.charAt(i) != ']')
-        {
-            throw new PropertyPath.Error();
-        }
         
         indexes.add(new ListIndex(index));
         

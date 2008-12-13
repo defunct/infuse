@@ -14,6 +14,8 @@ import java.util.TreeMap;
 
 import org.testng.annotations.Test;
 
+import com.goodworkalan.dspl.PropertyPath.Error;
+
 public class PropertyPathTest
 {
     @Test public void constructor() throws PropertyPath.Error 
@@ -142,7 +144,7 @@ public class PropertyPathTest
     }
     
     @Test
-    public void newIndex() throws PropertyPath.Error
+    public void numericIndex() throws PropertyPath.Error
     {
         List<PropertyPath.Index> indexes = new ArrayList<PropertyPath.Index>();
 
@@ -151,5 +153,53 @@ public class PropertyPathTest
         
         assertEquals(indexes.get(0).getClass(), PropertyPath.ListIndex.class);
         assertEquals(part.length(), i);
+    }
+    
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void badNumericIndexAlphaNum() throws PropertyPath.Error
+    {
+        String part = "a[ 1i ] "; 
+        PropertyPath.newProperty(part);
+    }
+    
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void badNumericIndexNonAlphaNum() throws PropertyPath.Error
+    {
+        String part = "a[ 1i ["; 
+        PropertyPath.newProperty(part);
+    }
+    
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void badIndexAlphaNum() throws PropertyPath.Error
+    {
+        String part = "a 1"; 
+        PropertyPath.newProperty(part);
+    }
+    
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void badIndexNonAlphaNum() throws PropertyPath.Error
+    {
+        String part = "a]"; 
+        PropertyPath.newProperty(part);
+    }
+    
+    private void assertName(String part, String name) throws PropertyPath.Error
+    {
+        PropertyPath.Property property = PropertyPath.newProperty(part);
+        PropertyPath.Index index = property.indexes[0];
+        assertEquals(((PropertyPath.MapIndex) index).index, name);
+    }
+    
+    @Test
+    public void stringIndex() throws PropertyPath.Error
+    {
+        assertName("a ['a']", "a");
+        assertName("a ['\\'']", "'");
+        assertName("a [\"\\\"\"]", "\"");
+        assertName("a ['\\b']", "\b");
+        assertName("a ['\\f']", "\f");
+        assertName("a ['\\r']", "\r");
+        assertName("a ['\\n']", "\n");
+        assertName("a ['\\u0041']", "A");
     }
 }
