@@ -4,6 +4,7 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.beans.PropertyVetoException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -158,7 +159,7 @@ public class PropertyPath
         return i;
     }
     
-    private interface Property
+    interface Property
     {
         public Object get(Object bean, boolean create) throws PropertyPath.Error;
         
@@ -166,8 +167,51 @@ public class PropertyPath
         
         public void set(Object bean, Object value) throws PropertyPath.Error;
     }
+    
+    interface Index
+    {
+        public Type typeOf(Type type) throws PropertyPath.Error;
+    }
+    
+    final static class ListIndex implements Index
+    {
+        public Type typeOf(Type type) throws PropertyPath.Error
+        {
+            if (type instanceof ParameterizedType)
+            {
+                ParameterizedType parameterized = (ParameterizedType) type;
+                if (parameterized.getRawType() instanceof Class)
+                {
+                    if (((Class<?>) parameterized.getRawType()).isAssignableFrom(List.class))
+                    {
+                        return parameterized.getActualTypeArguments()[0];
+                    }
+                }
+            }
+            return null;
+        }
+    }
 
-    public final static class BeanProperty implements Property
+    final static class MapIndex implements Index
+    {
+        public Type typeOf(Type type) throws Error
+        {
+            if (type instanceof ParameterizedType)
+            {
+                ParameterizedType parameterized = (ParameterizedType) type;
+                if (parameterized.getRawType() instanceof Class)
+                {
+                    if (((Class<?>) parameterized.getRawType()).isAssignableFrom(Map.class))
+                    {
+                        return parameterized.getActualTypeArguments()[1];
+                    }
+                }
+            }
+            return null;
+        }
+    }
+
+    final static class BeanProperty implements Property
     {
         private final String name;
         

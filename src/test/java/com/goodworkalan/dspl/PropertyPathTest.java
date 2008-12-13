@@ -2,6 +2,8 @@ package com.goodworkalan.dspl;
 
 import static org.testng.Assert.assertEquals;
 
+import java.lang.reflect.Type;
+
 import org.testng.annotations.Test;
 
 public class PropertyPathTest
@@ -51,10 +53,27 @@ public class PropertyPathTest
         assertEquals(department.getPhone().getNumber(), "504.717.1428");
     }
     
-    @Test public void reflectMap() throws Exception
+    @Test
+    public void listIndex() throws Exception
     {
-        PropertyPath path = new PropertyPath("phone.foo['item'].name");
-        Department department = new Department();
-        path.set(department, "temp");
+        PropertyPath.Index index = new PropertyPath.ListIndex();
+        PropertyPath.BeanProperty property = new PropertyPath.BeanProperty("stringListList");
+        Object bean = new Widget();
+        Type type = property.typeOf(bean);
+        type = index.typeOf(type);
+        type = index.typeOf(type);
+        System.out.println(type);
+    }
+    
+    @Test
+    public void mapIndex() throws Exception
+    {
+        PropertyPath.Index index = new PropertyPath.MapIndex();
+        PropertyPath.BeanProperty property = new PropertyPath.BeanProperty("stringMapMap");
+        Object bean = new Widget();
+        Type type = property.typeOf(bean);
+        type = index.typeOf(type);
+        type = index.typeOf(type);
+        System.out.println(type);
     }
 }
