@@ -14,7 +14,6 @@ public class Widget
     public Widget()
     {
         stringListList = new ArrayList<List<String>>();
-        stringListList.add(new ArrayList<String>());
         stringMapMap = new HashMap<String, Map<String,String>>();
     }
     

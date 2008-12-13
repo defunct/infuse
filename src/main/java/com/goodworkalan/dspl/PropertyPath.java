@@ -4,7 +4,6 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.beans.PropertyVetoException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -171,24 +170,97 @@ public class PropertyPath
     interface Index
     {
         public Type typeOf(Type type) throws PropertyPath.Error;
+        
+        public Object get(Type type, Object object, Factory factory) throws PropertyPath.Error;
     }
     
     final static class ListIndex implements Index
     {
+        private final int index;
+        
+        public ListIndex(int index)
+        {
+            this.index = index;
+        }
+
         public Type typeOf(Type type) throws PropertyPath.Error
         {
             if (type instanceof ParameterizedType)
             {
                 ParameterizedType parameterized = (ParameterizedType) type;
-                if (parameterized.getRawType() instanceof Class)
+                if (((Class<?>) parameterized.getRawType()).isAssignableFrom(List.class))
                 {
-                    if (((Class<?>) parameterized.getRawType()).isAssignableFrom(List.class))
-                    {
-                        return parameterized.getActualTypeArguments()[0];
-                    }
+                    return parameterized.getActualTypeArguments()[0];
                 }
             }
             return null;
+        }
+        
+        @SuppressWarnings("unchecked")
+        private List<Object> toList(Object object)
+        {
+            return (List) object;
+        }
+
+        public Object get(Type type, Object object, Factory factory) throws PropertyPath.Error
+        {
+            Object got = null;
+            try
+            {
+                List<Object> list = toList(object);
+                if (index < list.size())
+                {
+                    got = list.get(index);
+                }
+                if (got == null && factory != null)
+                {
+                    if (type instanceof Class)
+                    {
+                        got = factory.create((Class<?>) type);
+                    }
+                    else
+                    {
+                        got = factory.create((Class<?>) ((ParameterizedType) type).getRawType());
+                    }
+                    list.add(index, got);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new PropertyPath.Error(e);
+            }
+            return got;
+        }
+    }
+    
+    final static class Factory
+    {
+        public Object create(Class<?> cls) throws PropertyPath.Error
+        {
+            if (!cls.isInterface())
+            {
+                try
+                {
+                    return cls.newInstance();
+                }
+                catch (Exception e)
+                {
+                    throw new PropertyPath.Error(e);
+                }
+            }
+            else if (SortedMap.class.isAssignableFrom(cls))
+            {
+                return new TreeMap<Object, Object>();
+            }
+            else if (Map.class.isAssignableFrom(cls))
+            {
+                return new HashMap<Object, Object>();
+            }
+            else if (List.class.isAssignableFrom(cls))
+            {
+                return new ArrayList<Object>();
+            }
+            throw new UnsupportedOperationException();
         }
     }
 
@@ -199,14 +271,16 @@ public class PropertyPath
             if (type instanceof ParameterizedType)
             {
                 ParameterizedType parameterized = (ParameterizedType) type;
-                if (parameterized.getRawType() instanceof Class)
+                if (((Class<?>) parameterized.getRawType()).isAssignableFrom(Map.class))
                 {
-                    if (((Class<?>) parameterized.getRawType()).isAssignableFrom(Map.class))
-                    {
-                        return parameterized.getActualTypeArguments()[1];
-                    }
+                    return parameterized.getActualTypeArguments()[1];
                 }
             }
+            return null;
+        }
+        
+        public Object get(Type type, Object object, Factory factory) throws PropertyPath.Error
+        {
             return null;
         }
     }
