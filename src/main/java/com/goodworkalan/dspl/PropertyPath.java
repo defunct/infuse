@@ -286,23 +286,6 @@ public class PropertyPath
         }
     }
 
-    final static Class<?> toClass(Type type)
-    {
-        if (type instanceof Class)
-        {
-            return (Class<?>) type;
-        }
-        else if (type instanceof ParameterizedType)
-        {
-            if (((ParameterizedType) type).getRawType() instanceof
-                     Class)
-            {
-                return (Class<?>) ((ParameterizedType) type).getRawType();
-            }
-        }
-        return null;
-    }
-
     final static class MapIndex implements Index
     {
         final String index;
@@ -542,6 +525,23 @@ public class PropertyPath
     }
     
 
+
+    final static Class<?> toClass(Type type)
+    {
+        if (type instanceof Class)
+        {
+            return (Class<?>) type;
+        }
+        else if (type instanceof ParameterizedType)
+        {
+            if (((ParameterizedType) type).getRawType() instanceof
+                     Class)
+            {
+                return (Class<?>) ((ParameterizedType) type).getRawType();
+            }
+        }
+        return null;
+    }
 
     static Property newProperty(String part) throws PropertyPath.Error
     {
