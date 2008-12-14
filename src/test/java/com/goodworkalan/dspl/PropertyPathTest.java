@@ -145,6 +145,13 @@ public class PropertyPathTest
     }
     
     @Test
+    public void toClass()
+    {
+        Type type = null;
+        assertNull(PropertyPath.toClass(type));
+    }
+    
+    @Test
     public void eatWhite()
     {
         String part = "   ab";

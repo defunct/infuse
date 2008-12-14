@@ -134,11 +134,7 @@ public class PropertyPath
         }
         else if (type instanceof ParameterizedType)
         {
-            if (((ParameterizedType) type).getRawType() instanceof
-                     Class)
-            {
-                return (Class<?>) ((ParameterizedType) type).getRawType();
-            }
+            return (Class<?>) ((ParameterizedType) type).getRawType();
         }
         return null;
     }
