@@ -166,6 +166,51 @@ public class PropertyPath
         return i;
     }
     
+    final static class Factory
+    {
+        public Object create(Type type) throws PropertyPath.Error
+        {
+            Object created = null;
+            if (type instanceof ParameterizedType)
+            {
+                created = create((Class<?>) ((ParameterizedType) type).getRawType());
+            }
+            else if (type instanceof Class)
+            {
+                created = create((Class<?>) type);
+            }
+            return created;
+        }
+        
+        public Object create(Class<?> cls) throws PropertyPath.Error
+        {
+            if (!cls.isInterface())
+            {
+                try
+                {
+                    return cls.newInstance();
+                }
+                catch (Exception e)
+                {
+                    throw new PropertyPath.Error(e);
+                }
+            }
+            else if (SortedMap.class.isAssignableFrom(cls))
+            {
+                return new TreeMap<Object, Object>();
+            }
+            else if (Map.class.isAssignableFrom(cls))
+            {
+                return new HashMap<Object, Object>();
+            }
+            else if (List.class.isAssignableFrom(cls))
+            {
+                return new ArrayList<Object>();
+            }
+            throw new UnsupportedOperationException();
+        }
+    }
+
     final static class Property
     {
         final String name;
@@ -515,51 +560,6 @@ public class PropertyPath
         }
     }
     
-    final static class Factory
-    {
-        public Object create(Type type) throws PropertyPath.Error
-        {
-            Object created = null;
-            if (type instanceof ParameterizedType)
-            {
-                created = create((Class<?>) ((ParameterizedType) type).getRawType());
-            }
-            else if (type instanceof Class)
-            {
-                created = create((Class<?>) type);
-            }
-            return created;
-        }
-        
-        public Object create(Class<?> cls) throws PropertyPath.Error
-        {
-            if (!cls.isInterface())
-            {
-                try
-                {
-                    return cls.newInstance();
-                }
-                catch (Exception e)
-                {
-                    throw new PropertyPath.Error(e);
-                }
-            }
-            else if (SortedMap.class.isAssignableFrom(cls))
-            {
-                return new TreeMap<Object, Object>();
-            }
-            else if (Map.class.isAssignableFrom(cls))
-            {
-                return new HashMap<Object, Object>();
-            }
-            else if (List.class.isAssignableFrom(cls))
-            {
-                return new ArrayList<Object>();
-            }
-            throw new UnsupportedOperationException();
-        }
-    }
-
     final static class MapIndex implements Index
     {
         final String index;
