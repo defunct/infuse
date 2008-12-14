@@ -126,6 +126,23 @@ public class PropertyPath
         set(bean, value, create ? new Factory() : null);
     }
     
+    final static Class<?> toClass(Type type)
+    {
+        if (type instanceof Class)
+        {
+            return (Class<?>) type;
+        }
+        else if (type instanceof ParameterizedType)
+        {
+            if (((ParameterizedType) type).getRawType() instanceof
+                     Class)
+            {
+                return (Class<?>) ((ParameterizedType) type).getRawType();
+            }
+        }
+        return null;
+    }
+
     /**
      * Skip whitespace between property names, array brackets, and property
      * indices.
@@ -166,6 +183,153 @@ public class PropertyPath
         return i;
     }
     
+    static Property newProperty(String part) throws PropertyPath.Error
+    {
+        part = part.trim();
+        if (part.length() == 0 || !Character.isJavaIdentifierStart(part.charAt(0)))
+        {
+            throw new PropertyPath.Error();
+        }
+    
+        // Read the Java bean identifier.
+        StringBuilder newIdentifier = new StringBuilder();
+        int i = getIdentifier(part, newIdentifier);
+        String identifier = newIdentifier.toString();
+        
+        // Skip an whitespace.
+        i = eatWhite(part, i);
+        
+        List<Index> indices = new ArrayList<Index>();
+    
+        // Check for an optional indexed parameter.
+        while (i != part.length())
+        {
+            try
+            {
+                i = newIndex(part, i, indices);
+            }
+            catch (StringIndexOutOfBoundsException e)
+            {
+                throw new PropertyPath.Error(e);
+            }
+            catch (NumberFormatException e)
+            {
+                throw new PropertyPath.Error(e);
+            }
+        }
+        
+        return new Property(identifier, indices.toArray(new Index[indices.size()]));
+    }
+
+    static int newIndex(String part, int i, List<Index> indexes)
+        throws PropertyPath.Error
+    {
+        if (part.charAt(i++) != '[')
+        {
+            throw new PropertyPath.Error();
+        }
+    
+        i = eatWhite(part, i);
+        
+        if ("\"'".indexOf(part.charAt(i)) != -1)
+        {
+            StringBuilder newKey = new StringBuilder();
+            char quote = part.charAt(i++);
+            KEY: for (;;)
+            {
+                char ch = part.charAt(i++);
+                switch (ch)
+                {
+                case 0:
+                    throw new PropertyPath.Error();
+                case '\'':
+                    // This noop is only to get 100% Corbertura coverage, sorry.
+                    part.length();
+                case '"':
+                    if (ch == quote)
+                    {
+                        break KEY;
+                    }
+                    throw new PropertyPath.Error();
+                case '\\':
+                    ch = part.charAt(i++);
+                    switch (ch)
+                    {
+                    case 'b':
+                        newKey.append('\b');
+                        break;
+                    case 't':
+                        newKey.append('\t');
+                        break;
+                    case 'n':
+                        newKey.append('\n');
+                        break;
+                    case 'f':
+                        newKey.append('\f');
+                        break;
+                    case 'r':
+                        newKey.append('\r');
+                        break;
+                    case 'u':
+                        newKey.append((char) Integer.parseInt(part.substring(i, i += 4), 16));
+                        break;
+                    case 'x':
+                        newKey.append((char) Integer.parseInt(part.substring(i, i += 2), 16));
+                        break;
+                    case '\'':
+                        newKey.append('\'');
+                        break;
+                    case '"':
+                        newKey.append('"');
+                        break;
+                    default:
+                        throw new PropertyPath.Error();
+                    }
+                    break;
+                default:
+                    newKey.append(ch);
+                }
+            }
+            i = eatWhite(part, i);
+            if (part.charAt(i++) != ']')
+            {
+                throw new PropertyPath.Error();
+            }
+    
+            indexes.add( new MapIndex(newKey.toString()));
+            
+            return eatWhite(part, i);
+        }
+    
+        int index = 0;
+        do
+        {
+            int n = Integer.parseInt(new Character(part.charAt(i++)).toString(), 10);
+            index = index * 10 + n;
+        }
+        while ("] ".indexOf(part.charAt(i)) == -1);
+        
+        i = eatWhite(part, i);
+        
+        indexes.add(new ListIndex(index));
+        
+        return eatWhite(part, i + 1);
+    }
+
+    public final static class Error extends Exception
+    {
+        private static final long serialVersionUID = 1L;
+        
+        public Error()
+        {
+        }
+        
+        public Error(Throwable cause)
+        {
+            super(cause);
+        }
+    }
+
     final static class Factory
     {
         public Object create(Type type) throws PropertyPath.Error
@@ -622,170 +786,6 @@ public class PropertyPath
             {
                 toMap(object).put(index, value);
             }
-        }
-    }
-
-    final static Class<?> toClass(Type type)
-    {
-        if (type instanceof Class)
-        {
-            return (Class<?>) type;
-        }
-        else if (type instanceof ParameterizedType)
-        {
-            if (((ParameterizedType) type).getRawType() instanceof
-                     Class)
-            {
-                return (Class<?>) ((ParameterizedType) type).getRawType();
-            }
-        }
-        return null;
-    }
-    
-    static Property newProperty(String part) throws PropertyPath.Error
-    {
-        part = part.trim();
-        if (part.length() == 0 || !Character.isJavaIdentifierStart(part.charAt(0)))
-        {
-            throw new PropertyPath.Error();
-        }
-
-        // Read the Java bean identifier.
-        StringBuilder newIdentifier = new StringBuilder();
-        int i = getIdentifier(part, newIdentifier);
-        String identifier = newIdentifier.toString();
-        
-        // Skip an whitespace.
-        i = eatWhite(part, i);
-        
-        List<Index> indices = new ArrayList<Index>();
-
-        // Check for an optional indexed parameter.
-        while (i != part.length())
-        {
-            try
-            {
-                i = newIndex(part, i, indices);
-            }
-            catch (StringIndexOutOfBoundsException e)
-            {
-                throw new PropertyPath.Error(e);
-            }
-            catch (NumberFormatException e)
-            {
-                throw new PropertyPath.Error(e);
-            }
-        }
-        
-        return new Property(identifier, indices.toArray(new Index[indices.size()]));
-    }
-    
-    static int newIndex(String part, int i, List<Index> indexes)
-        throws PropertyPath.Error
-    {
-        if (part.charAt(i++) != '[')
-        {
-            throw new PropertyPath.Error();
-        }
-
-        i = eatWhite(part, i);
-        
-        if ("\"'".indexOf(part.charAt(i)) != -1)
-        {
-            StringBuilder newKey = new StringBuilder();
-            char quote = part.charAt(i++);
-            KEY: for (;;)
-            {
-                char ch = part.charAt(i++);
-                switch (ch)
-                {
-                case 0:
-                    throw new PropertyPath.Error();
-                case '\'':
-                    // This noop is only to get 100% Corbertura coverage, sorry.
-                    part.length();
-                case '"':
-                    if (ch == quote)
-                    {
-                        break KEY;
-                    }
-                    throw new PropertyPath.Error();
-                case '\\':
-                    ch = part.charAt(i++);
-                    switch (ch)
-                    {
-                    case 'b':
-                        newKey.append('\b');
-                        break;
-                    case 't':
-                        newKey.append('\t');
-                        break;
-                    case 'n':
-                        newKey.append('\n');
-                        break;
-                    case 'f':
-                        newKey.append('\f');
-                        break;
-                    case 'r':
-                        newKey.append('\r');
-                        break;
-                    case 'u':
-                        newKey.append((char) Integer.parseInt(part.substring(i, i += 4), 16));
-                        break;
-                    case 'x':
-                        newKey.append((char) Integer.parseInt(part.substring(i, i += 2), 16));
-                        break;
-                    case '\'':
-                        newKey.append('\'');
-                        break;
-                    case '"':
-                        newKey.append('"');
-                        break;
-                    default:
-                        throw new PropertyPath.Error();
-                    }
-                    break;
-                default:
-                    newKey.append(ch);
-                }
-            }
-            i = eatWhite(part, i);
-            if (part.charAt(i++) != ']')
-            {
-                throw new PropertyPath.Error();
-            }
-
-            indexes.add( new MapIndex(newKey.toString()));
-            
-            return eatWhite(part, i);
-        }
-
-        int index = 0;
-        do
-        {
-            int n = Integer.parseInt(new Character(part.charAt(i++)).toString(), 10);
-            index = index * 10 + n;
-        }
-        while ("] ".indexOf(part.charAt(i)) == -1);
-        
-        i = eatWhite(part, i);
-        
-        indexes.add(new ListIndex(index));
-        
-        return eatWhite(part, i + 1);
-    }
-
-    public final static class Error extends Exception
-    {
-        private static final long serialVersionUID = 1L;
-        
-        public Error()
-        {
-        }
-        
-        public Error(Throwable cause)
-        {
-            super(cause);
         }
     }
 }
