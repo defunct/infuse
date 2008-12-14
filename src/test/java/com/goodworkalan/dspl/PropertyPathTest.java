@@ -1,7 +1,6 @@
 package com.goodworkalan.dspl;
 
 import static org.mockito.Mockito.mock;
-
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
@@ -276,15 +275,54 @@ public class PropertyPathTest
     @Test
     public void setListProperty() throws PropertyPath.Error
     {
-        PropertyPath path = new PropertyPath("stringListList[0][0]");
+        PropertyPath path = new PropertyPath("stringListList[0]");
      
         Widget widget = new Widget();
-        path.set(widget, "hello", false);
-        assertNull(widget.getStringListList());
-        /*
-        path.set(widget, "hello", true);
-        assertEquals(widget.getStringListList().get(0).get(0), "hello");
-        */
+        assertNull(path.get(widget));
+
+        Type type = path.typeOf(widget, false);
+        assertEquals(((ParameterizedType) type).getRawType(), List.class);
+    
+        widget.setStringListList(new ArrayList<List<String>>());
+        
+        Object list = new ArrayList<String>();
+        path.set(widget, list, false);
+        assertSame(path.get(widget), list);
+
+        path.set(widget, null, false);
+        assertNull(path.get(widget));
+        
+        widget = new Widget();
+        path.set(widget, list, true);
+        assertSame(path.get(widget), list);
+        
+        widget = new Widget();
+        path = new PropertyPath("stringListList[0][0]");
+        path.set(widget, "foo", true);
+        assertEquals(path.get(widget), "foo");
+        
+        path = new PropertyPath("string[0][0]");
+        assertEquals(path.get(widget), "foo");
+        path.set(widget, "oof", true);
+        assertEquals(path.get(widget), "oof");
+    }
+    
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void basListSetType() throws PropertyPath.Error
+    {
+        PropertyPath path = new PropertyPath("stringListList[0]");
+        Widget widget = new Widget();
+        path.set(widget, "A", true);
+    }
+    
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void cannotConstructListValue() throws Error
+    {
+        PropertyPath.Factory factory = mock(PropertyPath.Factory.class);
+        PropertyPath path = new PropertyPath("stringListList[0][0]");
+        Widget widget = new Widget();
+        widget.setStringListList(new ArrayList<List<String>>());
+        path.set(widget, "foo", factory);
     }
     
     @Test
@@ -295,7 +333,7 @@ public class PropertyPathTest
         Widget widget = new Widget();
         assertNull(path.get(widget));
 
-        Type type = path.typeOf(widget, true);
+        Type type = path.typeOf(widget, false);
         assertEquals(((ParameterizedType) type).getRawType(), Map.class);
         
         widget.setStringMapMap(new HashMap<String, Map<String,String>>());
