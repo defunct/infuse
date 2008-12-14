@@ -92,6 +92,11 @@ public class PropertyPath
         
         throw new PropertyPath.Error();
     }
+    
+    public Type typeOf(Object bean, boolean create) throws Error
+    {
+        return typeOf(bean, create ? new Factory() : null);
+    }
 
     /**
      * Set the bean property matching this bean path to the specified value.
@@ -112,7 +117,7 @@ public class PropertyPath
         }
         if (bean != null)
         {
-            properties[properties.length - 1].set(bean, value);
+            properties[properties.length - 1].set(bean, value, factory);
         }
     }
     
@@ -192,7 +197,7 @@ public class PropertyPath
             return map;
         }
     
-        public Set<Method> readMethods(Object bean, boolean set)
+        public Set<Method> readMethods(Object bean, int indexesLength)
         {
             Map<Class<?>, String> readerNames = readMethodNames();
             Set<Method> readers = new HashSet<Method>();
@@ -215,7 +220,7 @@ public class PropertyPath
             {
                 Method method = methods.next();
                 Type[] types = method.getGenericParameterTypes();
-                if (indexes.length - (set ? 1 : 0) < types.length)
+                if (indexesLength < types.length)
                 {
                     methods.remove();
                 }
@@ -246,10 +251,15 @@ public class PropertyPath
             }
             return false;
         }
-    
-        public Object get(Object bean, Factory factory) throws PropertyPath.Error
+        
+        public Object get(Object bean, Factory factory) throws Error
         {
-            Set<Method> readers = readMethods(bean, false);
+            return get(bean, indexes.length, factory);
+        }
+    
+        public Object get(Object bean, int indexesLength, Factory factory) throws PropertyPath.Error
+        {
+            Set<Method> readers = readMethods(bean, indexesLength);
             Object object = null;
             Iterator<Method> methods = readers.iterator();
             while (object == null && methods.hasNext())
@@ -275,7 +285,7 @@ public class PropertyPath
                 else
                 {
                     Type type = method.getGenericReturnType();
-                    for (int i = args.length; i < indexes.length; i++)
+                    for (int i = args.length; object != null && i < indexesLength; i++)
                     {
                         type = indexes[i].typeOf(type);
                         object = indexes[i].get(type, object, factory);
@@ -287,7 +297,12 @@ public class PropertyPath
         
         public Type typeOf(Object bean) throws Error
         {
-            Set<Method> readers = readMethods(bean, false);
+            return typeOf(bean, indexes.length);
+        }
+
+        public Type typeOf(Object bean, int indexesLength) throws Error
+        {
+            Set<Method> readers = readMethods(bean, indexesLength);
             Type type = null;
             Iterator<Method> methods = readers.iterator();
             while (type == null && methods.hasNext())
@@ -295,20 +310,71 @@ public class PropertyPath
                 Method method = methods.next();
                 int args = method.getParameterTypes().length;
                 type = method.getGenericReturnType();
-                for (int i = args; i < indexes.length; i++)
+                for (int i = args; i < indexesLength; i++)
                 {
                     type = indexes[i].typeOf(type);
                 }
             }
             return type;
         }
-    
-        public void set(Object bean, Object value) throws Error
+        
+        public void set(Object bean, Object value, Factory factory) throws Error
         {
             Method method = explicitSet(bean, value == null ? null : value.getClass(), indexes.length);
-            if (method != null)
+            if (method == null && indexes.length != 0)
+            {
+                Object object = get(bean, indexes.length - 1, factory);
+                if (object != null)
+                {
+                    Type type = typeOf(bean, indexes.length - 1);
+                    indexes[indexes.length - 1].set(type, object, value);
+                }
+            }
+            else
             {
                 set(method, bean, value);
+            }
+        }
+    
+        public void _set(Object bean, Object value) throws Error
+        {
+            Set<Method> writers = new HashSet<Method>();
+            String writerName = "set" + methodName();
+            for (Method method : bean.getClass().getMethods())
+            {
+                if (writerName.equals(method.getName()))
+                {
+                    writers.add(method);
+                }
+            }
+            Iterator<Method> methods = writers.iterator();
+            METHOD: while (methods.hasNext())
+            {
+                Method method = methods.next();
+                Type[] types = method.getGenericExceptionTypes();
+                if (types.length < indexes.length + 1)
+                {
+                    methods.remove();
+                    continue METHOD;
+                }
+
+                for (int i = 0; i < types.length - 1; i++)
+                {
+                    Class<?> cls = toClass(types[i]);
+                    if (!indexes[i].indexedBy(cls))
+                    {
+                        methods.remove();
+                        continue METHOD;
+                    }
+                }
+                
+                if (types.length != indexes.length + 1)
+                {
+                    if (!indexes[types.length - 1].isAssignableFrom(types[types.length - 1]))
+                    {
+                        methods.remove();
+                    }
+                }
             }
         }
         
@@ -364,11 +430,15 @@ public class PropertyPath
     {
         public boolean indexedBy(Class<?> cls);
         
+        public boolean isAssignableFrom(Type type);
+        
         public Object getIndex();
 
         public Type typeOf(Type type) throws PropertyPath.Error;
         
         public Object get(Type type, Object object, Factory factory) throws PropertyPath.Error;
+        
+        public void set(Type type, Object object, Object value) throws PropertyPath.Error;
     }
 
     final static class ListIndex implements Index
@@ -383,6 +453,11 @@ public class PropertyPath
         public Object getIndex()
         {
             return index;
+        }
+        
+        public boolean isAssignableFrom(Type type)
+        {
+            return List.class.isAssignableFrom(toClass(type)) || toClass(type).isArray();
         }
 
         public boolean indexedBy(Class<?> cls)
@@ -421,15 +496,11 @@ public class PropertyPath
                 }
                 if (got == null && factory != null)
                 {
-                    if (type instanceof Class)
+                    got = factory.create(type);
+                    if (got != null)
                     {
-                        got = factory.create((Class<?>) type);
+                        list.add(index, got);
                     }
-                    else
-                    {
-                        got = factory.create((Class<?>) ((ParameterizedType) type).getRawType());
-                    }
-                    list.add(index, got);
                 }
             }
             catch (Exception e)
@@ -437,6 +508,10 @@ public class PropertyPath
                 throw new PropertyPath.Error(e);
             }
             return got;
+        }
+        
+        public void set(Type type, Object object, Object value) throws Error
+        {
         }
     }
     
@@ -499,6 +574,12 @@ public class PropertyPath
             return index;
         }
         
+        public boolean isAssignableFrom(Type type)
+        {
+            return toClass(type).isAssignableFrom(TreeMap.class)
+                || toClass(type).isAssignableFrom(HashMap.class);
+        }
+        
         public boolean indexedBy(Class<?> cls)
         {
             return String.class.isAssignableFrom(cls);
@@ -506,21 +587,41 @@ public class PropertyPath
 
         public Type typeOf(Type type) throws Error
         {
-            if (type instanceof ParameterizedType)
+            if (Map.class.isAssignableFrom(toClass(type)))
             {
-                ParameterizedType parameterized = (ParameterizedType) type;
-                if (((Class<?>) parameterized.getRawType()).isAssignableFrom(Map.class))
-                {
-                    return parameterized.getActualTypeArguments()[1];
-                }
+                return ((ParameterizedType) type).getActualTypeArguments()[1];
             }
             return null;
         }
         
+        @SuppressWarnings("unchecked")
+        Map<Object, Object> toMap(Object object)
+        {
+            return (Map) object;
+        }
+        
         public Object get(Type type, Object object, Factory factory) throws PropertyPath.Error
         {
-            index.charAt(0);
-            return null;
+            Map<Object, Object> map = toMap(object);
+            Object got = map.get(index);
+            if (got == null && factory != null)
+            {
+                got = factory.create(type);
+                if (got != null)
+                {
+                    map.put(index, got);
+                }
+            }
+            return got;
+        }
+        
+        public void set(Type type, Object object, Object value)
+        {
+            Type[] types = ((ParameterizedType) type).getActualTypeArguments();
+            if (object == null || toClass(types[1]).isAssignableFrom(object.getClass()))
+            {
+                toMap(object).put(index, value);
+            }
         }
     }
 
@@ -540,7 +641,7 @@ public class PropertyPath
         }
         return null;
     }
-
+    
     static Property newProperty(String part) throws PropertyPath.Error
     {
         part = part.trim();

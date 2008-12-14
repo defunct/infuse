@@ -2,8 +2,10 @@ package com.goodworkalan.dspl;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertSame;
 
 import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -272,5 +274,23 @@ public class PropertyPathTest
         path.set(widget, "hello", true);
         assertEquals(widget.getStringListList().get(0).get(0), "hello");
         */
+    }
+    
+    @Test
+    public void mapProperty() throws PropertyPath.Error
+    {
+        PropertyPath path = new PropertyPath("stringMapMap['bar']");
+        
+        Widget widget = new Widget();
+        assertNull(path.get(widget));
+
+        Type type = path.typeOf(widget, true);
+        assertEquals(((ParameterizedType) type).getRawType(), Map.class);
+        
+        widget.setStringMapMap(new HashMap<String, Map<String,String>>());
+        
+        Object map = new HashMap<String, String>();
+        path.set(widget, map, false);
+        assertSame(path.get(widget), map);
     }
 }
