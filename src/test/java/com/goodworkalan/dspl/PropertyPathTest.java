@@ -1,5 +1,7 @@
 package com.goodworkalan.dspl;
 
+import static org.mockito.Mockito.mock;
+
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
@@ -15,6 +17,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.testng.annotations.Test;
+
+import com.goodworkalan.dspl.PropertyPath.Error;
 
 public class PropertyPathTest
 {
@@ -35,7 +39,7 @@ public class PropertyPathTest
     {
         PropertyPath path = new PropertyPath("string");
         Widget widget = new Widget();
-        path.set(widget, "foo", new PropertyPath.Factory());
+        path.set(widget, "foo", true);
         assertEquals(widget.getString(), "foo");
     }
     
@@ -57,14 +61,14 @@ public class PropertyPathTest
         
         Widget widget = new Widget();
         
-        path.set(widget, "foo", new PropertyPath.Factory());
+        path.set(widget, "foo", true);
         assertEquals(widget.getWidget().getString(), "foo");
     }
     
     @Test
     public void factory() throws Exception
     {
-        PropertyPath.Factory factory = new PropertyPath.Factory();
+        PropertyPath.Factory factory = new PropertyPath.CoreFactory();
         assertEquals(factory.create(SortedMap.class).getClass(), TreeMap.class);
         assertEquals(factory.create(Map.class).getClass(), HashMap.class);
         assertEquals(factory.create(List.class).getClass(), ArrayList.class);
@@ -73,14 +77,14 @@ public class PropertyPathTest
     @Test(expectedExceptions=UnsupportedOperationException.class)
     public void notFound() throws Exception
     {
-        PropertyPath.Factory factory = new PropertyPath.Factory();
+        PropertyPath.Factory factory = new PropertyPath.CoreFactory();
         factory.create(Runnable.class);
     }
 
     @Test(expectedExceptions=PropertyPath.Error.class)
     public void noDefaultConstructor() throws Exception
     {
-        PropertyPath.Factory factory = new PropertyPath.Factory();
+        PropertyPath.Factory factory = new PropertyPath.CoreFactory();
         factory.create(Integer.class);
     }
 
@@ -100,7 +104,7 @@ public class PropertyPathTest
         
         bean.setStringListList(new ArrayList<List<String>>());
 
-        PropertyPath.Factory factory = new PropertyPath.Factory();
+        PropertyPath.Factory factory = new PropertyPath.CoreFactory();
         type = property.typeOf(bean);
         Object list = property.get(bean, null);
         type = index.typeOf(type);
@@ -306,15 +310,24 @@ public class PropertyPathTest
         widget = new Widget();
         path.set(widget, map, true);
         assertSame(path.get(widget), map);
+        
     }
     
     @Test(expectedExceptions=PropertyPath.Error.class)
     public void badMapSetType() throws PropertyPath.Error
     {
         PropertyPath path = new PropertyPath("stringMapMap['bar']");
-        
         Widget widget = new Widget();
-        
         path.set(widget, "A", true);
+    }
+    
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void cannotConstructMapValue() throws Error
+    {
+        PropertyPath.Factory factory = mock(PropertyPath.Factory.class);
+        PropertyPath path = new PropertyPath("stringMapMap['bar']['baz']");
+        Widget widget = new Widget();
+        widget.setStringMapMap(new HashMap<String, Map<String,String>>());
+        path.set(widget, "foo", factory);
     }
 }

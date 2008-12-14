@@ -95,7 +95,7 @@ public class PropertyPath
     
     public Type typeOf(Object bean, boolean create) throws Error
     {
-        return typeOf(bean, create ? new Factory() : null);
+        return typeOf(bean, create ? new CoreFactory() : null);
     }
 
     /**
@@ -123,7 +123,7 @@ public class PropertyPath
     
     public void set(Object bean, Object value, boolean create) throws PropertyPath.Error
     {
-        set(bean, value, create ? new Factory() : null);
+        set(bean, value, create ? new CoreFactory() : null);
     }
     
     final static Class<?> toClass(Type type)
@@ -326,7 +326,12 @@ public class PropertyPath
         }
     }
 
-    final static class Factory
+    public interface Factory
+    {
+        public Object create(Type type) throws PropertyPath.Error;
+    }
+    
+    final static class CoreFactory implements Factory
     {
         public Object create(Type type) throws PropertyPath.Error
         {
@@ -763,11 +768,13 @@ public class PropertyPath
             Object got = map.get(index);
             if (got == null && factory != null)
             {
-                got = factory.create(type);
-                if (got != null)
+                Type[] types = ((ParameterizedType) type).getActualTypeArguments();
+                got = factory.create(types[1]);
+                if (got == null)
                 {
-                    map.put(index, got);
+                    throw new Error();
                 }
+                map.put(index, got);
             }
             return got;
         }
