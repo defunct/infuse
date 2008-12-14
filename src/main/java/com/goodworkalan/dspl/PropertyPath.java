@@ -485,16 +485,13 @@ public class PropertyPath
                 }
                 if (object == null && factory != null && create(bean, method.getGenericReturnType(), args.length, factory))
                 {
-                    object = get(bean, factory);
+                    object = get(bean, args.length, factory);
                 }
-                else
+                Type type = method.getGenericReturnType();
+                for (int i = args.length; object != null && i < indexesLength; i++)
                 {
-                    Type type = method.getGenericReturnType();
-                    for (int i = args.length; object != null && i < indexesLength; i++)
-                    {
-                        type = indexes[i].typeOf(type);
-                        object = indexes[i].get(type, object, factory);
-                    }
+                    type = indexes[i].typeOf(type);
+                    object = indexes[i].get(type, object, factory);
                 }
             }
             return object;
@@ -775,12 +772,16 @@ public class PropertyPath
             return got;
         }
         
-        public void set(Type type, Object object, Object value)
+        public void set(Type type, Object object, Object value) throws Error
         {
             Type[] types = ((ParameterizedType) type).getActualTypeArguments();
-            if (object == null || toClass(types[1]).isAssignableFrom(object.getClass()))
+            if (value == null || toClass(types[1]).isAssignableFrom(value.getClass()))
             {
                 toMap(object).put(index, value);
+            }
+            else
+            {
+                throw new Error();
             }
         }
     }

@@ -299,5 +299,22 @@ public class PropertyPathTest
         Object map = new HashMap<String, String>();
         path.set(widget, map, false);
         assertSame(path.get(widget), map);
+
+        path.set(widget, null, false);
+        assertNull(path.get(widget));
+        
+        widget = new Widget();
+        path.set(widget, map, true);
+        assertSame(path.get(widget), map);
+    }
+    
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void badMapSetType() throws PropertyPath.Error
+    {
+        PropertyPath path = new PropertyPath("stringMapMap['bar']");
+        
+        Widget widget = new Widget();
+        
+        path.set(widget, "A", true);
     }
 }
