@@ -4,9 +4,11 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -425,29 +427,24 @@ public class PropertyPath
                     }
                 }
             }
-            Iterator<Method> methods = readers.iterator();
-            while (methods.hasNext())
+            Map<Integer, Method> priority = new TreeMap<Integer, Method>(Collections.reverseOrder());
+            METHODS: for (Method method : readers)
             {
-                Method method = methods.next();
                 Type[] types = method.getGenericParameterTypes();
-                if (indexesLength < types.length)
-                {
-                    methods.remove();
-                }
-                else
+                if (types.length <= indexesLength)
                 {
                     for (int i = 0; i < types.length; i++)
                     {
                         Class<?> cls = toClass(types[i]);
                         if (!indexes[i].indexedBy(cls))
                         {
-                            methods.remove();
-                            break;
+                            continue METHODS;
                         }
                     }
+                    priority.put(types.length, method);
                 }
             }
-            return readers;
+            return new LinkedHashSet<Method>(priority.values());
         }
     
         boolean create(Object bean, Type type, int indexLength, Factory factory) throws Error

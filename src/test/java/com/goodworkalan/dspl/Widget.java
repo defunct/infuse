@@ -68,4 +68,14 @@ public class Widget
     {
         return stringMapMap;
     }
+    
+    public void setString(String a, String b, String value)
+    {
+        stringMapMap.get(a).put(b, value);
+    }
+    
+    public String getString(String a, String b)
+    {
+        return stringMapMap.get(a).get(b);
+    }
 }

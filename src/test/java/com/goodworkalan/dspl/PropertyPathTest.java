@@ -315,6 +315,11 @@ public class PropertyPathTest
         path = new PropertyPath("stringMapMap['bar']['baz']");
         path.set(widget, "foo", true);
         assertEquals(path.get(widget), "foo");
+        
+        path = new PropertyPath("string['bar']['baz']");
+        assertEquals(path.get(widget), "foo");
+        path.set(widget, "oof", true);
+        assertEquals(path.get(widget), "oof");
     }
     
     @Test(expectedExceptions=PropertyPath.Error.class)
