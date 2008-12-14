@@ -495,8 +495,8 @@ public class PropertyPath
                 Type type = method.getGenericReturnType();
                 for (int i = args.length; object != null && i < indexesLength; i++)
                 {
-                    type = indexes[i].typeOf(type);
                     object = indexes[i].get(type, object, factory);
+                    type = indexes[i].typeOf(type);
                 }
             }
             return object;

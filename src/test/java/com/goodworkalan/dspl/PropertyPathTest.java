@@ -310,7 +310,11 @@ public class PropertyPathTest
         widget = new Widget();
         path.set(widget, map, true);
         assertSame(path.get(widget), map);
-        
+     
+        widget = new Widget();
+        path = new PropertyPath("stringMapMap['bar']['baz']");
+        path.set(widget, "foo", true);
+        assertEquals(path.get(widget), "foo");
     }
     
     @Test(expectedExceptions=PropertyPath.Error.class)
