@@ -369,12 +369,41 @@ public class PropertyPathTest
     }
     
     @Test(expectedExceptions=PropertyPath.Error.class)
-    public void cannotConstructMapValue() throws Error
+    public void cannotConstructMapValue() throws PropertyPath.Error
     {
         PropertyPath.Factory factory = mock(PropertyPath.Factory.class);
         PropertyPath path = new PropertyPath("stringMapMap['bar']['baz']");
         Widget widget = new Widget();
         widget.setStringMapMap(new HashMap<String, Map<String,String>>());
         path.set(widget, "foo", factory);
+    }
+    
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void noSuchSetGetterMethod() throws PropertyPath.Error
+    {
+        PropertyPath path = new PropertyPath("foo.bar");
+        path.set(new Widget(), "foo", false);
+        path.set(new Widget(), "foo", true);
+    }
+    
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void noSuchSetMethod() throws PropertyPath.Error
+    {
+        PropertyPath path = new PropertyPath("foo");
+        path.set(new Widget(), "foo", true);
+    }
+    
+    @Test
+    public void mapInsteadOfBean() throws PropertyPath.Error
+    {
+        Map<Object, Object> root = new HashMap<Object, Object>();
+        PropertyPath path = new PropertyPath("foo");
+        path.set(root, "bar", true);
+        assertEquals(root.get("foo"), "bar");
+        assertEquals(path.get(root), "bar");
+        
+        path = new PropertyPath("bar[0]");
+        path.set(root, "bar", true);
+        assertEquals(path.get(root), "bar");
     }
 }

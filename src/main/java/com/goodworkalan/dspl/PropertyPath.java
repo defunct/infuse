@@ -121,6 +121,10 @@ public class PropertyPath
         {
             properties[properties.length - 1].set(bean, value, factory);
         }
+        else if (factory != null)
+        {
+            throw new Error();
+        }
     }
     
     public void set(Object bean, Object value, boolean create) throws PropertyPath.Error
@@ -139,6 +143,12 @@ public class PropertyPath
             return (Class<?>) ((ParameterizedType) type).getRawType();
         }
         return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    static Map<Object, Object> toMap(Object object)
+    {
+        return (Map) object;
     }
 
     /**
@@ -465,6 +475,34 @@ public class PropertyPath
     
         public Object get(Object bean, int indexesLength, Factory factory) throws PropertyPath.Error
         {
+            if (bean instanceof Map)
+            {
+                Map<Object, Object> map = toMap(bean);
+                if (indexes.length == 0)
+                {
+                    return map.get(name);
+                }
+                Object container = null;
+                Object object = map.get(name);
+                for (int i = 0; i < indexes.length; i++)
+                {
+                    if (object == null)
+                    {
+                        object = factory.create(indexes[i].getRawType());
+                        if (i == 0)
+                        {
+                            toMap(bean).put(name, object);
+                        }
+                        else
+                        {
+                            indexes[i - 1].set(indexes[i - 1].getRawType(), container, object);
+                        }
+                    }
+                    container = object;
+                }
+                return indexes[indexes.length - 1].get(container.getClass().getGenericSuperclass(), container, factory);
+            }
+
             Set<Method> readers = readMethods(bean, indexesLength);
             Object object = null;
             Iterator<Method> methods = readers.iterator();
@@ -523,19 +561,55 @@ public class PropertyPath
         
         public void set(Object bean, Object value, Factory factory) throws Error
         {
-            Method method = explicitSet(bean, value == null ? null : value.getClass(), indexes.length);
-            if (method == null && indexes.length != 0)
+            if (bean instanceof Map)
             {
-                Object object = get(bean, indexes.length - 1, factory);
-                if (object != null)
+                if (indexes.length == 0)
                 {
-                    Type type = typeOf(bean, indexes.length - 1);
-                    indexes[indexes.length - 1].set(type, object, value);
+                    toMap(bean).put(name, value);
+                }
+                else
+                {
+                    Object container = null;
+                    Object object = toMap(bean).get(name);
+                    for (int i = 0; i < indexes.length; i++)
+                    {
+                        if (object == null)
+                        {
+                            object = factory.create(indexes[i].getRawType());
+                            if (i == 0)
+                            {
+                                toMap(bean).put(name, object);
+                            }
+                            else
+                            {
+                                indexes[i - 1].set(indexes[i - 1].getRawType(), container, value);
+                            }
+                        }
+                        container = object;
+                    }
+                    indexes[indexes.length - 1].set(container.getClass().getGenericSuperclass(), container, value);
                 }
             }
             else
             {
-                set(method, bean, value);
+                Method method = explicitSet(bean, value == null ? null : value.getClass(), indexes.length);
+                if (method == null && indexes.length != 0)
+                {
+                    Object object = get(bean, indexes.length - 1, factory);
+                    if (object != null)
+                    {
+                        Type type = typeOf(bean, indexes.length - 1);
+                        indexes[indexes.length - 1].set(type, object, value);
+                    }
+                }
+                else if (method == null)
+                {
+                    throw new Error();
+                }
+                else
+                {
+                    set(method, bean, value);
+                }
             }
         }
     
@@ -589,15 +663,22 @@ public class PropertyPath
 
     interface Index
     {
+        public Class<?> getRawType();
+
         public boolean indexedBy(Class<?> cls);
         
         public Object getIndex();
 
         public Type typeOf(Type type) throws PropertyPath.Error;
         
-        public Object get(Type type, Object object, Factory factory) throws PropertyPath.Error;
+        public Object get(Type type, Object container, Factory factory) throws PropertyPath.Error;
         
-        public void set(Type type, Object object, Object value) throws PropertyPath.Error;
+        public void set(Type type, Object container, Object value) throws PropertyPath.Error;
+    }
+    
+    final static class ObjectList extends ArrayList<Object>
+    {
+        private static final long serialVersionUID = 1L;
     }
 
     final static class ListIndex implements Index
@@ -607,6 +688,11 @@ public class PropertyPath
         public ListIndex(int index)
         {
             this.index = index;
+        }
+        
+        public Class<?> getRawType()
+        {
+            return ObjectList.class;
         }
 
         public Object getIndex()
@@ -638,10 +724,10 @@ public class PropertyPath
             return (List) object;
         }
 
-        public Object get(Type type, Object object, Factory factory) throws PropertyPath.Error
+        public Object get(Type type, Object container, Factory factory) throws PropertyPath.Error
         {
             Object got = null;
-            List<Object> list = toList(object);
+            List<Object> list = toList(container);
             if (index < list.size())
             {
                 got = list.get(index);
@@ -658,12 +744,12 @@ public class PropertyPath
             return got;
         }
         
-        public void set(Type type, Object object, Object value) throws Error
+        public void set(Type type, Object container, Object value) throws Error
         {
             Type[] types = ((ParameterizedType) type).getActualTypeArguments();
             if (value == null || toClass(types[0]).isAssignableFrom(value.getClass()))
             {
-                toList(object).add(index, value);
+                toList(container).add(index, value);
             }
             else
             {
@@ -679,6 +765,11 @@ public class PropertyPath
         public MapIndex(String index)
         {
             this.index = index;
+        }
+        
+        public Class<?> getRawType()
+        {
+            return Map.class;
         }
         
         public Object getIndex()
@@ -700,15 +791,9 @@ public class PropertyPath
             return null;
         }
         
-        @SuppressWarnings("unchecked")
-        Map<Object, Object> toMap(Object object)
+        public Object get(Type type, Object container, Factory factory) throws PropertyPath.Error
         {
-            return (Map) object;
-        }
-        
-        public Object get(Type type, Object object, Factory factory) throws PropertyPath.Error
-        {
-            Map<Object, Object> map = toMap(object);
+            Map<Object, Object> map = toMap(container);
             Object got = map.get(index);
             if (got == null && factory != null)
             {
@@ -723,12 +808,12 @@ public class PropertyPath
             return got;
         }
         
-        public void set(Type type, Object object, Object value) throws Error
+        public void set(Type type, Object container, Object value) throws Error
         {
             Type[] types = ((ParameterizedType) type).getActualTypeArguments();
             if (value == null || toClass(types[1]).isAssignableFrom(value.getClass()))
             {
-                toMap(object).put(index, value);
+                toMap(container).put(index, value);
             }
             else
             {
