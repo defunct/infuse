@@ -65,6 +65,24 @@ public class PropertyPathTest
     }
     
     @Test
+    public void typeOf() throws PropertyPath.Error
+    {    
+        PropertyPath path = new PropertyPath("widget.string");
+        
+        Widget widget = new Widget();
+        assertNull(path.typeOf(widget, false));
+        assertEquals(path.typeOf(widget, true), String.class);
+    }
+    
+    @Test(expectedExceptions=PropertyPath.Error.class)
+    public void typeOfBadPath() throws PropertyPath.Error
+    {    
+        PropertyPath path = new PropertyPath("widget.foo");
+        Widget widget = new Widget();
+        path.typeOf(widget, true);
+    }
+
+    @Test
     public void factory() throws Exception
     {
         PropertyPath.Factory factory = new PropertyPath.CoreFactory();

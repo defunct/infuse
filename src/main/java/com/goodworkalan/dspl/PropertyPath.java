@@ -87,12 +87,18 @@ public class PropertyPath
             bean = properties[i].get(bean, factory);
         }
 
+        Type type = null;
         if (bean != null)
         {
-            return properties[properties.length - 1].typeOf(bean);
+            type = properties[properties.length - 1].typeOf(bean);
+        }
+
+        if (type == null && factory != null)
+        {
+            throw new PropertyPath.Error();
         }
         
-        throw new PropertyPath.Error();
+        return type;
     }
     
     public Type typeOf(Object bean, boolean create) throws Error
