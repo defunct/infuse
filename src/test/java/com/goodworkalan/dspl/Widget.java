@@ -43,6 +43,11 @@ public class Widget
     {
         this.widget = widget;
     }
+    
+    public Widget isWidget()
+    {
+        throw new UnsupportedOperationException();
+    }
 
     public Widget getWidget()
     {

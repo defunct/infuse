@@ -11,6 +11,8 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -51,7 +53,14 @@ public class PropertyPath
         Property[] properties = new Property[parts.length];
         for (int i = 0; i < parts.length; i++)
         {
-            properties[i] = newProperty(parts[i]);
+            try
+            {
+                properties[i] = newProperty(parts[i]);
+            }
+            catch (PropertyPath.Error e)
+            {
+                throw e.add(path);
+            }
         }
         this.properties = properties;
     }
@@ -129,13 +138,27 @@ public class PropertyPath
         }
         else if (factory != null)
         {
-            throw new Error();
+            throw new Error().add(toString()).add(value);
         }
     }
     
     public void set(Object bean, Object value, boolean create) throws PropertyPath.Error
     {
         set(bean, value, create ? new CoreFactory() : null);
+    }
+    
+    @Override
+    public String toString()
+    {
+        StringBuilder newString = new StringBuilder();
+        String separator = "";
+        for (int i = 0; i < properties.length; i++)
+        {
+            newString.append(separator);
+            newString.append(properties[i].toString());
+            separator = ".";
+        }
+        return newString.toString();
     }
     
     final static Class<?> toClass(Type type)
@@ -228,7 +251,7 @@ public class PropertyPath
             }
             catch (NumberFormatException e)
             {
-                throw new PropertyPath.Error(e);
+                throw new PropertyPath.Error(e).add(part);
             }
         }
         
@@ -240,7 +263,7 @@ public class PropertyPath
     {
         if (part.charAt(i++) != '[')
         {
-            throw new PropertyPath.Error();
+            throw new Error().add(part).add(part.charAt(i - 1));
         }
     
         i = eatWhite(part, i);
@@ -332,21 +355,61 @@ public class PropertyPath
 
     public final static class Error extends Exception
     {
-        private static final long serialVersionUID = 1L;
+        private final static long serialVersionUID = 1L;
+        
+        private final List<Object> listOfArguments = new ArrayList<Object>(); 
         
         public Error()
         {
+        }
+        
+        public String getKey()
+        {
+            StackTraceElement[] trace = getStackTrace();
+            return trace[0].getFileName() + '.' + trace[0].getLineNumber();
         }
         
         public Error(Throwable cause)
         {
             super(cause);
         }
+        
+        public Error add(Object argument)
+        {
+            listOfArguments.add(argument);
+            return this;
+        }
+        
+        @Override
+        public String getMessage()
+        {
+            String key = getKey();
+            ResourceBundle exceptions = ResourceBundle.getBundle("com.goodworkalan.dspl.exceptions");
+            String format;
+            try
+            {
+                format = exceptions.getString(key);
+            }
+            catch (MissingResourceException e)
+            {
+                return key;
+            }
+            try
+            {
+                return String.format(format, listOfArguments.toArray());
+            }
+            catch (Throwable e)
+            {
+                throw new java.lang.Error(key, e);
+            }
+        }
     }
 
     public interface Factory
     {
         public Object create(Type type) throws PropertyPath.Error;
+        
+        public Object newBean();
     }
     
     final static class CoreFactory implements Factory
@@ -391,6 +454,11 @@ public class PropertyPath
                 return new ArrayList<Object>();
             }
             throw new UnsupportedOperationException();
+        }
+        
+        public Object newBean()
+        {
+            return new ObjectMap();
         }
     }
 
@@ -486,7 +554,13 @@ public class PropertyPath
                 Map<Object, Object> map = toMap(bean);
                 if (indexes.length == 0)
                 {
-                    return map.get(name);
+                    Object value = map.get(name);
+                    if (value == null && factory != null)
+                    {
+                        value = factory.newBean();
+                        map.put(name, value);
+                    }
+                    return value;
                 }
                 Object container = null;
                 Object object = map.get(name);
@@ -619,6 +693,18 @@ public class PropertyPath
             }
         }
     
+        @Override
+        public String toString()
+        {
+            StringBuilder newString = new StringBuilder();
+            newString.append(name);
+            for (int i = 0; i < indexes.length; i++)
+            {
+                newString.append(indexes[i].toString());
+            }
+            return newString.toString();
+        }
+
         void set(Method method, Object bean, Object value) throws Error
         {
             Object[] args = new Object[method.getParameterTypes().length];
@@ -762,6 +848,17 @@ public class PropertyPath
                 throw new Error();
             }
         }
+        
+        @Override
+        public String toString()
+        {
+            return "[" + index + "]";
+        }
+    }
+    
+    final static class ObjectMap extends HashMap<Object, Object>
+    {
+        private static final long serialVersionUID = 1L;
     }
     
     final static class MapIndex implements Index
@@ -775,7 +872,7 @@ public class PropertyPath
         
         public Class<?> getRawType()
         {
-            return Map.class;
+            return ObjectMap.class;
         }
         
         public Object getIndex()
@@ -807,7 +904,7 @@ public class PropertyPath
                 got = factory.create(types[1]);
                 if (got == null)
                 {
-                    throw new Error();
+                    throw new Error().add(types[1]);
                 }
                 map.put(index, got);
             }
@@ -825,6 +922,12 @@ public class PropertyPath
             {
                 throw new Error();
             }
+        }
+        
+        @Override
+        public String toString()
+        {
+            return "[" + index.replaceAll("['\t\b\r\n\f]", "\\($1)") + "]";
         }
     }
 }

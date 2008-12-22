@@ -2,6 +2,7 @@ package com.goodworkalan.dspl;
 
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
 
@@ -89,6 +90,7 @@ public class PropertyPathTest
         assertEquals(factory.create(SortedMap.class).getClass(), TreeMap.class);
         assertEquals(factory.create(Map.class).getClass(), HashMap.class);
         assertEquals(factory.create(List.class).getClass(), ArrayList.class);
+        assertNull(factory.create(new ArrayList<Object>().getClass().getTypeParameters()[0]));
     }
 
     @Test(expectedExceptions=UnsupportedOperationException.class)
@@ -201,14 +203,30 @@ public class PropertyPathTest
     public void badNumericIndexAlphaNum() throws PropertyPath.Error
     {
         String part = "a[ 1i ] "; 
-        PropertyPath.newProperty(part);
+        try
+        {
+            new PropertyPath(part);
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertFalse(e.getMessage().equals(e.getKey()), e.getKey());
+            throw e;
+        }
     }
     
     @Test(expectedExceptions=PropertyPath.Error.class)
     public void badNumericIndexNonAlphaNum() throws PropertyPath.Error
     {
         String part = "a[ 1i ["; 
-        PropertyPath.newProperty(part);
+        try
+        {
+            new PropertyPath(part);
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertFalse(e.getMessage().equals(e.getKey()), e.getKey());
+            throw e;
+        }
     }
     
     @Test(expectedExceptions=PropertyPath.Error.class)
@@ -291,7 +309,7 @@ public class PropertyPathTest
     }
     
     @Test
-    public void setListProperty() throws PropertyPath.Error
+    public void listProperty() throws PropertyPath.Error
     {
         PropertyPath path = new PropertyPath("stringListList[0]");
      
@@ -393,7 +411,15 @@ public class PropertyPathTest
         PropertyPath path = new PropertyPath("stringMapMap['bar']['baz']");
         Widget widget = new Widget();
         widget.setStringMapMap(new HashMap<String, Map<String,String>>());
-        path.set(widget, "foo", factory);
+        try
+        {
+            path.set(widget, "foo", factory);
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertEquals(e.getMessage(), "Unable to create map property of type java.util.Map<java.lang.String, java.lang.String>.");
+            throw e;
+        }
     }
     
     @Test(expectedExceptions=PropertyPath.Error.class)
@@ -412,16 +438,39 @@ public class PropertyPathTest
     }
     
     @Test
-    public void mapInsteadOfBean() throws PropertyPath.Error
+    public void mapPropertyCreate() throws PropertyPath.Error
     {
         Map<Object, Object> root = new HashMap<Object, Object>();
         PropertyPath path = new PropertyPath("foo");
         path.set(root, "bar", true);
         assertEquals(root.get("foo"), "bar");
         assertEquals(path.get(root), "bar");
-        
-        path = new PropertyPath("bar[0]");
+    }
+    
+    @Test
+    public void mapListCreate() throws PropertyPath.Error
+    {
+        Map<Object, Object> root = new HashMap<Object, Object>();
+        PropertyPath path = new PropertyPath("bar[0]");
         path.set(root, "bar", true);
         assertEquals(path.get(root), "bar");
+    }
+    
+    @Test
+    public void mapMapCreate() throws PropertyPath.Error
+    {
+        Map<Object, Object> root = new HashMap<Object, Object>();
+        PropertyPath path = new PropertyPath("bar['baz']");
+        path.set(root, "foo", true);
+        assertEquals(path.get(root), "foo");
+    }
+
+    @Test
+    public void mapBeanCreate() throws PropertyPath.Error
+    {
+        Map<Object, Object> root = new HashMap<Object, Object>();
+        PropertyPath path = new PropertyPath("bar.baz");
+        path.set(root, "foo", true);
+        assertEquals(path.get(root), "foo");
     }
 }
