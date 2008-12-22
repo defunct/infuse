@@ -18,8 +18,6 @@ import java.util.TreeMap;
 
 import org.testng.annotations.Test;
 
-import com.goodworkalan.dspl.PropertyPath.Error;
-
 public class PropertyPathTest
 {
     @Test public void constructor() throws PropertyPath.Error 
@@ -164,6 +162,19 @@ public class PropertyPathTest
         }
         catch (PropertyPath.Error e)
         {
+        }
+    }
+
+    @Test(expectedExceptions=Error.class)
+    public void errorBadFormat()
+    {
+        try
+        {
+            throw new PropertyPath.Error();
+        }
+        catch (PropertyPath.Error e)
+        {
+            e.getMessage();
         }
     }
     
@@ -352,7 +363,7 @@ public class PropertyPathTest
     }
     
     @Test(expectedExceptions=PropertyPath.Error.class)
-    public void cannotConstructListValue() throws Error
+    public void cannotConstructListValue() throws PropertyPath.Error
     {
         PropertyPath.Factory factory = mock(PropertyPath.Factory.class);
         PropertyPath path = new PropertyPath("stringListList[0][0]");
