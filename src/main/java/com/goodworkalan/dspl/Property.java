@@ -325,41 +325,41 @@ final class Property
         return null;
     }
     
-    final boolean isAssignableFrom(Class<?> to, Class<?> from)
+    static final boolean isAssignableFrom(Class<?> to, Class<?> from)
     {
         if (to.isPrimitive())
         {
             if (long.class.isAssignableFrom(to))
             {
-                return from.isAssignableFrom(Number.class);
+                return Long.class.isAssignableFrom(from);
             }
             else if (int.class.isAssignableFrom(to))
             {
-                return from.isAssignableFrom(Integer.class);
+                return Integer.class.isAssignableFrom(from);
             }
             else if (short.class.isAssignableFrom(to))
             {
-                return from.isAssignableFrom(Short.class);
+                return Short.class.isAssignableFrom(from);
             }
             else if (char.class.isAssignableFrom(to))
             {
-                return from.isAssignableFrom(Character.class);
+                return Character.class.isAssignableFrom(from);
             }
             else if (byte.class.isAssignableFrom(to))
             {
-                return from.isAssignableFrom(Character.class);
-            }
-            else if (float.class.isAssignableFrom(to))
-            {
-                return from.isAssignableFrom(Float.class);
-            }
-            else if (double.class.isAssignableFrom(to))
-            {
-                return from.isAssignableFrom(Double.class);
+                return Byte.class.isAssignableFrom(from);
             }
             else if (boolean.class.isAssignableFrom(to))
             {
-                return from.isAssignableFrom(Boolean.class);
+                return Boolean.class.isAssignableFrom(from);
+            }
+            else if (float.class.isAssignableFrom(to))
+            {
+                return Float.class.isAssignableFrom(from);
+            }
+            else // if (double.class.isAssignableFrom(to))
+            {
+                return Double.class.isAssignableFrom(from);
             }
         }
         return from.isAssignableFrom(to);
