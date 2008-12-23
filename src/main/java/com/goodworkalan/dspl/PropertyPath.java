@@ -16,6 +16,8 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * <p>
@@ -30,6 +32,9 @@ import java.util.TreeMap;
  * property. We won't know the real properties until we navigate an actual
  * object graph.
  * </p>
+ * TODO Consider carefully whether you want to break this up
+ *      into separate classes. PropertyPath.Factory is not shorter than
+ *      PropertyFactory (or ObjectFactory).
  * 
  * @author Alan Gutierrez
  */
@@ -47,8 +52,13 @@ public class PropertyPath
      * @param path
      *            The bean path.
      */
-    public PropertyPath(String path) throws PropertyPath.Error
+    public PropertyPath(String path) throws Error
     {
+        if (path == null)
+        {
+            throw new IllegalArgumentException();
+        }
+
         String[] parts = path.split("\\.");
         Property[] properties = new Property[parts.length];
         for (int i = 0; i < parts.length; i++)
@@ -57,9 +67,9 @@ public class PropertyPath
             {
                 properties[i] = newProperty(parts[i]);
             }
-            catch (PropertyPath.Error e)
+            catch (Error e)
             {
-                throw e.add(path);
+                throw e.add(stringEscape(path));
             }
         }
         this.properties = properties;
@@ -70,12 +80,17 @@ public class PropertyPath
      * 
      * @param bean
      *            The root bean of an object graph.
-     * @throws PropertyPath.Error
+     * @throws Error
      *             If the path does not exist or if an error occurs in
      *             reflection.
      */
-    public Object get(Object bean) throws PropertyPath.Error
+    public Object get(Object bean) throws Error
     {
+        if (bean == null)
+        {
+            throw new IllegalArgumentException();
+        }
+
         for (int i = 0; bean != null && i < properties.length - 1; i++)
         {
             bean = properties[i].get(bean, null);
@@ -86,28 +101,41 @@ public class PropertyPath
             return properties[properties.length - 1].get(bean, null);
         }
         
-        throw new PropertyPath.Error();
+        throw new Error(101);
     }
     
-    public Type typeOf(Object bean, Factory factory) throws PropertyPath.Error
+    public Type typeOf(Object bean, Factory factory) throws Error
     {
-        for (int i = 0; bean != null && i < properties.length - 1; i++)
+        if (bean == null)
         {
-            bean = properties[i].get(bean, factory);
+            throw new IllegalArgumentException();
         }
 
-        Type type = null;
-        if (bean != null)
+        try
         {
-            type = properties[properties.length - 1].typeOf(bean);
-        }
+            for (int i = 0; bean != null && i < properties.length - 1; i++)
+            {
+                bean = properties[i].get(bean, factory);
+            }
+    
+            Type type = null;
+            if (bean != null)
+            {
+                type = properties[properties.length - 1].typeOf(bean);
+            }
+    
+            if (type == null && factory != null)
+            {
+                throw new Error(102);
+            }
 
-        if (type == null && factory != null)
-        {
-            throw new PropertyPath.Error();
+            return type;
         }
-        
-        return type;
+        catch (PropertyPath.Error e)
+        {
+            e.add(stringEscape(toString())).add(bean.getClass().getName());
+            throw e;
+        }
     }
     
     public Type typeOf(Object bean, boolean create) throws Error
@@ -122,27 +150,43 @@ public class PropertyPath
      *            The root bean of an object graph.
      * @param value
      *            The value to set.
-     * @throws PropertyPath.Error
+     * @throws Error
      *             If the path does not exist, if the value is of the incorrect
      *             type, or if an error occurs in reflection.
      */
-    public void set(Object bean, Object value, Factory factory) throws PropertyPath.Error
+    public void set(Object bean, Object value, Factory factory) throws Error
     {
-        for (int i = 0; bean != null && i < properties.length - 1; i++)
+        if (bean == null)
         {
-            bean = properties[i].get(bean, factory);
+            throw new IllegalArgumentException();
         }
-        if (bean != null)
+
+        try
         {
-            properties[properties.length - 1].set(bean, value, factory);
+            Object object = bean;
+            for (int i = 0; object != null && i < properties.length - 1; i++)
+            {
+                object = properties[i].get(object, factory);
+            }
+            if (object != null)
+            {
+                properties[properties.length - 1].set(object, value, factory);
+            }
+            else if (factory != null)
+            {
+                throw new Error(103);
+            }
         }
-        else if (factory != null)
+        catch (PropertyPath.Error e)
         {
-            throw new Error().add(toString()).add(value);
+            e.add(stringEscape(toString()))
+             .add(bean.getClass().getName())
+             .add(value == null ? value : value.getClass().getName());
+            throw e;
         }
     }
     
-    public void set(Object bean, Object value, boolean create) throws PropertyPath.Error
+    public void set(Object bean, Object value, boolean create) throws Error
     {
         set(bean, value, create ? new CoreFactory() : null);
     }
@@ -209,10 +253,9 @@ public class PropertyPath
      * @return The index of the first character that is not a part of a Java
      *         identifier.
      */
-    static int getIdentifier(String part, StringBuilder identifier)
+    static int getIdentifier(String part, StringBuilder identifier, int i)
     {
-        identifier.append(part.charAt(0));
-        int i = 1;
+        identifier.append(part.charAt(i++));
         for (; i < part.length() && Character.isJavaIdentifierPart(part.charAt(i)); i++)
         {
             identifier.append(part.charAt(i));
@@ -220,17 +263,24 @@ public class PropertyPath
         return i;
     }
     
-    static Property newProperty(String part) throws PropertyPath.Error
+    static Property newProperty(String part) throws Error
     {
-        part = part.trim();
-        if (part.length() == 0 || !Character.isJavaIdentifierStart(part.charAt(0)))
+        int i = eatWhite(part, 0);
+        
+        if (i == part.length())
         {
-            throw new PropertyPath.Error();
+            throw new Error(104);
+        }
+
+        if (!Character.isJavaIdentifierStart(part.charAt(i)))
+        {
+            throw new Error(121).add(stringEscape(part))
+                                .add(charEscape(part.charAt(i)));
         }
     
         // Read the Java bean identifier.
         StringBuilder newIdentifier = new StringBuilder();
-        int i = getIdentifier(part, newIdentifier);
+        i = getIdentifier(part, newIdentifier, i);
         String identifier = newIdentifier.toString();
         
         // Skip an whitespace.
@@ -247,11 +297,11 @@ public class PropertyPath
             }
             catch (StringIndexOutOfBoundsException e)
             {
-                throw new PropertyPath.Error(e);
+                throw new Error(105, e).add(stringEscape(part));
             }
             catch (NumberFormatException e)
             {
-                throw new PropertyPath.Error(e).add(part);
+                throw new Error(106, e).add(stringEscape(part));
             }
         }
         
@@ -259,11 +309,12 @@ public class PropertyPath
     }
 
     static int newIndex(String part, int i, List<Index> indexes)
-        throws PropertyPath.Error
+        throws Error
     {
         if (part.charAt(i++) != '[')
         {
-            throw new Error().add(part).add(part.charAt(i - 1));
+            throw new Error(107).add(stringEscape(part))
+                                .add(charEscape(part.charAt(i - 1)));
         }
     
         i = eatWhite(part, i);
@@ -278,7 +329,7 @@ public class PropertyPath
                 switch (ch)
                 {
                 case 0:
-                    throw new PropertyPath.Error();
+                    throw new Error(108).add(stringEscape(part));
                 case '\'':
                     // This noop is only to get 100% Corbertura coverage, sorry.
                     part.length();
@@ -287,7 +338,9 @@ public class PropertyPath
                     {
                         break KEY;
                     }
-                    throw new PropertyPath.Error();
+                    throw new Error(109).add(stringEscape(part))
+                                        .add(charEscape(ch))
+                                        .add(charEscape(quote));
                 case '\\':
                     ch = part.charAt(i++);
                     switch (ch)
@@ -320,7 +373,8 @@ public class PropertyPath
                         newKey.append('"');
                         break;
                     default:
-                        throw new PropertyPath.Error();
+                        throw new Error(110).add(stringEscape(part))
+                                            .add("'\\" + ch + "'");
                     }
                     break;
                 default:
@@ -330,7 +384,8 @@ public class PropertyPath
             i = eatWhite(part, i);
             if (part.charAt(i++) != ']')
             {
-                throw new PropertyPath.Error();
+                throw new Error(111).add(stringEscape(part))
+                                    .add(charEscape(part.charAt(i - 1)));
             }
     
             indexes.add( new MapIndex(newKey.toString()));
@@ -352,6 +407,48 @@ public class PropertyPath
         
         return eatWhite(part, i + 1);
     }
+    
+    final static String charEscape(char ch)
+    {
+        return "'" + (ch == '\'' || ch == '\\' ? "\\" + ch : ch) + "'"; 
+    }
+    
+    final static String stringEscape(String string)
+    {
+        Pattern pattern = Pattern.compile("[\\\"\b\r\n\f\t\0\1\2\3\4\5\6\7]");
+        Matcher matcher = pattern.matcher(string);
+        StringBuffer newString = new StringBuffer();
+        while (matcher.find())
+        {
+            char ch = string.charAt(matcher.start());
+            String replacement;
+            if (ch < 8)
+            {
+                replacement = "\\\\" + (int) ch;
+            }
+            else
+            {
+                switch (ch)
+                {
+                case '\b':
+                    replacement = "\\\\b";
+                case '\f':
+                    replacement = "\\\\f";
+                case '\n':
+                    replacement = "\\\\n";
+                case '\r':
+                    replacement = "\\\\r";
+                case '\t':
+                    replacement = "\\\\t";
+                default:
+                    replacement = "\\\\" + ch;
+                }
+            }
+            matcher.appendReplacement(newString, replacement);
+        }
+        matcher.appendTail(newString);
+        return "\"" + newString.toString() + "\"";
+    }
 
     public final static class Error extends Exception
     {
@@ -359,19 +456,22 @@ public class PropertyPath
         
         private final List<Object> listOfArguments = new ArrayList<Object>(); 
         
-        public Error()
+        private final int code;
+        
+        public Error(int code)
         {
+            this.code = code;
         }
         
         public String getKey()
         {
-            StackTraceElement[] trace = getStackTrace();
-            return trace[0].getFileName() + '.' + trace[0].getLineNumber();
+            return Integer.toString(code);
         }
         
-        public Error(Throwable cause)
+        public Error(int code, Throwable cause)
         {
             super(cause);
+            this.code = code;
         }
         
         public Error add(Object argument)
@@ -407,14 +507,14 @@ public class PropertyPath
 
     public interface Factory
     {
-        public Object create(Type type) throws PropertyPath.Error;
+        public Object create(Type type) throws Error;
         
         public Object newBean();
     }
     
     final static class CoreFactory implements Factory
     {
-        public Object create(Type type) throws PropertyPath.Error
+        public Object create(Type type) throws Error
         {
             Object created = null;
             if (type instanceof ParameterizedType)
@@ -428,7 +528,7 @@ public class PropertyPath
             return created;
         }
         
-        public Object create(Class<?> cls) throws PropertyPath.Error
+        public Object create(Class<?> cls) throws Error
         {
             if (!cls.isInterface())
             {
@@ -438,7 +538,7 @@ public class PropertyPath
                 }
                 catch (Exception e)
                 {
-                    throw new PropertyPath.Error(e);
+                    throw new Error(112, e).add(cls.getName());
                 }
             }
             else if (SortedMap.class.isAssignableFrom(cls))
@@ -534,7 +634,7 @@ public class PropertyPath
                 Object value = factory.create(type);
                 if (value == null)
                 {
-                    throw new Error();
+                    throw new Error(113);
                 }
                 set(method, bean, value);
                 return true;
@@ -547,7 +647,7 @@ public class PropertyPath
             return get(bean, indexes.length, factory);
         }
     
-        public Object get(Object bean, int indexesLength, Factory factory) throws PropertyPath.Error
+        public Object get(Object bean, int indexesLength, Factory factory) throws Error
         {
             if (bean instanceof Map)
             {
@@ -600,7 +700,7 @@ public class PropertyPath
                 }
                 catch (Exception e)
                 {
-                    throw new PropertyPath.Error(e);
+                    throw new Error(114, e);
                 }
                 if (object == null && factory != null && create(bean, method.getGenericReturnType(), args.length, factory))
                 {
@@ -609,8 +709,17 @@ public class PropertyPath
                 Type type = method.getGenericReturnType();
                 for (int i = args.length; object != null && i < indexesLength; i++)
                 {
-                    object = indexes[i].get(type, object, factory);
-                    type = indexes[i].typeOf(type);
+                    try
+                    {
+                        object = indexes[i].get(type, object, factory);
+                        type = indexes[i].typeOf(type);
+                    }
+                    catch (PropertyPath.Error e)
+                    {
+                        e.add(stringEscape(toString()))
+                         .add(stringEscape(toString(i)));
+                        throw e;
+                    }
                 }
             }
             return object;
@@ -641,64 +750,79 @@ public class PropertyPath
         
         public void set(Object bean, Object value, Factory factory) throws Error
         {
-            if (bean instanceof Map)
+            try
             {
-                if (indexes.length == 0)
+                if (bean instanceof Map)
                 {
-                    toMap(bean).put(name, value);
+                    if (indexes.length == 0)
+                    {
+                        toMap(bean).put(name, value);
+                    }
+                    else
+                    {
+                        Object container = null;
+                        Object object = toMap(bean).get(name);
+                        for (int i = 0; i < indexes.length; i++)
+                        {
+                            if (object == null)
+                            {
+                                object = factory.create(indexes[i].getRawType());
+                                if (i == 0)
+                                {
+                                    toMap(bean).put(name, object);
+                                }
+                                else
+                                {
+                                    indexes[i - 1].set(indexes[i - 1].getRawType(), container, value);
+                                }
+                            }
+                            container = object;
+                        }
+                        indexes[indexes.length - 1].set(container.getClass().getGenericSuperclass(), container, value);
+                    }
                 }
                 else
                 {
-                    Object container = null;
-                    Object object = toMap(bean).get(name);
-                    for (int i = 0; i < indexes.length; i++)
+                    Method method = explicitSet(bean, value == null ? null : value.getClass(), indexes.length);
+                    if (method == null && indexes.length != 0)
                     {
-                        if (object == null)
+                        Object object = get(bean, indexes.length - 1, factory);
+                        if (object != null)
                         {
-                            object = factory.create(indexes[i].getRawType());
-                            if (i == 0)
-                            {
-                                toMap(bean).put(name, object);
-                            }
-                            else
-                            {
-                                indexes[i - 1].set(indexes[i - 1].getRawType(), container, value);
-                            }
+                            Type type = typeOf(bean, indexes.length - 1);
+                            indexes[indexes.length - 1].set(type, object, value);
                         }
-                        container = object;
                     }
-                    indexes[indexes.length - 1].set(container.getClass().getGenericSuperclass(), container, value);
+                    else if (method == null)
+                    {
+                        throw new Error(115);
+                    }
+                    else
+                    {
+                        set(method, bean, value);
+                    }
                 }
             }
-            else
+            catch (PropertyPath.Error e)
             {
-                Method method = explicitSet(bean, value == null ? null : value.getClass(), indexes.length);
-                if (method == null && indexes.length != 0)
-                {
-                    Object object = get(bean, indexes.length - 1, factory);
-                    if (object != null)
-                    {
-                        Type type = typeOf(bean, indexes.length - 1);
-                        indexes[indexes.length - 1].set(type, object, value);
-                    }
-                }
-                else if (method == null)
-                {
-                    throw new Error();
-                }
-                else
-                {
-                    set(method, bean, value);
-                }
+                e.add(stringEscape(toString()))
+                 .add(bean.getClass().getName())
+                 .add(value == null ? value : value.getClass().getName());
+                throw e;
             }
         }
     
         @Override
         public String toString()
         {
+            return toString(indexes.length);
+        }
+        
+        public String toString(int indexCount)
+        {
             StringBuilder newString = new StringBuilder();
             newString.append(name);
-            for (int i = 0; i < indexes.length; i++)
+            for (int i = 0; i < indexCount; i++)
             {
                 newString.append(indexes[i].toString());
             }
@@ -719,7 +843,7 @@ public class PropertyPath
             }
             catch (Exception e)
             {
-                throw new PropertyPath.Error(e);
+                throw new Error(116, e);
             }
         }
         
@@ -761,11 +885,11 @@ public class PropertyPath
         
         public Object getIndex();
 
-        public Type typeOf(Type type) throws PropertyPath.Error;
+        public Type typeOf(Type type) throws Error;
         
-        public Object get(Type type, Object container, Factory factory) throws PropertyPath.Error;
+        public Object get(Type type, Object container, Factory factory) throws Error;
         
-        public void set(Type type, Object container, Object value) throws PropertyPath.Error;
+        public void set(Type type, Object container, Object value) throws Error;
     }
     
     final static class ObjectList extends ArrayList<Object>
@@ -797,7 +921,7 @@ public class PropertyPath
             return int.class.isAssignableFrom(cls) || Integer.class.isAssignableFrom(cls);
         }
 
-        public Type typeOf(Type type) throws PropertyPath.Error
+        public Type typeOf(Type type) throws Error
         {
             if (type instanceof ParameterizedType)
             {
@@ -816,7 +940,8 @@ public class PropertyPath
             return (List) object;
         }
 
-        public Object get(Type type, Object container, Factory factory) throws PropertyPath.Error
+        // TODO Why does get take the parameter type, but set takes the list type?
+        public Object get(Type type, Object container, Factory factory) throws Error
         {
             Object got = null;
             List<Object> list = toList(container);
@@ -829,7 +954,7 @@ public class PropertyPath
                 got = factory.create(type);
                 if (got == null)
                 {
-                    throw new Error();
+                    throw new Error(117).add(type);
                 }
                 list.add(index, got);
             }
@@ -845,7 +970,7 @@ public class PropertyPath
             }
             else
             {
-                throw new Error();
+                throw new Error(118).add(type);
             }
         }
         
@@ -894,7 +1019,7 @@ public class PropertyPath
             return null;
         }
         
-        public Object get(Type type, Object container, Factory factory) throws PropertyPath.Error
+        public Object get(Type type, Object container, Factory factory) throws Error
         {
             Map<Object, Object> map = toMap(container);
             Object got = map.get(index);
@@ -904,7 +1029,7 @@ public class PropertyPath
                 got = factory.create(types[1]);
                 if (got == null)
                 {
-                    throw new Error().add(types[1]);
+                    throw new Error(119).add(types[1]);
                 }
                 map.put(index, got);
             }
@@ -920,7 +1045,7 @@ public class PropertyPath
             }
             else
             {
-                throw new Error();
+                throw new Error(120).add(type);
             }
         }
         

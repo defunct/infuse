@@ -2,7 +2,6 @@ package com.goodworkalan.dspl;
 
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
 
@@ -78,7 +77,15 @@ public class PropertyPathTest
     {    
         PropertyPath path = new PropertyPath("widget.foo");
         Widget widget = new Widget();
-        path.typeOf(widget, true);
+        try
+        {
+            path.typeOf(widget, true);
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertEquals(e.getMessage(), "Unable to navigate path \"widget.foo\" in bean of class com.goodworkalan.dspl.Widget in order to determine type.");
+            throw e;
+        }
     }
 
     @Test
@@ -95,14 +102,31 @@ public class PropertyPathTest
     public void notFound() throws Exception
     {
         PropertyPath.Factory factory = new PropertyPath.CoreFactory();
-        factory.create(Runnable.class);
+        try
+        {
+            factory.create(Runnable.class);
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertEquals(e.getMessage(), "foo");
+            throw e;
+        }
     }
 
     @Test(expectedExceptions=PropertyPath.Error.class)
     public void noDefaultConstructor() throws Exception
     {
         PropertyPath.Factory factory = new PropertyPath.CoreFactory();
-        factory.create(Integer.class);
+        try
+        {
+            factory.create(Integer.class);
+        }
+        catch (PropertyPath.Error e)
+        {
+            // TODO Maybe there are two 
+            assertEquals(e.getMessage(), "Unable to create class of type java.lang.Integer. No default constructor.");
+            throw e;
+        }
     }
 
     @Test
@@ -151,14 +175,14 @@ public class PropertyPathTest
     {
         try
         {
-            throw new PropertyPath.Error();
+            throw new PropertyPath.Error(10001);
         }
         catch (PropertyPath.Error e)
         {
         }
         try
         {
-            throw new PropertyPath.Error(new IOException());
+            throw new PropertyPath.Error(10001, new IOException());
         }
         catch (PropertyPath.Error e)
         {
@@ -170,7 +194,7 @@ public class PropertyPathTest
     {
         try
         {
-            throw new PropertyPath.Error();
+            throw new PropertyPath.Error(99999);
         }
         catch (PropertyPath.Error e)
         {
@@ -220,7 +244,7 @@ public class PropertyPathTest
         }
         catch (PropertyPath.Error e)
         {
-            assertFalse(e.getMessage().equals(e.getKey()), e.getKey());
+            assertEquals(e.getMessage(), "Unable to parse path \"a[ 1i ] \" part \"a[ 1i ] \". List index is not an integer.");
             throw e;
         }
     }
@@ -235,7 +259,7 @@ public class PropertyPathTest
         }
         catch (PropertyPath.Error e)
         {
-            assertFalse(e.getMessage().equals(e.getKey()), e.getKey());
+            assertEquals(e.getMessage(), "Unable to parse path \"a[ 1i [\" part \"a[ 1i [\". List index is not an integer.");
             throw e;
         }
     }
@@ -243,15 +267,31 @@ public class PropertyPathTest
     @Test(expectedExceptions=PropertyPath.Error.class)
     public void badIndexAlphaNum() throws PropertyPath.Error
     {
-        String part = "a 1"; 
-        PropertyPath.newProperty(part);
+        String part = "a \"";
+        try
+        {
+            new PropertyPath(part);
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertEquals(e.getMessage(), "Unable to parse path \"a \\\"\" part \"a \\\"\". Expecting '[' but got '\"'.");
+            throw e;
+        }
     }
     
     @Test(expectedExceptions=PropertyPath.Error.class)
     public void badIndexNonAlphaNum() throws PropertyPath.Error
     {
-        String part = "a]"; 
-        PropertyPath.newProperty(part);
+        String part = "a]";
+        try
+        {
+            new PropertyPath(part);
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertEquals(e.getMessage(), "Unable to parse path \"a]\" part \"a]\". Expecting '[' but got ']'.");
+            throw e;
+        }
     }
     
     private void assertName(String part, String name) throws PropertyPath.Error
@@ -280,43 +320,105 @@ public class PropertyPathTest
     @Test(expectedExceptions=PropertyPath.Error.class)
     public void stringIndexBadClosingBracket() throws PropertyPath.Error
     {
-        PropertyPath.newProperty("a['a'a");
+        try
+        {
+            new PropertyPath("a['a'a");
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertEquals(e.getMessage(), "Unable to parse path \"a['a'a\" part \"a['a'a\". Expecting ']' but got 'a'.");
+            throw e;
+        }
     }
     
     @Test(expectedExceptions=PropertyPath.Error.class)
     public void stringIndexIncomplete() throws PropertyPath.Error
     {
-        PropertyPath.newProperty("a['a");
+        try
+        {
+            new PropertyPath("a['a");
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertEquals(e.getMessage(), "Unable to parse path \"a['a\" part \"a['a\". Unexpected end of string.");
+            throw e;
+        }
     }
 
     @Test(expectedExceptions=PropertyPath.Error.class)
     public void stringIndexMismatchQuotes() throws PropertyPath.Error
     {
-        PropertyPath.newProperty("a['a\"]");
+        try
+        {
+            new PropertyPath("a['a\"]");
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertEquals(e.getMessage(), "Unable to parse path \"a['a\\\"]\" part \"a['a\\\"]\". Unnecessary escape of quote character '\"' in string quoted with '\\''.");
+            throw e;
+        }
     }
     
     @Test(expectedExceptions=PropertyPath.Error.class)
     public void stringIndexBadEscape() throws PropertyPath.Error
     {
-        PropertyPath.newProperty("a['\\a']");
+        try
+        {
+            new PropertyPath("a['\\a']");
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertEquals(e.getMessage(), "Unable to parse path \"a['\\a']\" part \"a['\\a']\". Invalid character escape sequence '\\a'.");
+            throw e;
+        }
     }
     
     @Test(expectedExceptions=PropertyPath.Error.class)
     public void stringIndexWithZero() throws PropertyPath.Error
     {
-        PropertyPath.newProperty("a['\0']");
+        try
+        {
+            new PropertyPath("a['\0']");
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertEquals(e.getMessage(), "Unable to parse path \"a['\\0']\" part \"a['\\0']\". Invalid character '\\0'.");
+            throw e;
+        }
     }
     
+    @Test(expectedExceptions=IllegalArgumentException.class)
+    public void nullString() throws PropertyPath.Error
+    {
+        new PropertyPath(null);
+    }
+
     @Test(expectedExceptions=PropertyPath.Error.class)
     public void emptyString() throws PropertyPath.Error
     {
-        PropertyPath.newProperty("");
+        try
+        {
+            new PropertyPath("");
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertEquals(e.getMessage(), "Unable to parse empty string.");
+            throw e;
+        }
     }
     
     @Test(expectedExceptions=PropertyPath.Error.class)
     public void nonJavaIdentifierStart() throws PropertyPath.Error
     {
-        PropertyPath.newProperty("1");
+        try
+        {
+            new PropertyPath("1");
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertEquals(e.getMessage(), "Unable to parse path \"1\" part \"1\". First character '1' is not a valid Java start identifier character.");
+            throw e;
+        }
     }
     
     @Test
@@ -355,11 +457,19 @@ public class PropertyPathTest
     }
     
     @Test(expectedExceptions=PropertyPath.Error.class)
-    public void basListSetType() throws PropertyPath.Error
+    public void badListSetType() throws PropertyPath.Error
     {
         PropertyPath path = new PropertyPath("stringListList[0]");
         Widget widget = new Widget();
-        path.set(widget, "A", true);
+        try
+        {
+            path.set(widget, "A", true);
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertEquals(e.getMessage(), "Unable to set value of class java.lang.String to list of type java.util.List<java.util.List<java.lang.String>> for path \"stringListList[0]\" in bean of class com.goodworkalan.dspl.Widget.");
+            throw e;
+        }
     }
     
     @Test(expectedExceptions=PropertyPath.Error.class)
@@ -369,7 +479,15 @@ public class PropertyPathTest
         PropertyPath path = new PropertyPath("stringListList[0][0]");
         Widget widget = new Widget();
         widget.setStringListList(new ArrayList<List<String>>());
-        path.set(widget, "foo", factory);
+        try
+        {
+            path.set(widget, "foo", factory);
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertEquals(e.getMessage(), "Unable to create path \"stringListList[0][0]\" part \"stringListList[0][0]\" in bean java.util.List<java.util.List<java.lang.String>>. Unable to set part \"stringListList\" with type of java.util.List<java.util.List<java.lang.String>> with value of type java.lang.String.");
+            throw e;
+        }
     }
     
     @Test
@@ -412,7 +530,15 @@ public class PropertyPathTest
     {
         PropertyPath path = new PropertyPath("stringMapMap['bar']");
         Widget widget = new Widget();
-        path.set(widget, "A", true);
+        try
+        {
+            path.set(widget, "A", true);
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertEquals(e.getMessage(), "Unable to set value of class java.lang.String to map of type java.util.Map<java.lang.String, java.util.Map<java.lang.String, java.lang.String>> for path \"stringMapMap[bar]\" in bean of class com.goodworkalan.dspl.Widget.");
+            throw e;
+        }
     }
     
     @Test(expectedExceptions=PropertyPath.Error.class)
@@ -438,14 +564,48 @@ public class PropertyPathTest
     {
         PropertyPath path = new PropertyPath("foo.bar");
         path.set(new Widget(), "foo", false);
-        path.set(new Widget(), "foo", true);
+        try
+        {
+            path.set(new Widget(), "foo", true);
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertEquals(e.getMessage(), "Unable to navigate path \"foo.bar\" in bean of class com.goodworkalan.dspl.Widget  in order to set value of class java.lang.String.");
+            throw e;
+        }
+    }
+    
+    @Test(expectedExceptions=IllegalArgumentException.class)
+    public void nullGet() throws PropertyPath.Error
+    {
+        new PropertyPath("foo").get(null);
+    }
+    
+    @Test(expectedExceptions=IllegalArgumentException.class)
+    public void nullSet() throws PropertyPath.Error
+    {
+        new PropertyPath("foo").set(null, null, false);
+    }
+    
+    @Test(expectedExceptions=IllegalArgumentException.class)
+    public void nullTypeOf() throws PropertyPath.Error
+    {
+        new PropertyPath("foo").typeOf(null, false);
     }
     
     @Test(expectedExceptions=PropertyPath.Error.class)
     public void noSuchSetMethod() throws PropertyPath.Error
     {
         PropertyPath path = new PropertyPath("foo");
-        path.set(new Widget(), "foo", true);
+        try
+        {
+            path.set(new Widget(), "foo", true);
+        }
+        catch (PropertyPath.Error e)
+        {
+            assertEquals(e.getMessage(), "Unable to navigate path \"foo\" in bean of class com.goodworkalan.dspl.Widget in order to set value of class java.lang.String.");
+            throw e;
+        }
     }
     
     @Test
