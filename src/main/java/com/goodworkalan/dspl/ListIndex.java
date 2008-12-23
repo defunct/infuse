@@ -40,30 +40,28 @@ final class ListIndex implements Index
         }
         return null;
     }
-    
-    @SuppressWarnings("unchecked")
-    private List<Object> toList(Object object)
-    {
-        return (List) object;
-    }
 
-    // TODO Why does get take the parameter type, but set takes the list type?
     public Object get(Type type, Object container, ObjectFactory factory) throws PathException
     {
         Object got = null;
-        List<Object> list = toList(container);
+        List<Object> list = PropertyPath.toList(container);
         if (index < list.size())
         {
             got = list.get(index);
         }
         if (got == null && factory != null)
         {
-            got = factory.create(type);
+            Type[] types = ((ParameterizedType) type).getActualTypeArguments();
+            got = factory.create(types[0]);
             if (got == null)
             {
-                throw new PathException(117).add(type);
+                throw new PathException(117).add(types[0]);
             }
-            list.add(index, got);
+            while (list.size() <= index)
+            {
+                list.add(null);
+            }
+            list.set(index, got);
         }
         return got;
     }
@@ -73,7 +71,12 @@ final class ListIndex implements Index
         Type[] types = ((ParameterizedType) type).getActualTypeArguments();
         if (value == null || PropertyPath.toClass(types[0]).isAssignableFrom(value.getClass()))
         {
-            toList(container).add(index, value);
+            List<Object> list = PropertyPath.toList(container);
+            while (list.size() <= index)
+            {
+                list.add(null);
+            }
+            PropertyPath.toList(container).set(index, value);
         }
         else
         {

@@ -206,6 +206,12 @@ public class PropertyPath
         }
         return null;
     }
+    
+    @SuppressWarnings("unchecked")
+    static List<Object> toList(Object object)
+    {
+        return (List) object;
+    }
 
     @SuppressWarnings("unchecked")
     static Map<Object, Object> toMap(Object object)
@@ -421,14 +427,19 @@ public class PropertyPath
                 {
                 case '\b':
                     replacement = "\\\\b";
+                    break;
                 case '\f':
                     replacement = "\\\\f";
+                    break;
                 case '\n':
                     replacement = "\\\\n";
+                    break;
                 case '\r':
                     replacement = "\\\\r";
+                    break;
                 case '\t':
                     replacement = "\\\\t";
+                    break;
                 default:
                     replacement = "\\\\" + ch;
                 }

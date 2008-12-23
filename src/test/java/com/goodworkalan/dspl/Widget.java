@@ -15,6 +15,10 @@ public class Widget
     
     private Map<String, Map<String, String>> stringMapMap;
 
+    private List<List<Widget>> widgetListList;
+    
+    private Map<String, Map<String, Widget>> widgetMapMap;
+
     public Widget()
     {
     }
@@ -64,6 +68,16 @@ public class Widget
         return stringListList;
     }
     
+    public void setWidgetListList(List<List<Widget>> widgetListList)
+    {
+        this.widgetListList = widgetListList;
+    }
+    
+    public List<List<Widget>> getWidgetListList()
+    {
+        return widgetListList;
+    }
+    
     public void setStringMapMap(Map<String, Map<String, String>> stringMapMap)
     {
         this.stringMapMap = stringMapMap;
@@ -72,6 +86,16 @@ public class Widget
     public Map<String, Map<String, String>> getStringMapMap()
     {
         return stringMapMap;
+    }
+    
+    public void setWidgetMapMap(Map<String, Map<String, Widget>> widgetMapMap)
+    {
+        this.widgetMapMap = widgetMapMap;
+    }
+    
+    public Map<String, Map<String, Widget>> getWidgetMapMap()
+    {
+        return widgetMapMap;
     }
     
     public void setString(String a, String b, String value)

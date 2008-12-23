@@ -47,7 +47,7 @@ final class Property
             {
                 for (Class<?> result : readerNames.keySet())
                 {
-                    if (result.isAssignableFrom(PropertyPath.toClass(method.getGenericReturnType()))
+                    if ((result.equals(Object.class) || result.isAssignableFrom(PropertyPath.toClass(method.getGenericReturnType())))
                             && readerNames.get(result).equals(method.getName()))
                     {
                         readers.add(method);
@@ -166,7 +166,7 @@ final class Property
                 catch (PathException e)
                 {
                     e.add(PropertyPath.stringEscape(toString()))
-                     .add(PropertyPath.stringEscape(toString(i)));
+                     .add(PropertyPath.stringEscape(toString(i + 1)));
                     throw e;
                 }
             }
@@ -306,7 +306,7 @@ final class Property
             Type[] types = method.getGenericParameterTypes();
             if (method.getName().equals(methodName)
                 && types.length == indexLength + 1
-                && (cls == null || cls.isAssignableFrom(PropertyPath.toClass(types[indexLength]))))
+                && (cls == null || isAssignableFrom(PropertyPath.toClass(types[indexLength]), cls)))
             {
                 for (int i = 0; i < indexLength; i++)
                 {
@@ -323,5 +323,45 @@ final class Property
             return writers.iterator().next();
         }
         return null;
+    }
+    
+    final boolean isAssignableFrom(Class<?> to, Class<?> from)
+    {
+        if (to.isPrimitive())
+        {
+            if (long.class.isAssignableFrom(to))
+            {
+                return from.isAssignableFrom(Number.class);
+            }
+            else if (int.class.isAssignableFrom(to))
+            {
+                return from.isAssignableFrom(Integer.class);
+            }
+            else if (short.class.isAssignableFrom(to))
+            {
+                return from.isAssignableFrom(Short.class);
+            }
+            else if (char.class.isAssignableFrom(to))
+            {
+                return from.isAssignableFrom(Character.class);
+            }
+            else if (byte.class.isAssignableFrom(to))
+            {
+                return from.isAssignableFrom(Character.class);
+            }
+            else if (float.class.isAssignableFrom(to))
+            {
+                return from.isAssignableFrom(Float.class);
+            }
+            else if (double.class.isAssignableFrom(to))
+            {
+                return from.isAssignableFrom(Double.class);
+            }
+            else if (boolean.class.isAssignableFrom(to))
+            {
+                return from.isAssignableFrom(Boolean.class);
+            }
+        }
+        return from.isAssignableFrom(to);
     }
 }

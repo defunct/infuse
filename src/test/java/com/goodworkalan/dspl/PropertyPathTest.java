@@ -148,7 +148,6 @@ public class PropertyPathTest
         ObjectFactory factory = new CoreObjectFactory();
         type = property.typeOf(bean);
         Object list = property.get(bean, null);
-        type = index.typeOf(type);
         list = index.get(type, list, factory);
         type = index.typeOf(type);
         assertEquals(index.get(type, list, factory), "");
@@ -171,7 +170,7 @@ public class PropertyPathTest
     }
     
     @Test
-    public void error()
+    public void pathException()
     {
         try
         {
@@ -187,6 +186,7 @@ public class PropertyPathTest
         catch (PathException e)
         {
         }
+        assertEquals(new PathException(999999).getMessage(), "999999");
     }
 
     @Test(expectedExceptions=Error.class)
@@ -485,7 +485,7 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to create path \"stringListList[0][0]\" part \"stringListList[0][0]\" in bean java.util.List<java.util.List<java.lang.String>>. Unable to set part \"stringListList\" with type of java.util.List<java.util.List<java.lang.String>> with value of type java.lang.String.");
+            assertEquals(e.getMessage(), "Unable to create path \"stringListList[0][0]\" part \"stringListList[0][0]\" in bean class of com.goodworkalan.dspl.Widget. Unable to create type of java.util.List<java.lang.String> to set list index \"stringListList[0]\".");
             throw e;
         }
     }
@@ -536,7 +536,7 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to set value of class java.lang.String to map of type java.util.Map<java.lang.String, java.util.Map<java.lang.String, java.lang.String>> for path \"stringMapMap[bar]\" in bean of class com.goodworkalan.dspl.Widget.");
+            assertEquals(e.getMessage(), "Unable to set value of class java.lang.String to map of type java.util.Map<java.lang.String, java.util.Map<java.lang.String, java.lang.String>> for path \"stringMapMap['bar']\" in bean of class com.goodworkalan.dspl.Widget.");
             throw e;
         }
     }
@@ -643,5 +643,18 @@ public class PropertyPathTest
         PropertyPath path = new PropertyPath("bar.baz");
         path.set(root, "foo", true);
         assertEquals(path.get(root), "foo");
+    }
+    
+    @Test
+    public void stringEscape()
+    {
+        assertEquals(PropertyPath.stringEscape("\b\f\n\r\t\0\1\2\3\4\5\6\7\""), "\"\\b\\f\\n\\r\\t\\0\\1\\2\\3\\4\\5\\6\\7\\\"\"");
+    }
+    
+    @Test
+    public void charEscape()
+    {
+        assertEquals(PropertyPath.charEscape('\''), "'\\''");
+        assertEquals(PropertyPath.charEscape('\\'), "'\\\\'");
     }
 }

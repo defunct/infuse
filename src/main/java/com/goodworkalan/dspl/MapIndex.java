@@ -70,6 +70,11 @@ final class MapIndex implements Index
     @Override
     public String toString()
     {
-        return "[" + index.replaceAll("['\t\b\r\n\f]", "\\($1)") + "]";
+        return "[" + escape(index) + "]";
+    }
+    
+    final static String escape(String index)
+    {
+        return "'" + index.replaceAll("['\t\b\r\n\f]", "\\($1)") + "'";
     }
 }
