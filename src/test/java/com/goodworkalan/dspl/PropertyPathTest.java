@@ -40,6 +40,20 @@ public class PropertyPathTest
         assertEquals(widget.getString(), "foo");
     }
     
+    @Test
+    public void self() throws PathException
+    {
+        PropertyPath path = new PropertyPath("this.widget.this.string.this");
+        
+        Widget widget = new Widget();
+        widget.setString("foo");
+        Widget parent = new Widget();
+        parent.setWidget(widget);
+        
+        assertEquals(path.get(parent), "foo");
+        
+    }
+    
     @Test public void getChild() throws PathException
     {
         PropertyPath path = new PropertyPath("widget.string");
@@ -123,7 +137,7 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            // TODO Maybe there are two 
+            // TODO Maybe there are two exception types. 
             assertEquals(e.getMessage(), "Unable to create class of type java.lang.Integer. No default constructor.");
             throw e;
         }
@@ -634,6 +648,9 @@ public class PropertyPathTest
         PropertyPath path = new PropertyPath("bar['baz']");
         path.set(root, "foo", true);
         assertEquals(path.get(root), "foo");
+        
+        path = new PropertyPath("baz['bar'].foo");
+        path.set(root, "foo", true);
     }
 
     @Test

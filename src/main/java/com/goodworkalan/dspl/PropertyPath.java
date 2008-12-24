@@ -20,10 +20,6 @@ import java.util.regex.Pattern;
  * be the case that a generic container is declared with an Object as type
  * property. We won't know the real properties until we navigate an actual
  * object graph.
- * </p>
- * TODO Consider carefully whether you want to break this up
- *      into separate classes. PropertyPath.Factory is not shorter than
- *      PropertyFactory (or ObjectFactory).
  * 
  * @author Alan Gutierrez
  */

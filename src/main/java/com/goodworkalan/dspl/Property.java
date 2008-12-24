@@ -98,38 +98,45 @@ final class Property
 
     public Object get(Object bean, int indexesLength, ObjectFactory factory) throws PathException
     {
-        if (bean instanceof Map)
+        if (name.equals("this") || (bean instanceof Map))
         {
-            Map<Object, Object> map = PropertyPath.toMap(bean);
-            if (indexes.length == 0)
+            Object object = null;
+            if (name.equals("this"))
             {
-                Object value = map.get(name);
-                if (value == null && factory != null)
-                {
-                    value = factory.newBean();
-                    map.put(name, value);
-                }
-                return value;
+                object = bean;
             }
-            Object container = null;
-            Object object = map.get(name);
-            for (int i = 0; i < indexes.length; i++)
+            else
             {
+                Map<Object, Object> map = PropertyPath.toMap(bean);
+                object = map.get(name);
                 if (object == null)
                 {
-                    object = factory.create(indexes[i].getRawType());
-                    if (i == 0)
-                    {
-                        PropertyPath.toMap(bean).put(name, object);
-                    }
-                    else
-                    {
-                        indexes[i - 1].set(indexes[i - 1].getRawType(), container, object);
-                    }
+                    object = factory.newBean();
+                    map.put(name, object);
                 }
-                container = object;
             }
-            return indexes[indexes.length - 1].get(container.getClass().getGenericSuperclass(), container, factory);
+            for (int i = 0; object != null && i < indexes.length - 1; i++)
+            {
+                // TODO Change first property of get.
+                Object value = indexes[i].get(null, object, null);
+                if (value == null && factory != null)
+                {
+                    value = new ObjectMap();
+                    indexes[i].set(null, object, value);
+                }
+                object = value;
+            }
+            if (indexes.length == 0)
+            {
+                return object;
+            }
+            Object value = indexes[indexes.length - 1].get(null, object, null);
+            if (value == null)
+            {
+                value = factory.newBean();
+                indexes[indexes.length - 1].set(ObjectMap.class.getGenericSuperclass(), object, value);
+            }
+            return value;
         }
 
         Set<Method> readers = readMethods(bean, indexesLength);
