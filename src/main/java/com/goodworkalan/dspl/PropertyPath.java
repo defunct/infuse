@@ -159,19 +159,6 @@ public class PropertyPath extends PropertyList
         return newString.toString();
     }
     
-    public String withoutIndexes()
-    {
-        StringBuilder newString = new StringBuilder();
-        String separator = "";
-        for (Property property : properties)
-        {
-            newString.append(separator);
-            newString.append(property.name);
-            separator = ".";
-        }
-        return newString.toString();
-    }
-    
     public List<String> toList(boolean escape)
     {
         List<String> path = new ArrayList<String>();

@@ -112,19 +112,12 @@ public class PropertyPathTest
         assertNull(factory.create(new ArrayList<Object>().getClass().getTypeParameters()[0]));
     }
 
+    // TODO Throw a FactoryException.
     @Test(expectedExceptions=UnsupportedOperationException.class)
     public void notFound() throws Exception
     {
         ObjectFactory factory = new CoreObjectFactory();
-        try
-        {
-            factory.create(Runnable.class);
-        }
-        catch (PathException e)
-        {
-            assertEquals(e.getMessage(), "foo");
-            throw e;
-        }
+        factory.create(Runnable.class);
     }
 
     @Test(expectedExceptions=PathException.class)
@@ -135,7 +128,7 @@ public class PropertyPathTest
         {
             factory.create(Integer.class);
         }
-        catch (PathException e)
+        catch (FactoryException e)
         {
             // TODO Maybe there are two exception types. 
             assertEquals(e.getMessage(), "Unable to create class of type java.lang.Integer. No default constructor.");

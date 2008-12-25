@@ -55,7 +55,14 @@ final class ListIndex implements Index
         if (got == null && factory != null)
         {
             Type[] types = ((ParameterizedType) type).getActualTypeArguments();
-            got = factory.create(types[0]);
+            try
+            {
+                got = factory.create(types[0]);
+            }
+            catch (FactoryException e)
+            {
+                throw new PathException(133, e);
+            }
             if (got == null)
             {
                 throw new PathException(117).add(types[0]);

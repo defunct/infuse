@@ -83,7 +83,15 @@ final class Property
         Method method = explicitSet(bean, type, indexLength);
         if (method != null)
         {
-            Object value = factory.create(type);
+            Object value;
+            try
+            {
+                value = factory.create(type);
+            }
+            catch (FactoryException e)
+            {
+                throw new PathException(130, e);
+            }
             if (value == null)
             {
                 throw new PathException(113);
@@ -225,7 +233,14 @@ final class Property
                     {
                         if (object == null)
                         {
-                            object = factory.create(indexes[i].getRawType());
+                            try
+                            {
+                                object = factory.create(indexes[i].getRawType());
+                            }
+                            catch (FactoryException e)
+                            {
+                                throw new PathException(131, e);
+                            }
                             if (i == 0)
                             {
                                 toMap(bean).put(name, object);

@@ -47,7 +47,14 @@ final class MapIndex implements Index
         if (got == null && factory != null)
         {
             Type[] types = ((ParameterizedType) type).getActualTypeArguments();
-            got = factory.create(types[1]);
+            try
+            {
+                got = factory.create(types[1]);
+            }
+            catch (FactoryException e)
+            {
+                throw new PathException(132, e);
+            }
             if (got == null)
             {
                 throw new PathException(119).add(types[1]);

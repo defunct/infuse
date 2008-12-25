@@ -12,7 +12,7 @@ import java.util.TreeMap;
 
 final class CoreObjectFactory implements ObjectFactory
 {
-    public Object create(Type type) throws PathException
+    public Object create(Type type) throws FactoryException
     {
         Object created = null;
         if (type instanceof ParameterizedType)
@@ -26,7 +26,7 @@ final class CoreObjectFactory implements ObjectFactory
         return created;
     }
     
-    public Object create(Class<?> cls) throws PathException
+    public Object create(Class<?> cls) throws FactoryException
     {
         if (!cls.isInterface())
         {
@@ -36,7 +36,7 @@ final class CoreObjectFactory implements ObjectFactory
             }
             catch (Exception e)
             {
-                throw new PathException(112, e).add(cls.getName());
+                throw new FactoryException(112, e).add(cls.getName());
             }
         }
         else if (SortedMap.class.isAssignableFrom(cls))

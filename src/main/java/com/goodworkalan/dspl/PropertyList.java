@@ -122,8 +122,21 @@ class PropertyList
         }
     }
     
-    public void add(Property property)
+    void add(Property property)
     {
         properties.add(property);
+    }
+    
+    public String withoutIndexes()
+    {
+        StringBuilder newString = new StringBuilder();
+        String separator = "";
+        for (Property property : properties)
+        {
+            newString.append(separator);
+            newString.append(property.name);
+            separator = ".";
+        }
+        return newString.toString();
     }
 }
