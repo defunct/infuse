@@ -44,8 +44,21 @@ class Patterns
         return "\\[" + SKIPWHITE
                      + "("
                      + quote
-                         + "(?:[^" + quote + "\\\\]|(?:\\\\\\\\|\\\\"
-                             + quote + "|" + escaped + "))*"
+                         + "(?:"
+                             + "[^" + quote + "\\\\]"
+                             + "|" 
+                             + "(?:"
+                                 + "\\\\\\\\"
+                                 + "|"
+                                 + "\\\\" + quote
+                                 + "|"
+                                 + "\\\\u[A-Fa-f0-9]{4}"
+                                 + "|"
+                                 + "\\\\x[A-Fa-f0-9]{2}"
+                                 + "|"
+                                 + escaped
+                             + ")"
+                         + ")*"
                      + quote
                      + ")"
                      + SKIPWHITE + "\\]"; 

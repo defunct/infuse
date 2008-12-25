@@ -223,31 +223,6 @@ public class PropertyPathTest
         assertNull(PropertyPath.toClass(type));
     }
     
-    @Test
-    public void eatWhite()
-    {
-        String part = "   ab";
-        int i = 0;
-        i = PropertyPath.eatWhite(part, i);
-        assertEquals(i, 3);
-        i = PropertyPath.eatWhite(part, ++i);
-        assertEquals(i, 4);
-        i = PropertyPath.eatWhite(part, ++i);
-        assertEquals(i, 5);
-    }
-    
-    @Test
-    public void numericIndex() throws PathException
-    {
-        List<Index> indexes = new ArrayList<Index>();
-
-        String part = "[ 1 ] "; 
-        int i = PropertyPath.newIndex(part, 0, indexes);
-        
-        assertEquals(indexes.get(0).getClass(), ListIndex.class);
-        assertEquals(part.length(), i);
-    }
-    
     @Test(expectedExceptions=PathException.class)
     public void badNumericIndexAlphaNum() throws PathException
     {
@@ -312,9 +287,8 @@ public class PropertyPathTest
     
     private void assertName(String part, String name) throws PathException
     {
-        Property property = PropertyPath.newProperty(part);
-        Index index = property.indexes[0];
-        assertEquals(((MapIndex) index).index, name);
+        PropertyPath property = new PropertyPath(part);
+        assertEquals(property.toList(false).get(1), name);
     }
     
     @Test
