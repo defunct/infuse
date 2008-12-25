@@ -28,6 +28,22 @@ public class PropertyPath
     /** The bean path. */
     private final Property[] properties;
     
+    private final static Pattern IDENTIFIER = Pattern.compile(Patterns.SKIPWHITE + Patterns.IDENTIFIER + Patterns.SKIPWHITE + "([\\[.]?)");
+
+    private final static Pattern INDEX = Pattern.compile("(?:" + Patterns.ANY_INDEX + ")" + Patterns.SKIPWHITE + "([\\[.]?)");
+    
+    private final static boolean moreIndexes(Matcher matcher)
+    {
+        String dot = matcher.group(matcher.groupCount());
+        return dot != null && dot.equals("[");
+    }
+    
+    private final static boolean moreParts(Matcher matcher)
+    {
+        String dot = matcher.group(matcher.groupCount());
+        return dot != null && dot.equals(".");
+    }
+
     /**
      * Create a bean path from the specified string. The bean path will be
      * checked for syntax. The syntax check will not check the path against a
@@ -41,23 +57,91 @@ public class PropertyPath
     {
         if (path == null)
         {
-            throw new IllegalArgumentException();
+            throw new NullPointerException();
         }
 
-        String[] parts = path.split("\\.");
-        Property[] properties = new Property[parts.length];
-        for (int i = 0; i < parts.length; i++)
+        Matcher identifier = IDENTIFIER.matcher(path);
+        Matcher index = INDEX.matcher(path);
+        
+        List<Property> listOfProperties = new ArrayList<Property>();
+
+        int identifierStart = 0;
+        boolean moreParts = true;
+        while (moreParts)
         {
-            try
+            if (!identifier.find(identifierStart))
             {
-                properties[i] = newProperty(parts[i]);
+                throw new PathException(125).add(stringEscape(path))
+                                            .add(identifierStart);
             }
-            catch (PathException e)
+            if (identifier.start() != identifierStart)
             {
-                throw e.add(stringEscape(path));
+                throw new PathException(126);
             }
+            identifierStart = identifier.end();
+            
+            List<Index> listOfIndexes = new ArrayList<Index>();
+            
+            int indexStart = identifier.end() - 1; 
+            
+            Matcher more = identifier;
+            while (moreIndexes(more))
+            {
+                if (!index.find(indexStart))
+                {
+                    throw new PathException(127).add(stringEscape(path))
+                                                .add(indexStart);
+                }
+                
+                if (index.group(1) != null)
+                {
+                    throw new PathException(128);
+                }
+                else if (index.group(2) != null)
+                {
+                    listOfIndexes.add(new ListIndex(Integer.parseInt(index.group(2))));
+                }
+                else
+                {
+                    String key = index.group(3);
+                    if (key == null)
+                    {
+                        key = index.group(4);
+                    }
+                    if (key != null)
+                    {
+                        try
+                        {
+                            listOfIndexes.add(new MapIndex(MapIndex.unescape(key)));
+                        }
+                        catch (PathException e)
+                        {
+                            e.add(stringEscape(path)).add(indexStart);
+                            throw e;
+                        }
+                    }
+                }
+                
+                identifierStart = index.end();
+                indexStart = index.end() - 1;
+
+                more = index;
+            }
+
+            Index[] indexes = listOfIndexes.toArray(new Index[listOfIndexes.size()]);
+            listOfProperties.add(new Property(identifier.group(1), indexes));
+            
+            moreParts = moreParts(more);
         }
-        this.properties = properties;
+        
+        if (identifierStart != path.length())
+        {
+            throw new PathException(129).add(stringEscape(path))
+                                        .add(charEscape(path.charAt(identifierStart)))
+                                        .add(identifierStart);
+        }
+
+        properties = listOfProperties.toArray(new Property[listOfProperties.size()]);
     }
 
     /**
@@ -188,6 +272,33 @@ public class PropertyPath
             separator = ".";
         }
         return newString.toString();
+    }
+    
+    public String withoutIndexes()
+    {
+        StringBuilder newString = new StringBuilder();
+        String separator = "";
+        for (Property property : properties)
+        {
+            newString.append(separator);
+            newString.append(property.name);
+            separator = ".";
+        }
+        return newString.toString();
+    }
+    
+    public List<String> toList(boolean escape)
+    {
+        List<String> path = new ArrayList<String>();
+        for (Property property : properties)
+        {
+            path.add(property.name);
+            for (Index index : property.indexes)
+            {
+                path.add(index.getIndex(escape).toString());
+            }
+        }
+        return path;
     }
 
     final static Class<?> toClass(Type type)

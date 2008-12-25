@@ -10,51 +10,6 @@ import java.util.regex.Pattern;
 
 public class PropertyGlob
 {
-    final static String SKIPWHITE = "\\s*";
-    
-    final static String IDENTIFIER = "[\\w&&[^\\d]][\\w\\d]*";
-    
-    final static String LIST_INDEX = "\\[\\s*\\d+\\s*\\]";
-    
-    final static String GLOB_INDEX = "\\[\\s*\\*\\s*\\]";
-
-    final static String escaped(String...characters)
-    {
-        StringBuffer newString = new StringBuffer();
-        String separator = "";
-        for (int i = 0; i < characters.length; i++)
-        {
-            newString.append(separator)
-                     .append("\\\\")
-                     .append(characters[i]);
-            separator = "|";
-        }
-        return newString.toString();
-    }
-
-    final static String stringIndex(char quote)
-    {
-        String escaped = escaped("b", "f", "n", "r", "t");
-        return "\\[" + SKIPWHITE
-                     + quote
-                         + "(?:[^" + quote + "\\\\]|(?:\\\\\\\\|\\\\"
-                             + quote + "|" + escaped + "))*"
-                     + quote
-                     + SKIPWHITE + "\\]"; 
-    }
-    
-    final static String ANY_INDEX =
-        GLOB_INDEX + "|" + LIST_INDEX + "|" +
-            stringIndex('\'') + "|" + stringIndex('"');
-    
-    final static String PART =
-        SKIPWHITE + IDENTIFIER + SKIPWHITE +
-           "(?:" +
-               "(?:" + ANY_INDEX + ")" +
-           "\\s*)*";
-    
-    final static Pattern GLOB = Pattern.compile(PART + "(?:\\." + PART + ")*");
-    
     private final String glob;
     
     public PropertyGlob(String path) throws PathException
@@ -63,7 +18,7 @@ public class PropertyGlob
         {
             throw new IllegalArgumentException();
         }
-        if (!GLOB.matcher(path).matches())
+        if (!Patterns.GLOB.matcher(path).matches())
         {
             throw new PathException(122).add(PropertyPath.stringEscape(path));
         }
@@ -82,7 +37,7 @@ public class PropertyGlob
             Set<String> stems = Collections.singleton(""); 
             
             StringBuilder newPath = new StringBuilder();
-            Matcher matcher = Pattern.compile(ANY_INDEX).matcher(glob);
+            Matcher matcher = Pattern.compile(Patterns.ANY_INDEX).matcher(glob);
             int start = 0;
             while (matcher.find())
             {
@@ -90,7 +45,7 @@ public class PropertyGlob
                 newPath.append(skipped);
                 String index = glob.substring(matcher.start(), matcher.end());
                 
-                if (index.matches(GLOB_INDEX))
+                if (index.matches(Patterns.GLOB_INDEX))
                 {
                     Set<String> expanded = new HashSet<String>();
     

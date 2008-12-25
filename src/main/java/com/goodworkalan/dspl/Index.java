@@ -9,7 +9,7 @@ interface Index
 
     public boolean indexedBy(Class<?> cls);
     
-    public Object getIndex();
+    public Object getIndex(boolean escape);
 
     public Type typeOf(Type type) throws PathException;
     

@@ -1,5 +1,8 @@
 package com.goodworkalan.dspl;
 
+import static com.goodworkalan.dspl.PropertyPath.stringEscape;
+import static com.goodworkalan.dspl.PropertyPath.charEscape;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Map;
@@ -18,9 +21,9 @@ final class MapIndex implements Index
         return ObjectMap.class;
     }
     
-    public Object getIndex()
+    public Object getIndex(boolean escape)
     {
-        return index;
+        return escape ? escape(index) : index;
     }
     
     public boolean indexedBy(Class<?> cls)
@@ -76,5 +79,71 @@ final class MapIndex implements Index
     final static String escape(String index)
     {
         return "'" + index.replaceAll("['\t\b\r\n\f]", "\\($1)") + "'";
+    }
+ 
+    final static String unescape(String key) throws PathException
+    {
+        StringBuilder newKey = new StringBuilder();
+        int i = 0;
+        char quote = key.charAt(i++);
+        KEY: for (;;)
+        {
+            char ch = key.charAt(i++);
+            switch (ch)
+            {
+            case 0:
+                throw new PathException(108).add(stringEscape(key));
+            case '\'':
+                // This noop is only to get 100% Corbertura coverage, sorry.
+                key.length();
+            case '"':
+                if (ch == quote)
+                {
+                    break KEY;
+                }
+                throw new PathException(109).add(stringEscape(key))
+                                            .add(charEscape(ch))
+                                            .add(charEscape(quote));
+            case '\\':
+                ch = key.charAt(i++);
+                switch (ch)
+                {
+                case 'b':
+                    newKey.append('\b');
+                    break;
+                case 't':
+                    newKey.append('\t');
+                    break;
+                case 'n':
+                    newKey.append('\n');
+                    break;
+                case 'f':
+                    newKey.append('\f');
+                    break;
+                case 'r':
+                    newKey.append('\r');
+                    break;
+                case 'u':
+                    newKey.append((char) Integer.parseInt(key.substring(i, i += 4), 16));
+                    break;
+                case 'x':
+                    newKey.append((char) Integer.parseInt(key.substring(i, i += 2), 16));
+                    break;
+                case '\'':
+                    newKey.append('\'');
+                    break;
+                case '"':
+                    newKey.append('"');
+                    break;
+                default:
+                    throw new PathException(110).add(stringEscape(key))
+                                        .add("'\\" + ch + "'");
+                }
+                break;
+            default:
+                newKey.append(ch);
+            }
+        }
+        return newKey.toString();
     }
 }

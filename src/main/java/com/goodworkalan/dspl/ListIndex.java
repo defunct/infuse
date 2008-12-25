@@ -18,7 +18,7 @@ final class ListIndex implements Index
         return ObjectList.class;
     }
 
-    public Object getIndex()
+    public Object getIndex(boolean escape)
     {
         return index;
     }

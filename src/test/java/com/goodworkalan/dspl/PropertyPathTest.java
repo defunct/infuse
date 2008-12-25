@@ -258,7 +258,7 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to parse path \"a[ 1i ] \" part \"a[ 1i ] \". List index is not an integer.");
+            assertEquals(e.getMessage(), "Unable to parse path \"a[ 1i ] \". Invalid index specification at index 1.");
             throw e;
         }
     }
@@ -273,7 +273,8 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to parse path \"a[ 1i [\" part \"a[ 1i [\". List index is not an integer.");
+            assertEquals(e.getMessage(), "Unable to parse path \"a[ 1i [\". Invalid index specification at index 1.");
+            assertEquals(e.getCode(), 127);
             throw e;
         }
     }
@@ -288,7 +289,7 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to parse path \"a \\\"\" part \"a \\\"\". Expecting '[' but got '\"'.");
+            assertEquals(e.getMessage(), "Unable to parse path \"a \\\"\". Unexpected character '\"' at index 2.");
             throw e;
         }
     }
@@ -303,7 +304,8 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to parse path \"a]\" part \"a]\". Expecting '[' but got ']'.");
+            assertEquals(e.getMessage(), "Unable to parse path \"a]\". Unexpected character ']' at index 1.");
+            assertEquals(e.getCode(), 129);
             throw e;
         }
     }
@@ -340,7 +342,8 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to parse path \"a['a'a\" part \"a['a'a\". Expecting ']' but got 'a'.");
+            assertEquals(e.getMessage(), "Unable to parse path \"a['a'a\". Invalid index specification at index 1.");
+            assertEquals(e.getCode(), 127);
             throw e;
         }
     }
@@ -354,7 +357,8 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to parse path \"a['a\" part \"a['a\". Unexpected end of string.");
+            assertEquals(e.getMessage(), "Unable to parse path \"a['a\". Invalid index specification at index 1.");
+            assertEquals(e.getCode(), 127);
             throw e;
         }
     }
@@ -368,7 +372,7 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to parse path \"a['a\\\"]\" part \"a['a\\\"]\". Unnecessary escape of quote character '\"' in string quoted with '\\''.");
+            assertEquals(e.getMessage(), "Unable to parse path \"a['a\\\"]\". Invalid index specification at index 1.");
             throw e;
         }
     }
@@ -382,7 +386,7 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to parse path \"a['\\a']\" part \"a['\\a']\". Invalid character escape sequence '\\a'.");
+            assertEquals(e.getMessage(), "Unable to parse path \"a['\\a']\". Invalid index specification at index 1.");
             throw e;
         }
     }
@@ -396,12 +400,12 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to parse path \"a['\\0']\" part \"a['\\0']\". Invalid character '\\0'.");
+            assertEquals(e.getMessage(), "Unable to parse path \"a['\\0']\". Invalid character '\\0' in index specification \"'\\0'\" at index 1.");
             throw e;
         }
     }
     
-    @Test(expectedExceptions=IllegalArgumentException.class)
+    @Test(expectedExceptions=NullPointerException.class)
     public void nullString() throws PathException
     {
         new PropertyPath(null);
@@ -416,7 +420,7 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to parse empty string.");
+            assertEquals(e.getMessage(), "Unable to parse path \"\". Invalid identifier specification at index 0.");
             throw e;
         }
     }
@@ -430,7 +434,8 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to parse path \"1\" part \"1\". First character '1' is not a valid Java start identifier character.");
+            assertEquals(e.getMessage(), "Unable to parse path \"1\". Invalid identifier specification at index 0.");
+            assertEquals(e.getCode(), 125);
             throw e;
         }
     }
@@ -674,4 +679,20 @@ public class PropertyPathTest
         assertEquals(PropertyPath.charEscape('\''), "'\\''");
         assertEquals(PropertyPath.charEscape('\\'), "'\\\\'");
     }
+    
+    @Test
+    public void dotInPath() throws PathException
+    {
+        PropertyPath path = new PropertyPath("widgetMapMap['.']['.'].number");
+        Widget widget = new Widget();
+        path.set(widget, 1, true);
+        assertEquals(path.get(widget), 1);
+    }
+
+    @Test
+    public void stripIndexes() throws PathException
+    {
+        String path = " foo . bar [1] [   'Hello, World!\\n' ] [1] . baz [100] [  11 ]  ";
+        assertEquals(new PropertyPath(path).withoutIndexes(), "foo.bar.baz");
+    }    
 }

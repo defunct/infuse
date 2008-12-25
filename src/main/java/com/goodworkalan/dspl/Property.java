@@ -148,7 +148,7 @@ final class Property
             Object[] args = new Object[method.getParameterTypes().length];
             for (int i = 0; i < args.length; i++)
             {
-                args[i] = indexes[i].getIndex();
+                args[i] = indexes[i].getIndex(false);
             }
             try
             {
@@ -290,7 +290,7 @@ final class Property
         Object[] args = new Object[method.getParameterTypes().length];
         for (int i = 0; i < args.length - 1; i++)
         {
-            args[i] = indexes[i].getIndex();
+            args[i] = indexes[i].getIndex(false);
         }
         args[args.length - 1] = value;
         try

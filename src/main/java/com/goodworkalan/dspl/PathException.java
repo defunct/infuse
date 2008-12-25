@@ -18,9 +18,9 @@ public final class PathException extends Exception
         this.code = code;
     }
     
-    public String getKey()
+    public int getCode()
     {
-        return Integer.toString(code);
+        return code;
     }
     
     public PathException(int code, Throwable cause)
@@ -38,7 +38,7 @@ public final class PathException extends Exception
     @Override
     public String getMessage()
     {
-        String key = getKey();
+        String key = Integer.toString(code);
         ResourceBundle exceptions = ResourceBundle.getBundle("com.goodworkalan.dspl.exceptions");
         String format;
         try
@@ -55,7 +55,7 @@ public final class PathException extends Exception
         }
         catch (Throwable e)
         {
-            throw new java.lang.Error(key, e);
+            throw new Error(key, e);
         }
     }
 }
