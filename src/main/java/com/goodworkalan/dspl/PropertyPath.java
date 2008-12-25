@@ -42,14 +42,15 @@ public class PropertyPath extends PropertyList
             throw new IllegalArgumentException();
         }
 
-        for (int i = 0; bean != null && i < properties.length - 1; i++)
+        int last = properties.size() - 1;
+        for (int i = 0; bean != null && i < last; i++)
         {
-            bean = properties[i].get(bean, null);
+            bean = properties.get(i).get(bean, null);
         }
 
         if (bean != null)
         {
-            return properties[properties.length - 1].get(bean, null);
+            return properties.get(last).get(bean, null);
         }
         
         throw new PathException(101);
@@ -64,15 +65,16 @@ public class PropertyPath extends PropertyList
 
         try
         {
-            for (int i = 0; bean != null && i < properties.length - 1; i++)
+            int last = properties.size() - 1;
+            for (int i = 0; bean != null && i < last; i++)
             {
-                bean = properties[i].get(bean, factory);
+                bean = properties.get(i).get(bean, factory);
             }
     
             Type type = null;
             if (bean != null)
             {
-                type = properties[properties.length - 1].typeOf(bean);
+                type = properties.get(last).typeOf(bean);
             }
     
             if (type == null && factory != null)
@@ -115,13 +117,14 @@ public class PropertyPath extends PropertyList
         try
         {
             Object object = bean;
-            for (int i = 0; object != null && i < properties.length - 1; i++)
+            int last = properties.size() - 1;
+            for (int i = 0; object != null && i < last; i++)
             {
-                object = properties[i].get(object, factory);
+                object = properties.get(i).get(object, factory);
             }
             if (object != null)
             {
-                properties[properties.length - 1].set(object, value, factory);
+                properties.get(last).set(object, value, factory);
             }
             else if (factory != null)
             {
@@ -147,10 +150,10 @@ public class PropertyPath extends PropertyList
     {
         StringBuilder newString = new StringBuilder();
         String separator = "";
-        for (int i = 0; i < properties.length; i++)
+        for (Property property : properties)
         {
             newString.append(separator);
-            newString.append(properties[i].toString());
+            newString.append(property.toString());
             separator = ".";
         }
         return newString.toString();

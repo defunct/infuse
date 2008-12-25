@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 class PropertyList
 {
     /** The bean path. */
-    protected final Property[] properties;
+    protected final List<Property> properties = new ArrayList<Property>();
     
     private final static Pattern IDENTIFIER = Pattern.compile(Patterns.SKIPWHITE + Patterns.IDENTIFIER + Patterns.SKIPWHITE + "([\\[.]?)");
 
@@ -35,7 +35,7 @@ class PropertyList
      * @param path
      *            The bean path.
      */
-    public PropertyList(String path, boolean glob) throws PathException
+    protected PropertyList(String path, boolean glob) throws PathException
     {
         if (path == null)
         {
@@ -45,8 +45,6 @@ class PropertyList
         Matcher identifier = IDENTIFIER.matcher(path);
         Matcher index = INDEX.matcher(path);
         
-        List<Property> listOfProperties = new ArrayList<Property>();
-
         int identifierStart = 0;
         boolean moreParts = true;
         while (moreParts)
@@ -111,7 +109,7 @@ class PropertyList
             }
 
             Index[] indexes = listOfIndexes.toArray(new Index[listOfIndexes.size()]);
-            listOfProperties.add(new Property(identifier.group(1), indexes));
+            properties.add(new Property(identifier.group(1), indexes));
             
             moreParts = moreParts(more);
         }
@@ -122,7 +120,10 @@ class PropertyList
                                         .add(Messages.charEscape(path.charAt(identifierStart)))
                                         .add(identifierStart);
         }
-
-        properties = listOfProperties.toArray(new Property[listOfProperties.size()]);
+    }
+    
+    public void add(Property property)
+    {
+        properties.add(property);
     }
 }
