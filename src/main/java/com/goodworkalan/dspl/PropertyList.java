@@ -127,6 +127,20 @@ class PropertyList
         properties.add(property);
     }
     
+    @Override
+    public String toString()
+    {
+        StringBuilder newString = new StringBuilder();
+        String separator = "";
+        for (Property property : properties)
+        {
+            newString.append(separator);
+            newString.append(property.toString());
+            separator = ".";
+        }
+        return newString.toString();
+    }
+    
     public String withoutIndexes()
     {
         StringBuilder newString = new StringBuilder();
@@ -138,5 +152,19 @@ class PropertyList
             separator = ".";
         }
         return newString.toString();
+    }
+    
+    public List<String> toList(boolean escape)
+    {
+        List<String> path = new ArrayList<String>();
+        for (Property property : properties)
+        {
+            path.add(property.name);
+            for (Index index : property.indexes)
+            {
+                path.add(index.getIndex(escape).toString());
+            }
+        }
+        return path;
     }
 }

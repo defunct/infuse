@@ -130,7 +130,6 @@ public class PropertyPathTest
         }
         catch (FactoryException e)
         {
-            // TODO Maybe there are two exception types. 
             assertEquals(e.getMessage(), "Unable to create class of type java.lang.Integer. No default constructor.");
             throw e;
         }

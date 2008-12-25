@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
+// TODO Maybe there is a PathException and Parse/Navigate/Factory exceptions.
 class AbstractException extends Exception
 {
     private final static long serialVersionUID = 1L;
