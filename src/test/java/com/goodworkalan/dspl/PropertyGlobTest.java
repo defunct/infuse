@@ -53,7 +53,7 @@ public class PropertyGlobTest
     @Test(expectedExceptions=IllegalArgumentException.class)
     public void nullAll() throws PathException
     {
-        new PropertyGlob("a").all(null);
+        new PropertyGlob("a").outgoingAll(null);
     }
     
     @Test
@@ -66,7 +66,7 @@ public class PropertyGlobTest
         new PropertyPath("widget.widgetListList[1][3].widget.number").set(widget, 1, true);
 
         PropertyGlob glob = new PropertyGlob("widget.widgetListList[0][*].widget.number");
-        Set<String> expansions = glob.all(widget);
+        Set<String> expansions = glob.outgoingAll(widget);
         assertEquals(expansions.size(), 1);
         
         for (String expansion : expansions)
@@ -75,7 +75,7 @@ public class PropertyGlobTest
         }
  
         glob = new PropertyGlob("widget.widgetListList[1][*].widget.number");
-        expansions = glob.all(widget);
+        expansions = glob.outgoingAll(widget);
         assertEquals(expansions.size(), 3);
         
         for (String expansion : expansions)
@@ -84,7 +84,7 @@ public class PropertyGlobTest
         }
         
         glob = new PropertyGlob("widget.widgetListList[*][0].widget.number");
-        expansions = glob.all(widget);
+        expansions = glob.outgoingAll(widget);
         assertEquals(expansions.size(), 2);
         
         for (String expansion : expansions)
@@ -93,7 +93,7 @@ public class PropertyGlobTest
         }
         
         glob = new PropertyGlob("widget.widgetListList[*][*].widget.number");
-        expansions = glob.all(widget);
+        expansions = glob.outgoingAll(widget);
         assertEquals(expansions.size(), 4);
         
         for (String expansion : expansions)
@@ -108,7 +108,7 @@ public class PropertyGlobTest
         new PropertyPath("widget.widgetMapMap['bar']['baz'].widget.number").set(widget, 1, true);
 
         glob = new PropertyGlob("widget.widgetMapMap['foo'][*].widget.number");
-        expansions = glob.all(widget);
+        expansions = glob.outgoingAll(widget);
         assertEquals(expansions.size(), 1);
         
         for (String expansion : expansions)
@@ -117,7 +117,7 @@ public class PropertyGlobTest
         }
  
         glob = new PropertyGlob("widget.widgetMapMap['bar'][*].widget.number");
-        expansions = glob.all(widget);
+        expansions = glob.outgoingAll(widget);
         assertEquals(expansions.size(), 3);
         
         for (String expansion : expansions)
@@ -126,7 +126,7 @@ public class PropertyGlobTest
         }
 
         glob = new PropertyGlob("widget.widgetMapMap[*]['foo'].widget.number");
-        expansions = glob.all(widget);
+        expansions = glob.outgoingAll(widget);
         assertEquals(expansions.size(), 2);
         
         for (String expansion : expansions)
@@ -135,7 +135,7 @@ public class PropertyGlobTest
         }
 
         glob = new PropertyGlob("widget.widgetMapMap[*][*].widget.number");
-        expansions = glob.all(widget);
+        expansions = glob.outgoingAll(widget);
         assertEquals(expansions.size(), 4);
         
         for (String expansion : expansions)
@@ -144,7 +144,7 @@ public class PropertyGlobTest
         }
         
         glob = new PropertyGlob("widget.number[*]");
-        expansions = glob.all(widget);
+        expansions = glob.outgoingAll(widget);
         assertEquals(expansions.size(), 0);
     }
 }

@@ -28,7 +28,7 @@ public class PropertyGlob
         this.glob = path;
     }
     
-    public Set<String> all(Object bean)
+    public Set<String> outgoingAll(Object bean)
     {
         try
         {
