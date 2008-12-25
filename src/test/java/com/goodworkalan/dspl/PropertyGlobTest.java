@@ -17,10 +17,10 @@ public class PropertyGlobTest
         assertFalse(" a".matches(Patterns.SKIPWHITE));
         assertTrue("a".matches(Patterns.IDENTIFIER));
         assertFalse("1".matches(Patterns.IDENTIFIER));
-        assertTrue("['foo']".matches(Patterns.stringIndex('\'')));
-        assertTrue("['\\'']".matches(Patterns.stringIndex('\'')));
-        assertTrue("['\\b']".matches(Patterns.stringIndex('\'')));
-        assertFalse("[''']".matches(Patterns.stringIndex('\'')));
+        assertTrue("['foo']".matches(Patterns.QUOTE_1_INDEX));
+        assertTrue("['\\'']".matches(Patterns.QUOTE_1_INDEX));
+        assertTrue("['\\b']".matches(Patterns.QUOTE_1_INDEX));
+        assertFalse("[''']".matches(Patterns.QUOTE_1_INDEX));
         assertTrue(Patterns.GLOB.matcher("a[1]['\\''].b.c[ 12 ]").matches());
     }
     

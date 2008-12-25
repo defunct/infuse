@@ -1,5 +1,8 @@
 package com.goodworkalan.dspl;
 
+import static com.goodworkalan.dspl.Objects.toList;
+import static com.goodworkalan.dspl.Objects.toClass;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -44,7 +47,7 @@ final class ListIndex implements Index
     public Object get(Type type, Object container, ObjectFactory factory) throws PathException
     {
         Object got = null;
-        List<Object> list = PropertyPath.toList(container);
+        List<Object> list = toList(container);
         if (index < list.size())
         {
             got = list.get(index);
@@ -69,14 +72,14 @@ final class ListIndex implements Index
     public void set(Type type, Object container, Object value) throws PathException
     {
         Type[] types = ((ParameterizedType) type).getActualTypeArguments();
-        if (value == null || PropertyPath.toClass(types[0]).isAssignableFrom(value.getClass()))
+        if (value == null || toClass(types[0]).isAssignableFrom(value.getClass()))
         {
-            List<Object> list = PropertyPath.toList(container);
+            List<Object> list = toList(container);
             while (list.size() <= index)
             {
                 list.add(null);
             }
-            PropertyPath.toList(container).set(index, value);
+            toList(container).set(index, value);
         }
         else
         {

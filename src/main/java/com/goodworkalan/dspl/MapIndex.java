@@ -1,7 +1,7 @@
 package com.goodworkalan.dspl;
 
-import static com.goodworkalan.dspl.PropertyPath.stringEscape;
-import static com.goodworkalan.dspl.PropertyPath.charEscape;
+import static com.goodworkalan.dspl.Objects.toMap;
+import static com.goodworkalan.dspl.Objects.toClass;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -33,7 +33,7 @@ final class MapIndex implements Index
 
     public Type typeOf(Type type) throws PathException
     {
-        if (Map.class.isAssignableFrom(PropertyPath.toClass(type)))
+        if (Map.class.isAssignableFrom(toClass(type)))
         {
             return ((ParameterizedType) type).getActualTypeArguments()[1];
         }
@@ -42,7 +42,7 @@ final class MapIndex implements Index
     
     public Object get(Type type, Object container, ObjectFactory factory) throws PathException
     {
-        Map<Object, Object> map = PropertyPath.toMap(container);
+        Map<Object, Object> map = toMap(container);
         Object got = map.get(index);
         if (got == null && factory != null)
         {
@@ -60,9 +60,9 @@ final class MapIndex implements Index
     public void set(Type type, Object container, Object value) throws PathException
     {
         Type[] types = ((ParameterizedType) type).getActualTypeArguments();
-        if (value == null || PropertyPath.toClass(types[1]).isAssignableFrom(value.getClass()))
+        if (value == null || toClass(types[1]).isAssignableFrom(value.getClass()))
         {
-            PropertyPath.toMap(container).put(index, value);
+            toMap(container).put(index, value);
         }
         else
         {
@@ -92,7 +92,7 @@ final class MapIndex implements Index
             switch (ch)
             {
             case 0:
-                throw new PathException(108).add(stringEscape(key));
+                throw new PathException(108).add(Messages.stringEscape(key));
             case '\'':
                 // This noop is only to get 100% Corbertura coverage, sorry.
                 key.length();
@@ -101,9 +101,9 @@ final class MapIndex implements Index
                 {
                     break KEY;
                 }
-                throw new PathException(109).add(stringEscape(key))
-                                            .add(charEscape(ch))
-                                            .add(charEscape(quote));
+                throw new PathException(109).add(Messages.stringEscape(key))
+                                            .add(Messages.charEscape(ch))
+                                            .add(Messages.charEscape(quote));
             case '\\':
                 ch = key.charAt(i++);
                 switch (ch)
@@ -136,7 +136,7 @@ final class MapIndex implements Index
                     newKey.append('"');
                     break;
                 default:
-                    throw new PathException(110).add(stringEscape(key))
+                    throw new PathException(110).add(Messages.stringEscape(key))
                                         .add("'\\" + ch + "'");
                 }
                 break;

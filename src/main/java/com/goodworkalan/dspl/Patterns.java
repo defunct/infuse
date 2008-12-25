@@ -2,6 +2,7 @@ package com.goodworkalan.dspl;
 
 import java.util.regex.Pattern;
 
+// TODO This might all become part of PropertyList.
 class Patterns
 {
     final static String SKIPWHITE = "\\s*";
@@ -12,9 +13,13 @@ class Patterns
     
     final static String GLOB_INDEX = "\\[\\s*(\\*)\\s*\\]";
     
+    final static String QUOTE_1_INDEX = stringIndex('\'');
+    
+    final static String QUOTE_2_INDEX = stringIndex('"');
+    
     final static String ANY_INDEX =
         GLOB_INDEX + "|" + LIST_INDEX + "|" +
-            stringIndex('\'') + "|" + stringIndex('"');
+            QUOTE_1_INDEX + "|" + QUOTE_2_INDEX;
     
     final static String PART =
         SKIPWHITE + IDENTIFIER + SKIPWHITE +
@@ -24,7 +29,7 @@ class Patterns
 
     final static Pattern GLOB = Pattern.compile(PART + "(?:(\\.)" + PART + ")*");
 
-    final static String escaped(String...characters)
+    private final static String escaped(String...characters)
     {
         StringBuffer newString = new StringBuffer();
         String separator = "";
@@ -38,7 +43,7 @@ class Patterns
         return newString.toString();
     }
 
-    final static String stringIndex(char quote)
+    private final static String stringIndex(char quote)
     {
         String escaped = escaped("b", "f", "n", "r", "t");
         return "\\[" + SKIPWHITE

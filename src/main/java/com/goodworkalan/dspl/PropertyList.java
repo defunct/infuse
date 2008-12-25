@@ -1,8 +1,5 @@
 package com.goodworkalan.dspl;
 
-import static com.goodworkalan.dspl.PropertyPath.charEscape;
-import static com.goodworkalan.dspl.PropertyPath.stringEscape;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -56,7 +53,7 @@ class PropertyList
         {
             if (!identifier.find(identifierStart))
             {
-                throw new PathException(125).add(stringEscape(path))
+                throw new PathException(125).add(Messages.stringEscape(path))
                                             .add(identifierStart);
             }
             if (identifier.start() != identifierStart)
@@ -74,7 +71,7 @@ class PropertyList
             {
                 if (!index.find(indexStart))
                 {
-                    throw new PathException(127).add(stringEscape(path))
+                    throw new PathException(127).add(Messages.stringEscape(path))
                                                 .add(indexStart);
                 }
                 
@@ -101,7 +98,7 @@ class PropertyList
                         }
                         catch (PathException e)
                         {
-                            e.add(stringEscape(path)).add(indexStart);
+                            e.add(Messages.stringEscape(path)).add(indexStart);
                             throw e;
                         }
                     }
@@ -121,8 +118,8 @@ class PropertyList
         
         if (identifierStart != path.length())
         {
-            throw new PathException(129).add(stringEscape(path))
-                                        .add(charEscape(path.charAt(identifierStart)))
+            throw new PathException(129).add(Messages.stringEscape(path))
+                                        .add(Messages.charEscape(path.charAt(identifierStart)))
                                         .add(identifierStart);
         }
 

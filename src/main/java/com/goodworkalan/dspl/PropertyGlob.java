@@ -1,5 +1,8 @@
 package com.goodworkalan.dspl;
 
+import static com.goodworkalan.dspl.Objects.toList;
+import static com.goodworkalan.dspl.Objects.toMap;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -20,7 +23,7 @@ public class PropertyGlob
         }
         if (!Patterns.GLOB.matcher(path).matches())
         {
-            throw new PathException(122).add(PropertyPath.stringEscape(path));
+            throw new PathException(122).add(Messages.stringEscape(path));
         }
         this.glob = path;
     }
@@ -55,7 +58,7 @@ public class PropertyGlob
                         Object object = path.get(bean);
                         if (object instanceof List)
                         {
-                            List<Object> list = PropertyPath.toList(object);
+                            List<Object> list = toList(object);
                             for (int i = 0; i < list.size(); i++)
                             {
                                 if (list.get(i) != null)
@@ -66,7 +69,7 @@ public class PropertyGlob
                         }
                         else if (object instanceof Map)
                         {
-                            Map<Object, Object> map = PropertyPath.toMap(object);
+                            Map<Object, Object> map = toMap(object);
                             for (Map.Entry<Object, Object> entry : map.entrySet())
                             {
                                 if (entry.getValue() != null)

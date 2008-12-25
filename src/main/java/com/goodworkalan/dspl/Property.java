@@ -1,5 +1,8 @@
 package com.goodworkalan.dspl;
 
+import static com.goodworkalan.dspl.Objects.toClass;
+import static com.goodworkalan.dspl.Objects.toMap;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -47,7 +50,7 @@ final class Property
             {
                 for (Class<?> result : readerNames.keySet())
                 {
-                    if ((result.equals(Object.class) || result.isAssignableFrom(PropertyPath.toClass(method.getGenericReturnType())))
+                    if ((result.equals(Object.class) || result.isAssignableFrom(toClass(method.getGenericReturnType())))
                             && readerNames.get(result).equals(method.getName()))
                     {
                         readers.add(method);
@@ -63,7 +66,7 @@ final class Property
             {
                 for (int i = 0; i < types.length; i++)
                 {
-                    Class<?> cls = PropertyPath.toClass(types[i]);
+                    Class<?> cls = toClass(types[i]);
                     if (!indexes[i].indexedBy(cls))
                     {
                         continue METHODS;
@@ -107,7 +110,7 @@ final class Property
             }
             else
             {
-                Map<Object, Object> map = PropertyPath.toMap(bean);
+                Map<Object, Object> map = toMap(bean);
                 object = map.get(name);
                 if (object == null)
                 {
@@ -172,8 +175,8 @@ final class Property
                 }
                 catch (PathException e)
                 {
-                    e.add(PropertyPath.stringEscape(toString()))
-                     .add(PropertyPath.stringEscape(toString(i + 1)));
+                    e.add(Messages.stringEscape(toString()))
+                     .add(Messages.stringEscape(toString(i + 1)));
                     throw e;
                 }
             }
@@ -212,12 +215,12 @@ final class Property
             {
                 if (indexes.length == 0)
                 {
-                    PropertyPath.toMap(bean).put(name, value);
+                    toMap(bean).put(name, value);
                 }
                 else
                 {
                     Object container = null;
-                    Object object = PropertyPath.toMap(bean).get(name);
+                    Object object = toMap(bean).get(name);
                     for (int i = 0; i < indexes.length; i++)
                     {
                         if (object == null)
@@ -225,7 +228,7 @@ final class Property
                             object = factory.create(indexes[i].getRawType());
                             if (i == 0)
                             {
-                                PropertyPath.toMap(bean).put(name, object);
+                                toMap(bean).put(name, object);
                             }
                             else
                             {
@@ -261,7 +264,7 @@ final class Property
         }
         catch (PathException e)
         {
-            e.add(PropertyPath.stringEscape(toString()))
+            e.add(Messages.stringEscape(toString()))
              .add(bean.getClass().getName())
              .add(value == null ? value : value.getClass().getName());
             throw e;
@@ -305,7 +308,7 @@ final class Property
     
     Method explicitSet(Object bean, Type type, int indexLength) throws PathException
     {
-        Class<?> cls = PropertyPath.toClass(type);
+        Class<?> cls = toClass(type);
         Set<Method> writers = new HashSet<Method>();
         String methodName = "set" + methodName();
         METHOD: for (Method method : bean.getClass().getMethods())
@@ -313,11 +316,11 @@ final class Property
             Type[] types = method.getGenericParameterTypes();
             if (method.getName().equals(methodName)
                 && types.length == indexLength + 1
-                && (cls == null || isAssignableFrom(PropertyPath.toClass(types[indexLength]), cls)))
+                && (cls == null || isAssignableFrom(toClass(types[indexLength]), cls)))
             {
                 for (int i = 0; i < indexLength; i++)
                 {
-                    if (!indexes[i].indexedBy(PropertyPath.toClass(types[i])))
+                    if (!indexes[i].indexedBy(toClass(types[i])))
                     {
                         continue METHOD;
                     }

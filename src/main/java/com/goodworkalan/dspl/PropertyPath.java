@@ -1,12 +1,8 @@
 package com.goodworkalan.dspl;
 
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * <p>
@@ -88,7 +84,7 @@ public class PropertyPath extends PropertyList
         }
         catch (PathException e)
         {
-            e.add(stringEscape(toString())).add(bean.getClass().getName());
+            e.add(Messages.stringEscape(toString())).add(bean.getClass().getName());
             throw e;
         }
     }
@@ -134,7 +130,7 @@ public class PropertyPath extends PropertyList
         }
         catch (PathException e)
         {
-            e.add(stringEscape(toString()))
+            e.add(Messages.stringEscape(toString()))
              .add(bean.getClass().getName())
              .add(value == null ? value : value.getClass().getName());
             throw e;
@@ -185,77 +181,5 @@ public class PropertyPath extends PropertyList
             }
         }
         return path;
-    }
-
-    final static Class<?> toClass(Type type)
-    {
-        if (type instanceof Class)
-        {
-            return (Class<?>) type;
-        }
-        else if (type instanceof ParameterizedType)
-        {
-            return (Class<?>) ((ParameterizedType) type).getRawType();
-        }
-        return null;
-    }
-    
-    @SuppressWarnings("unchecked")
-    static List<Object> toList(Object object)
-    {
-        return (List) object;
-    }
-
-    @SuppressWarnings("unchecked")
-    static Map<Object, Object> toMap(Object object)
-    {
-        return (Map) object;
-    }
-
-    final static String charEscape(char ch)
-    {
-        return "'" + (ch == '\'' || ch == '\\' ? "\\" + ch : ch) + "'"; 
-    }
-    
-    final static String stringEscape(String string)
-    {
-        Pattern pattern = Pattern.compile("[\\\"\b\r\n\f\t\0\1\2\3\4\5\6\7]");
-        Matcher matcher = pattern.matcher(string);
-        StringBuffer newString = new StringBuffer();
-        while (matcher.find())
-        {
-            char ch = string.charAt(matcher.start());
-            String replacement;
-            if (ch < 8)
-            {
-                replacement = "\\\\" + (int) ch;
-            }
-            else
-            {
-                switch (ch)
-                {
-                case '\b':
-                    replacement = "\\\\b";
-                    break;
-                case '\f':
-                    replacement = "\\\\f";
-                    break;
-                case '\n':
-                    replacement = "\\\\n";
-                    break;
-                case '\r':
-                    replacement = "\\\\r";
-                    break;
-                case '\t':
-                    replacement = "\\\\t";
-                    break;
-                default:
-                    replacement = "\\\\" + ch;
-                }
-            }
-            matcher.appendReplacement(newString, replacement);
-        }
-        matcher.appendTail(newString);
-        return "\"" + newString.toString() + "\"";
     }
 }

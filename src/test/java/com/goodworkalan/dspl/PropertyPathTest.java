@@ -220,7 +220,7 @@ public class PropertyPathTest
     public void toClass()
     {
         Type type = null;
-        assertNull(PropertyPath.toClass(type));
+        assertNull(Objects.toClass(type));
     }
     
     @Test(expectedExceptions=PathException.class)
@@ -644,14 +644,14 @@ public class PropertyPathTest
     @Test
     public void stringEscape()
     {
-        assertEquals(PropertyPath.stringEscape("\b\f\n\r\t\0\1\2\3\4\5\6\7\""), "\"\\b\\f\\n\\r\\t\\0\\1\\2\\3\\4\\5\\6\\7\\\"\"");
+        assertEquals(Messages.stringEscape("\b\f\n\r\t\0\1\2\3\4\5\6\7\""), "\"\\b\\f\\n\\r\\t\\0\\1\\2\\3\\4\\5\\6\\7\\\"\"");
     }
     
     @Test
     public void charEscape()
     {
-        assertEquals(PropertyPath.charEscape('\''), "'\\''");
-        assertEquals(PropertyPath.charEscape('\\'), "'\\\\'");
+        assertEquals(Messages.charEscape('\''), "'\\''");
+        assertEquals(Messages.charEscape('\\'), "'\\\\'");
     }
     
     @Test
