@@ -5,6 +5,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.testng.annotations.Test;
 
@@ -13,15 +14,13 @@ public class PropertyGlobTest
     @Test
     public void regex()
     {
-        assertTrue("".matches(PropertyGlob.SKIPWHITE));
-        assertFalse(" a".matches(PropertyGlob.SKIPWHITE));
-        assertTrue("a".matches(PropertyGlob.IDENTIFIER));
-        assertFalse("1".matches(PropertyGlob.IDENTIFIER));
-        assertTrue("['foo']".matches(PropertyGlob.QUOTE_1_INDEX));
-        assertTrue("['\\'']".matches(PropertyGlob.QUOTE_1_INDEX));
-        assertTrue("['\\b']".matches(PropertyGlob.QUOTE_1_INDEX));
-        assertFalse("[''']".matches(PropertyGlob.QUOTE_1_INDEX));
-        assertTrue(PropertyGlob.GLOB.matcher("a[1]['\\''].b.c[ 12 ]").matches());
+        assertTrue("a".matches(Patterns.identifier(false)));
+        assertFalse("1".matches(Patterns.identifier(false)));
+        assertTrue("['foo']".matches(Patterns.stringIndex('\'', false)));
+        assertTrue("['\\'']".matches(Patterns.stringIndex('\'', false)));
+        assertTrue("['\\b']".matches(Patterns.stringIndex('\'', false)));
+        assertFalse("[''']".matches(Patterns.stringIndex('\'', false)));
+        assertTrue(Pattern.compile(Patterns.glob()).matcher("a[1]['\\''].b.c[ 12 ]").matches());
     }
     
     @Test

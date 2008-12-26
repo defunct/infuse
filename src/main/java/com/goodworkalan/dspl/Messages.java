@@ -3,9 +3,8 @@ package com.goodworkalan.dspl;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Messages
+class Messages
 {
-
     final static String charEscape(char ch)
     {
         return "'" + (ch == '\'' || ch == '\\' ? "\\" + ch : ch) + "'"; 

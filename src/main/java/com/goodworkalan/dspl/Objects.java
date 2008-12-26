@@ -7,7 +7,7 @@ import java.util.Map;
 
 class Objects
 {
-    final static Class<?> toClass(Type type)
+    static Class<?> toClass(Type type)
     {
         if (type instanceof Class)
         {
