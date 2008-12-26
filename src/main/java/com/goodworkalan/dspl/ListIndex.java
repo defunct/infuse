@@ -67,7 +67,7 @@ final class ListIndex implements Index
             }
             catch (FactoryException e)
             {
-                throw new PathException(133, e);
+                throw new PathException(133, e).add(types[0]);
             }
             if (got == null)
             {

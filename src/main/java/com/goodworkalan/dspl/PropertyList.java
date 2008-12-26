@@ -20,14 +20,12 @@ class PropertyList
     
     private final static boolean moreIndexes(Matcher matcher)
     {
-        String dot = matcher.group(matcher.groupCount());
-        return dot != null && dot.equals("[");
+        return "[".equals(matcher.group(matcher.groupCount()));
     }
     
     private final static boolean moreParts(Matcher matcher)
     {
-        String dot = matcher.group(matcher.groupCount());
-        return dot != null && dot.equals(".");
+        return ".".equals(matcher.group(matcher.groupCount()));
     }
 
     /**

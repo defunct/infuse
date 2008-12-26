@@ -1,6 +1,9 @@
 package com.goodworkalan.dspl;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.anyObject;
+
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
@@ -555,7 +558,7 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to navigate path \"foo.bar\" in bean of class com.goodworkalan.dspl.Widget  in order to set value of class java.lang.String.");
+            assertEquals(e.getMessage(), "Unable to navigate path \"foo.bar\" in bean of class com.goodworkalan.dspl.Widget in order to set value of class java.lang.String.");
             throw e;
         }
     }
@@ -622,6 +625,10 @@ public class PropertyPathTest
         
         path = new PropertyPath("baz['bar'].foo");
         path.set(root, "foo", true);
+
+        path = new PropertyPath("baz['bar'].baz['foo']");
+        path.set(root, "foo", true);
+        path.set(root, "foo", true);
     }
 
     @Test
@@ -660,5 +667,25 @@ public class PropertyPathTest
     {
         String path = " foo . bar [1] [   'Hello, World!\\n' ] [1] . baz [100] [  11 ]  ";
         assertEquals(new PropertyPath(path).withoutIndexes(), "foo.bar.baz");
-    }    
+    }
+    
+    @Test(expectedExceptions=PathException.class)
+    public void listIndexFactoryException() throws PathException, FactoryException
+    {
+        PropertyPath path = new PropertyPath("widgetListList[0][0].number");
+        Widget widget = new Widget();
+        path.set(widget, 1, true);
+        ObjectFactory factory = mock(ObjectFactory.class);
+        when(factory.create((Type) anyObject())).thenThrow(new FactoryException(0, null));
+        path = new PropertyPath("widgetListList[1][1].number");
+        try
+        {
+            path.set(widget, 1, factory);
+        }
+        catch (PathException e)
+        {
+            assertEquals(e.getMessage(), "Unable to create path \"widgetListList[1][1].number\" part \"widgetListList[1][1]\" in bean class of com.goodworkalan.dspl.Widget. Unable to create type of java.util.List<com.goodworkalan.dspl.Widget> to set list index \"widgetListList[1]\".");
+            throw e;
+        }
+    }
 }
