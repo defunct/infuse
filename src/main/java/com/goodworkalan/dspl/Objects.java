@@ -26,6 +26,7 @@ class Objects
         return (List) object;
     }
 
+    // TODO Make Map<String, Object>
     @SuppressWarnings("unchecked")
     static Map<Object, Object> toMap(Object object)
     {

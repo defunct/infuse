@@ -5,11 +5,16 @@ import static com.goodworkalan.dspl.Objects.toMap;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -18,12 +23,12 @@ final class Property
 {
     final String name;
     
-    final Index[] indexes;
+    private final List<Index> indexes = new ArrayList<Index>();
     
     public Property(String name, Index...indexes)
     {
         this.name = name;
-        this.indexes = indexes;
+        this.indexes.addAll(Arrays.asList(indexes));
     }
     
     public String methodName()
@@ -67,7 +72,7 @@ final class Property
                 for (int i = 0; i < types.length; i++)
                 {
                     Class<?> cls = toClass(types[i]);
-                    if (!indexes[i].indexedBy(cls))
+                    if (!indexes.get(i).indexedBy(cls))
                     {
                         continue METHODS;
                     }
@@ -104,7 +109,7 @@ final class Property
     
     public Object get(Object bean, ObjectFactory factory) throws PathException
     {
-        return get(bean, indexes.length, factory);
+        return get(bean, indexes.size(), factory);
     }
 
     public Object get(Object bean, int indexesLength, ObjectFactory factory) throws PathException
@@ -126,26 +131,26 @@ final class Property
                     map.put(name, object);
                 }
             }
-            for (int i = 0; object != null && i < indexes.length - 1; i++)
+            for (int i = 0; object != null && i < indexes.size() - 1; i++)
             {
                 // TODO Change first property of get.
-                Object value = indexes[i].get(null, object, null);
+                Object value = indexes.get(i).get(null, object, null);
                 if (value == null && factory != null)
                 {
                     value = new ObjectMap();
-                    indexes[i].set(null, object, value);
+                    indexes.get(i).set(null, object, value);
                 }
                 object = value;
             }
-            if (indexes.length == 0)
+            if (indexes.size() == 0)
             {
                 return object;
             }
-            Object value = indexes[indexes.length - 1].get(null, object, null);
+            Object value = indexes.get(indexes.size() - 1).get(null, object, null);
             if (value == null)
             {
                 value = factory.newBean();
-                indexes[indexes.length - 1].set(ObjectMap.class.getGenericSuperclass(), object, value);
+                indexes.get(indexes.size() - 1).set(ObjectMap.class.getGenericSuperclass(), object, value);
             }
             return value;
         }
@@ -159,7 +164,7 @@ final class Property
             Object[] args = new Object[method.getParameterTypes().length];
             for (int i = 0; i < args.length; i++)
             {
-                args[i] = indexes[i].getIndex(false);
+                args[i] = indexes.get(i).getIndex(false);
             }
             try
             {
@@ -178,8 +183,8 @@ final class Property
             {
                 try
                 {
-                    object = indexes[i].get(type, object, factory);
-                    type = indexes[i].typeOf(type);
+                    object = indexes.get(i).get(type, object, factory);
+                    type = indexes.get(i).typeOf(type);
                 }
                 catch (PathException e)
                 {
@@ -194,7 +199,7 @@ final class Property
     
     public Type typeOf(Object bean) throws PathException
     {
-        return typeOf(bean, indexes.length);
+        return typeOf(bean, indexes.size());
     }
 
     public Type typeOf(Object bean, int indexesLength) throws PathException
@@ -209,7 +214,7 @@ final class Property
             type = method.getGenericReturnType();
             for (int i = args; i < indexesLength; i++)
             {
-                type = indexes[i].typeOf(type);
+                type = indexes.get(i).typeOf(type);
             }
         }
         return type;
@@ -221,7 +226,7 @@ final class Property
         {
             if (bean instanceof Map)
             {
-                if (indexes.length == 0)
+                if (indexes.size() == 0)
                 {
                     toMap(bean).put(name, value);
                 }
@@ -229,13 +234,13 @@ final class Property
                 {
                     Object container = null;
                     Object object = toMap(bean).get(name);
-                    for (int i = 0; i < indexes.length; i++)
+                    for (int i = 0; i < indexes.size(); i++)
                     {
                         if (object == null)
                         {
                             try
                             {
-                                object = factory.create(indexes[i].getRawType());
+                                object = factory.create(indexes.get(i).getRawType());
                             }
                             catch (FactoryException e)
                             {
@@ -247,24 +252,24 @@ final class Property
                             }
                             else
                             {
-                                indexes[i - 1].set(indexes[i - 1].getRawType(), container, value);
+                                indexes.get(i - 1).set(indexes.get(i - 1).getRawType(), container, value);
                             }
                         }
                         container = object;
                     }
-                    indexes[indexes.length - 1].set(container.getClass().getGenericSuperclass(), container, value);
+                    indexes.get(indexes.size() - 1).set(container.getClass().getGenericSuperclass(), container, value);
                 }
             }
             else
             {
-                Method method = explicitSet(bean, value == null ? null : value.getClass(), indexes.length);
-                if (method == null && indexes.length != 0)
+                Method method = explicitSet(bean, value == null ? null : value.getClass(), indexes.size());
+                if (method == null && indexes.size() != 0)
                 {
-                    Object object = get(bean, indexes.length - 1, factory);
+                    Object object = get(bean, indexes.size() - 1, factory);
                     if (object != null)
                     {
-                        Type type = typeOf(bean, indexes.length - 1);
-                        indexes[indexes.length - 1].set(type, object, value);
+                        Type type = typeOf(bean, indexes.size() - 1);
+                        indexes.get(indexes.size() - 1).set(type, object, value);
                     }
                 }
                 else if (method == null)
@@ -286,10 +291,58 @@ final class Property
         }
     }
 
+    public void glob(Object bean, LinkedList<PropertyPath> glob) throws PathException
+    {
+        ListIterator<PropertyPath> iterator = glob.listIterator();
+        while (iterator.hasNext())
+        {
+            PropertyPath path = iterator.next();
+            Property property = new Property(name);
+            path.addProperty(property);
+            if (path.get(bean) == null)
+            {
+                iterator.remove();
+            }
+        }
+        for (Index index : indexes)
+        {
+            int count = glob.size();
+            while (count-- != 0)
+            {
+                PropertyPath path = glob.removeFirst();
+                index.glob(bean, path, glob);
+            }
+        }
+    }
+    
+    public void addIndex(Index index)
+    {
+        indexes.add(index);
+    }
+    
+    public Property duplicate()
+    {
+        Property duplicate = new Property(name);
+        for (Index index : indexes)
+        {
+            duplicate.addIndex(index.duplicate());
+        }
+        return duplicate;
+    }
+    
+    public void toList(List<String> list, boolean escape)
+    {
+        list.add(name);
+        for (Index index : indexes)
+        {
+            list.add(index.getIndex(escape).toString());
+        }
+    }
+    
     @Override
     public String toString()
     {
-        return toString(indexes.length);
+        return toString(indexes.size());
     }
     
     public String toString(int indexCount)
@@ -298,7 +351,7 @@ final class Property
         newString.append(name);
         for (int i = 0; i < indexCount; i++)
         {
-            newString.append(indexes[i].toString());
+            newString.append(indexes.get(i).toString());
         }
         return newString.toString();
     }
@@ -308,7 +361,7 @@ final class Property
         Object[] args = new Object[method.getParameterTypes().length];
         for (int i = 0; i < args.length - 1; i++)
         {
-            args[i] = indexes[i].getIndex(false);
+            args[i] = indexes.get(i).getIndex(false);
         }
         args[args.length - 1] = value;
         try
@@ -335,7 +388,7 @@ final class Property
             {
                 for (int i = 0; i < indexLength; i++)
                 {
-                    if (!indexes[i].indexedBy(toClass(types[i])))
+                    if (!indexes.get(i).indexedBy(toClass(types[i])))
                     {
                         continue METHOD;
                     }
@@ -350,6 +403,7 @@ final class Property
         return null;
     }
     
+    // TODO Move to Objects.
     static final boolean isAssignableFrom(Class<?> to, Class<?> from)
     {
         if (to.isPrimitive())

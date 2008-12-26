@@ -19,6 +19,10 @@ import java.lang.reflect.Type;
  */
 public class PropertyPath extends PropertyList
 {
+    PropertyPath()
+    {
+    }
+
     public PropertyPath(String path) throws PathException
     {
         super(path, false);
@@ -141,5 +145,15 @@ public class PropertyPath extends PropertyList
     public void set(Object bean, Object value, boolean create) throws PathException
     {
         set(bean, value, create ? new CoreObjectFactory() : null);
+    }
+    
+    public PropertyPath duplicate()
+    {
+        PropertyPath duplicate = new PropertyPath();
+        for (Property property : properties)
+        {
+            duplicate.addProperty(property.duplicate());
+        }
+        return duplicate;
     }
 }

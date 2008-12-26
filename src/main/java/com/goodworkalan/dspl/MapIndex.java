@@ -1,10 +1,11 @@
 package com.goodworkalan.dspl;
 
-import static com.goodworkalan.dspl.Objects.toMap;
 import static com.goodworkalan.dspl.Objects.toClass;
+import static com.goodworkalan.dspl.Objects.toMap;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Map;
 
 final class MapIndex implements Index
@@ -74,6 +75,21 @@ final class MapIndex implements Index
         else
         {
             throw new PathException(120).add(type);
+        }
+    }
+
+    public Index duplicate()
+    {
+        return new MapIndex(index);
+    }
+
+    public void glob(Object bean, PropertyPath path, List<PropertyPath> glob) throws PathException
+    {
+        Map<Object, Object> map = toMap(path.get(bean));
+        if (map.get(index) != null)
+        {
+            path.getLastProperty().addIndex(new MapIndex(index));
+            glob.add(path);
         }
     }
     

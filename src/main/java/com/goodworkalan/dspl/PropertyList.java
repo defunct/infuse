@@ -14,6 +14,10 @@ class PropertyList
 
     private final static Pattern INDEX = Pattern.compile("(?:" + Patterns.ANY_INDEX + ")" + Patterns.SKIPWHITE + "([\\[.]?)");
     
+    protected PropertyList()
+    {
+    }
+    
     private final static boolean moreIndexes(Matcher matcher)
     {
         String dot = matcher.group(matcher.groupCount());
@@ -60,7 +64,7 @@ class PropertyList
             }
             identifierStart = identifier.end();
             
-            List<Index> listOfIndexes = new ArrayList<Index>();
+            Property property = new Property(identifier.group(1));
             
             int indexStart = identifier.end() - 1; 
             
@@ -75,11 +79,15 @@ class PropertyList
                 
                 if (index.group(1) != null)
                 {
-                    throw new PathException(128);
+                    if (!glob)
+                    {
+                        throw new PathException(128);
+                    }
+                    property.addIndex(new GlobIndex());
                 }
                 else if (index.group(2) != null)
                 {
-                    listOfIndexes.add(new ListIndex(Integer.parseInt(index.group(2))));
+                    property.addIndex(new ListIndex(Integer.parseInt(index.group(2))));
                 }
                 else
                 {
@@ -92,7 +100,7 @@ class PropertyList
                     {
                         try
                         {
-                            listOfIndexes.add(new MapIndex(MapIndex.unescape(key)));
+                            property.addIndex(new MapIndex(MapIndex.unescape(key)));
                         }
                         catch (PathException e)
                         {
@@ -108,8 +116,7 @@ class PropertyList
                 more = index;
             }
 
-            Index[] indexes = listOfIndexes.toArray(new Index[listOfIndexes.size()]);
-            properties.add(new Property(identifier.group(1), indexes));
+            properties.add(property);
             
             moreParts = moreParts(more);
         }
@@ -122,9 +129,14 @@ class PropertyList
         }
     }
     
-    void add(Property property)
+    void addProperty(Property property)
     {
         properties.add(property);
+    }
+    
+    Property getLastProperty()
+    {
+        return properties.get(properties.size() - 1);
     }
     
     @Override
@@ -156,15 +168,11 @@ class PropertyList
     
     public List<String> toList(boolean escape)
     {
-        List<String> path = new ArrayList<String>();
+        List<String> list = new ArrayList<String>();
         for (Property property : properties)
         {
-            path.add(property.name);
-            for (Index index : property.indexes)
-            {
-                path.add(index.getIndex(escape).toString());
-            }
-        }
-        return path;
+            property.toList(list, escape);
+       }
+        return list;
     }
 }

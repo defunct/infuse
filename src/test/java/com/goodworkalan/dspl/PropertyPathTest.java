@@ -120,7 +120,7 @@ public class PropertyPathTest
         factory.create(Runnable.class);
     }
 
-    @Test(expectedExceptions=PathException.class)
+    @Test(expectedExceptions=FactoryException.class)
     public void noDefaultConstructor() throws Exception
     {
         ObjectFactory factory = new CoreObjectFactory();
@@ -374,7 +374,7 @@ public class PropertyPathTest
     @Test(expectedExceptions=NullPointerException.class)
     public void nullString() throws PathException
     {
-        new PropertyPath(null);
+        new PropertyPath((String) null);
     }
 
     @Test(expectedExceptions=PathException.class)

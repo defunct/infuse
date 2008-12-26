@@ -7,6 +7,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 
+// TODO Index arrays.
 final class ListIndex implements Index
 {
     private final int index;
@@ -29,6 +30,11 @@ final class ListIndex implements Index
     public boolean indexedBy(Class<?> cls)
     {
         return int.class.isAssignableFrom(cls) || Integer.class.isAssignableFrom(cls);
+    }
+    
+    public Index duplicate()
+    {
+        return new ListIndex(index);
     }
 
     public Type typeOf(Type type) throws PathException
@@ -94,6 +100,16 @@ final class ListIndex implements Index
         }
     }
     
+    public void glob(Object bean, PropertyPath path, List<PropertyPath> glob) throws PathException
+    {
+        List<Object> list = toList(path.get(bean));
+        if (index < list.size() && list.get(index) != null)
+        {
+            path.getLastProperty().addIndex(new ListIndex(index));
+            glob.add(path);
+        }
+    }
+
     @Override
     public String toString()
     {
