@@ -7,12 +7,76 @@ import java.util.regex.Pattern;
 
 class PropertyList
 {
+    final static String SKIPWHITE = "\\s*";
+    
+    final static String IDENTIFIER = "([\\w&&[^\\d]][\\w\\d]*)";
+    
+    final static String LIST_INDEX = "\\[\\s*(\\d+)\\s*\\]";
+    
+    final static String GLOB_INDEX = "\\[\\s*(\\*)\\s*\\]";
+    
+    final static String QUOTE_1_INDEX = stringIndex('\'');
+    
+    final static String QUOTE_2_INDEX = stringIndex('"');
+    
+    final static String ANY_INDEX =
+        GLOB_INDEX + "|" + LIST_INDEX + "|" +
+            QUOTE_1_INDEX + "|" + QUOTE_2_INDEX;
+    
+    final static String PART =
+        SKIPWHITE + IDENTIFIER + SKIPWHITE +
+           "(?:" +
+               "(?:" + ANY_INDEX + ")" +
+           SKIPWHITE + ")*";
+
+    final static Pattern GLOB = Pattern.compile(PART + "(?:(\\.)" + PART + ")*");
+
+    private final static String escaped(String...characters)
+    {
+        StringBuffer newString = new StringBuffer();
+        String separator = "";
+        for (int i = 0; i < characters.length; i++)
+        {
+            newString.append(separator)
+                     .append("\\\\")
+                     .append(characters[i]);
+            separator = "|";
+        }
+        return newString.toString();
+    }
+
+    private final static String stringIndex(char quote)
+    {
+        String escaped = escaped("b", "f", "n", "r", "t");
+        return "\\[" + SKIPWHITE
+                     + "("
+                     + quote
+                         + "(?:"
+                             + "[^" + quote + "\\\\]"
+                             + "|" 
+                             + "(?:"
+                                 + "\\\\\\\\"
+                                 + "|"
+                                 + "\\\\" + quote
+                                 + "|"
+                                 + "\\\\u[A-Fa-f0-9]{4}"
+                                 + "|"
+                                 + "\\\\x[A-Fa-f0-9]{2}"
+                                 + "|"
+                                 + escaped
+                             + ")"
+                         + ")*"
+                     + quote
+                     + ")"
+                     + SKIPWHITE + "\\]"; 
+    }
+
     /** The bean path. */
     protected final List<Property> properties = new ArrayList<Property>();
     
-    private final static Pattern IDENTIFIER = Pattern.compile(Patterns.SKIPWHITE + Patterns.IDENTIFIER + Patterns.SKIPWHITE + "([\\[.]?)");
+    private final static Pattern NAME = Pattern.compile(SKIPWHITE + IDENTIFIER + SKIPWHITE + "([\\[.]?)");
 
-    private final static Pattern INDEX = Pattern.compile("(?:" + Patterns.ANY_INDEX + ")" + Patterns.SKIPWHITE + "([\\[.]?)");
+    private final static Pattern INDEX = Pattern.compile("(?:" + ANY_INDEX + ")" + SKIPWHITE + "([\\[.]?)");
     
     protected PropertyList()
     {
@@ -44,29 +108,29 @@ class PropertyList
             throw new NullPointerException();
         }
 
-        Matcher identifier = IDENTIFIER.matcher(path);
+        Matcher name = NAME.matcher(path);
         Matcher index = INDEX.matcher(path);
         
-        int identifierStart = 0;
+        int nameStart = 0;
         boolean moreParts = true;
         while (moreParts)
         {
-            if (!identifier.find(identifierStart))
+            if (!name.find(nameStart))
             {
                 throw new PathException(125).add(Messages.stringEscape(path))
-                                            .add(identifierStart);
+                                            .add(nameStart);
             }
-            if (identifier.start() != identifierStart)
+            if (name.start() != nameStart)
             {
                 throw new PathException(126);
             }
-            identifierStart = identifier.end();
+            nameStart = name.end();
             
-            Property property = new Property(identifier.group(1));
+            Property property = new Property(name.group(1));
             
-            int indexStart = identifier.end() - 1; 
+            int indexStart = name.end() - 1; 
             
-            Matcher more = identifier;
+            Matcher more = name;
             while (moreIndexes(more))
             {
                 if (!index.find(indexStart))
@@ -108,7 +172,7 @@ class PropertyList
                     }
                 }
                 
-                identifierStart = index.end();
+                nameStart = index.end();
                 indexStart = index.end() - 1;
 
                 more = index;
@@ -119,11 +183,11 @@ class PropertyList
             moreParts = moreParts(more);
         }
         
-        if (identifierStart != path.length())
+        if (nameStart != path.length())
         {
             throw new PathException(129).add(Messages.stringEscape(path))
-                                        .add(Messages.charEscape(path.charAt(identifierStart)))
-                                        .add(identifierStart);
+                                        .add(Messages.charEscape(path.charAt(nameStart)))
+                                        .add(nameStart);
         }
     }
     

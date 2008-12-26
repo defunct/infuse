@@ -13,15 +13,15 @@ public class PropertyGlobTest
     @Test
     public void regex()
     {
-        assertTrue("".matches(Patterns.SKIPWHITE));
-        assertFalse(" a".matches(Patterns.SKIPWHITE));
-        assertTrue("a".matches(Patterns.IDENTIFIER));
-        assertFalse("1".matches(Patterns.IDENTIFIER));
-        assertTrue("['foo']".matches(Patterns.QUOTE_1_INDEX));
-        assertTrue("['\\'']".matches(Patterns.QUOTE_1_INDEX));
-        assertTrue("['\\b']".matches(Patterns.QUOTE_1_INDEX));
-        assertFalse("[''']".matches(Patterns.QUOTE_1_INDEX));
-        assertTrue(Patterns.GLOB.matcher("a[1]['\\''].b.c[ 12 ]").matches());
+        assertTrue("".matches(PropertyGlob.SKIPWHITE));
+        assertFalse(" a".matches(PropertyGlob.SKIPWHITE));
+        assertTrue("a".matches(PropertyGlob.IDENTIFIER));
+        assertFalse("1".matches(PropertyGlob.IDENTIFIER));
+        assertTrue("['foo']".matches(PropertyGlob.QUOTE_1_INDEX));
+        assertTrue("['\\'']".matches(PropertyGlob.QUOTE_1_INDEX));
+        assertTrue("['\\b']".matches(PropertyGlob.QUOTE_1_INDEX));
+        assertFalse("[''']".matches(PropertyGlob.QUOTE_1_INDEX));
+        assertTrue(PropertyGlob.GLOB.matcher("a[1]['\\''].b.c[ 12 ]").matches());
     }
     
     @Test
