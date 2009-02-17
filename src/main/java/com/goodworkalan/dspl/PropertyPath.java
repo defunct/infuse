@@ -39,6 +39,11 @@ public class PropertyPath extends PropertyList
      */
     public Object get(Object bean) throws PathException
     {
+        return get(bean, true);
+    }
+    
+    public Object get(Object bean, boolean assertPath) throws PathException
+    {
         if (bean == null)
         {
             throw new IllegalArgumentException();
@@ -55,7 +60,12 @@ public class PropertyPath extends PropertyList
             return properties.get(last).get(bean, null);
         }
         
-        throw new PathException(101);
+        if (assertPath)
+        {
+            throw new PathException(101);
+        }
+
+        return bean;
     }
     
     public Type typeOf(Object bean, ObjectFactory factory) throws PathException
