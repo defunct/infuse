@@ -402,8 +402,22 @@ final class Property
         }
         return null;
     }
-    
-    // TODO Move to Objects.
+
+    /**
+     * Return true if the class given by <code>to</code> is either the same as,
+     * or is a superclass or superinterface of, the class or interface
+     * represented by the class given by <code>from</code>.
+     * <p>
+     * Unlike {@link Class#isAssignableFrom(Class)}, this method takes Java
+     * primitives into consideration.
+     * 
+     * @param to
+     *            The class to assign to.
+     * @param from
+     *            The class to assign from.
+     * @return True if to is the same as or is a superclass or superinterface of
+     *         from.
+     */
     static final boolean isAssignableFrom(Class<?> to, Class<?> from)
     {
         if (to.isPrimitive())
@@ -441,6 +455,6 @@ final class Property
                 return Double.class.isAssignableFrom(from);
             }
         }
-        return from.isAssignableFrom(to);
+        return to.isAssignableFrom(from);
     }
 }
