@@ -5,31 +5,39 @@ import java.util.List;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
-// TODO Maybe there is a PathException and Parse/Navigate/Factory exceptions.
+// TODO Maybe there is a PathException and Parse/Navigate/Create exceptions.
+// TODO Document.
 class AbstractException extends Exception
 {
+    // TODO Document.
     private final static long serialVersionUID = 1L;
     
+    // TODO Document.
     protected final List<Object> listOfArguments = new ArrayList<Object>(); 
     
+    // TODO Document.
     private final int code;
     
+    // TODO Document.
     public AbstractException(int code)
     {
         this.code = code;
     }
     
+    // TODO Document.
     public AbstractException(int code, Throwable cause)
     {
         super(cause);
         this.code = code;
     }
     
+    // TODO Document.
     public int getCode()
     {
         return code;
     }
     
+    // TODO Document.
     @Override
     public String getMessage()
     {

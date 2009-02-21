@@ -8,39 +8,47 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+// TODO Document.
 class PropertyList
 {
     /** The bean path. */
     protected final List<Property> properties = new ArrayList<Property>();
     
+    // TODO Document.
     private final static Pattern NAME = Pattern.compile("\\s*" + identifier(true) + "\\s*([\\[.]?)");
 
+    // TODO Document.
     private final static Pattern INDEX = Pattern.compile("(?:" + anyIndex(true) + ")\\s*([\\[.]?)");
     
+    // TODO Document.
     protected PropertyList()
     {
     }
     
+    // TODO Document.
     private final static boolean moreIndexes(Matcher matcher)
     {
         return "[".equals(matcher.group(matcher.groupCount()));
     }
     
+    // TODO Document.
     private final static boolean moreParts(Matcher matcher)
     {
         return ".".equals(matcher.group(matcher.groupCount()));
     }
 
     /**
-     * Create a bean path from the specified string. The bean path will be
-     * checked for syntax. The syntax check will not check the path against a
-     * particular bean path, merely that the syntax does not include invalid
-     * characters.
+     * Create a bean path from the given path. If the given is glob parameter is
+     * true, the property list will permit glob wildcards.
+     * <p>
+     * The bean path is checked for syntax. The syntax check will not check the
+     * path against a particular bean path, merely that the syntax does not
+     * include invalid characters.
      * 
      * @param path
      *            The bean path.
      */
-    protected PropertyList(String path, boolean glob) throws PathException
+    protected PropertyList(String path, boolean isGlob) throws PathException
     {
         if (path == null)
         {
@@ -80,7 +88,7 @@ class PropertyList
                 
                 if (index.group(1) != null)
                 {
-                    if (!glob)
+                    if (!isGlob)
                     {
                         throw new PathException(128);
                     }
@@ -130,16 +138,19 @@ class PropertyList
         }
     }
     
+    // TODO Document.
     void addProperty(Property property)
     {
         properties.add(property);
     }
     
+    // TODO Document.
     Property getLastProperty()
     {
         return properties.get(properties.size() - 1);
     }
     
+    // TODO Document.
     @Override
     public String toString()
     {
@@ -154,6 +165,7 @@ class PropertyList
         return newString.toString();
     }
     
+    // TODO Document.
     public String withoutIndexes()
     {
         StringBuilder newString = new StringBuilder();
@@ -167,6 +179,7 @@ class PropertyList
         return newString.toString();
     }
     
+    // TODO Document.
     public List<String> toList(boolean escape)
     {
         List<String> list = new ArrayList<String>();

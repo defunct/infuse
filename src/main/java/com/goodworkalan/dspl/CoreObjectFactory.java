@@ -10,8 +10,10 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 
+// TODO Document.
 final class CoreObjectFactory implements ObjectFactory
 {
+    // TODO Document.
     public Object create(Type type) throws FactoryException
     {
         Object created = null;
@@ -26,6 +28,7 @@ final class CoreObjectFactory implements ObjectFactory
         return created;
     }
     
+    // TODO Document.
     public Object create(Class<?> cls) throws FactoryException
     {
         if (!cls.isInterface())
@@ -54,6 +57,7 @@ final class CoreObjectFactory implements ObjectFactory
         throw new UnsupportedOperationException();
     }
     
+    // TODO Document.
     public Object newBean()
     {
         return new ObjectMap();

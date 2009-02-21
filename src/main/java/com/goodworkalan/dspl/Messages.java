@@ -3,13 +3,16 @@ package com.goodworkalan.dspl;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+// TODO Document.
 class Messages
 {
+    // TODO Document.
     final static String charEscape(char ch)
     {
         return "'" + (ch == '\'' || ch == '\\' ? "\\" + ch : ch) + "'"; 
     }
 
+    // TODO Document.
     final static String stringEscape(String string)
     {
         Pattern pattern = Pattern.compile("[\\\"\b\r\n\f\t\0\1\2\3\4\5\6\7]");
@@ -51,5 +54,4 @@ class Messages
         matcher.appendTail(newString);
         return "\"" + newString.toString() + "\"";
     }
-
 }

@@ -8,30 +8,37 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
+// TODO Document.
 final class MapIndex implements Index
 {
+    // TODO Document.
     final String index;
     
+    // TODO Document.
     public MapIndex(String index)
     {
         this.index = index;
     }
     
+    // TODO Document.
     public Class<?> getRawType()
     {
         return ObjectMap.class;
     }
     
+    // TODO Document.
     public Object getIndex(boolean escape)
     {
         return escape ? escape(index) : index;
     }
     
+    // TODO Document.
     public boolean indexedBy(Class<?> cls)
     {
         return String.class.isAssignableFrom(cls);
     }
 
+    // TODO Document.
     public Type typeOf(Type type) throws PathException
     {
         if (Map.class.isAssignableFrom(toClass(type)))
@@ -41,6 +48,7 @@ final class MapIndex implements Index
         return null;
     }
     
+    // TODO Document.
     public Object get(Type type, Object container, ObjectFactory factory) throws PathException
     {
         Map<Object, Object> map = toMap(container);
@@ -65,6 +73,7 @@ final class MapIndex implements Index
         return got;
     }
     
+    // TODO Document.
     public void set(Type type, Object container, Object value) throws PathException
     {
         Type[] types = ((ParameterizedType) type).getActualTypeArguments();
@@ -78,11 +87,13 @@ final class MapIndex implements Index
         }
     }
 
+    // TODO Document.
     public Index duplicate()
     {
         return new MapIndex(index);
     }
 
+    // TODO Document.
     public void glob(Object bean, PropertyPath path, List<PropertyPath> glob) throws PathException
     {
         Map<Object, Object> map = toMap(path.get(bean));
@@ -93,17 +104,20 @@ final class MapIndex implements Index
         }
     }
     
+    // TODO Document.
     @Override
     public String toString()
     {
         return "[" + escape(index) + "]";
     }
     
+    // TODO Document.
     final static String escape(String index)
     {
         return "'" + index.replaceAll("['\t\b\r\n\f]", "\\($1)") + "'";
     }
  
+    // TODO Document.
     final static String unescape(String key) throws PathException
     {
         StringBuilder newKey = new StringBuilder();

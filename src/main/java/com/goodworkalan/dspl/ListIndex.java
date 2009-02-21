@@ -10,33 +10,40 @@ import java.util.List;
 // TODO Index arrays.
 final class ListIndex implements Index
 {
+    // TODO Document.
     private final int index;
     
+    // TODO Document.
     public ListIndex(int index)
     {
         this.index = index;
     }
     
+    // TODO Document.
     public Class<?> getRawType()
     {
         return ObjectList.class;
     }
 
+    // TODO Document.
     public Object getIndex(boolean escape)
     {
         return index;
     }
     
+    // TODO Document.
     public boolean indexedBy(Class<?> cls)
     {
         return int.class.isAssignableFrom(cls) || Integer.class.isAssignableFrom(cls);
     }
     
+    // TODO Document.
     public Index duplicate()
     {
         return new ListIndex(index);
     }
 
+    // TODO Document.
     public Type typeOf(Type type) throws PathException
     {
         if (type instanceof ParameterizedType)
@@ -50,6 +57,7 @@ final class ListIndex implements Index
         return null;
     }
 
+    // TODO Document.
     public Object get(Type type, Object container, ObjectFactory factory) throws PathException
     {
         Object got = null;
@@ -82,6 +90,7 @@ final class ListIndex implements Index
         return got;
     }
     
+    // TODO Document.
     public void set(Type type, Object container, Object value) throws PathException
     {
         Type[] types = ((ParameterizedType) type).getActualTypeArguments();
@@ -99,7 +108,8 @@ final class ListIndex implements Index
             throw new PathException(118).add(type);
         }
     }
-    
+
+    // TODO Document.
     public void glob(Object bean, PropertyPath path, List<PropertyPath> glob) throws PathException
     {
         List<Object> list = toList(path.get(bean));
@@ -110,6 +120,7 @@ final class ListIndex implements Index
         }
     }
 
+    // TODO Document.
     @Override
     public String toString()
     {

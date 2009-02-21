@@ -3,10 +3,8 @@ package com.goodworkalan.dspl;
 import java.lang.reflect.Type;
 
 /**
- * <p>
  * A dirt simple bean property path navigator that gets and sets bean properties
  * within object graphs.
- * </p>
  * <p>
  * Is is not entirely possible to check against an potential property path using
  * a class. The <code>PropertyPath</code> class can navigate maps, lists, and
@@ -19,10 +17,12 @@ import java.lang.reflect.Type;
  */
 public class PropertyPath extends PropertyList
 {
+    // TODO Document.
     PropertyPath()
     {
     }
 
+    // TODO Document.
     public PropertyPath(String path) throws PathException
     {
         super(path, false);
@@ -39,11 +39,6 @@ public class PropertyPath extends PropertyList
      */
     public Object get(Object bean) throws PathException
     {
-        return get(bean, true);
-    }
-    
-    public Object get(Object bean, boolean assertPath) throws PathException
-    {
         if (bean == null)
         {
             throw new IllegalArgumentException();
@@ -59,15 +54,11 @@ public class PropertyPath extends PropertyList
         {
             return properties.get(last).get(bean, null);
         }
-        
-        if (assertPath)
-        {
-            throw new PathException(101);
-        }
 
         return bean;
     }
     
+    // TODO Document.
     public Type typeOf(Object bean, ObjectFactory factory) throws PathException
     {
         if (bean == null)
@@ -103,6 +94,7 @@ public class PropertyPath extends PropertyList
         }
     }
     
+    // TODO Document.
     public Type typeOf(Object bean, boolean create) throws PathException
     {
         return typeOf(bean, create ? new CoreObjectFactory() : null);
@@ -152,11 +144,13 @@ public class PropertyPath extends PropertyList
         }
     }
     
+    // TODO Document.
     public void set(Object bean, Object value, boolean create) throws PathException
     {
         set(bean, value, create ? new CoreObjectFactory() : null);
     }
     
+    // TODO Document.
     public PropertyPath duplicate()
     {
         PropertyPath duplicate = new PropertyPath();

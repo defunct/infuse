@@ -19,23 +19,29 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+// TODO Document.
 final class Property
 {
+    // TODO Document.
     final String name;
     
+    // TODO Document.
     private final List<Index> indexes = new ArrayList<Index>();
     
+    // TODO Document.
     public Property(String name, Index...indexes)
     {
         this.name = name;
         this.indexes.addAll(Arrays.asList(indexes));
     }
     
+    // TODO Document.
     public String methodName()
     {
         return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
 
+    // TODO Document.
     public Map<Class<?>, String> readMethodNames()
     {
         Map<Class<?>, String> map = new HashMap<Class<?>, String>();
@@ -45,6 +51,7 @@ final class Property
         return map;
     }
 
+    // TODO Document.
     public Set<Method> readMethods(Object bean, int indexesLength)
     {
         Map<Class<?>, String> readerNames = readMethodNames();
@@ -83,6 +90,7 @@ final class Property
         return new LinkedHashSet<Method>(priority.values());
     }
 
+    // TODO Document.
     boolean create(Object bean, Type type, int indexLength, ObjectFactory factory) throws PathException
     {
         Method method = explicitSet(bean, type, indexLength);
@@ -107,11 +115,13 @@ final class Property
         return false;
     }
     
+    // TODO Document.
     public Object get(Object bean, ObjectFactory factory) throws PathException
     {
         return get(bean, indexes.size(), factory);
     }
 
+    // TODO Document.
     public Object get(Object bean, int indexesLength, ObjectFactory factory) throws PathException
     {
         if (name.equals("this") || (bean instanceof Map))
@@ -197,11 +207,13 @@ final class Property
         return object;
     }
     
+    // TODO Document.
     public Type typeOf(Object bean) throws PathException
     {
         return typeOf(bean, indexes.size());
     }
 
+    // TODO Document.
     public Type typeOf(Object bean, int indexesLength) throws PathException
     {
         Set<Method> readers = readMethods(bean, indexesLength);
@@ -220,6 +232,7 @@ final class Property
         return type;
     }
     
+    // TODO Document.
     public void set(Object bean, Object value, ObjectFactory factory) throws PathException
     {
         try
@@ -291,6 +304,7 @@ final class Property
         }
     }
 
+    // TODO Document.
     public void glob(Object bean, LinkedList<PropertyPath> glob) throws PathException
     {
         ListIterator<PropertyPath> iterator = glob.listIterator();
@@ -315,11 +329,13 @@ final class Property
         }
     }
     
+    // TODO Document.
     public void addIndex(Index index)
     {
         indexes.add(index);
     }
     
+    // TODO Document.
     public Property duplicate()
     {
         Property duplicate = new Property(name);
@@ -330,6 +346,7 @@ final class Property
         return duplicate;
     }
     
+    // TODO Document.
     public void toList(List<String> list, boolean escape)
     {
         list.add(name);
@@ -339,12 +356,14 @@ final class Property
         }
     }
     
+    // TODO Document.
     @Override
     public String toString()
     {
         return toString(indexes.size());
     }
     
+    // TODO Document.
     public String toString(int indexCount)
     {
         StringBuilder newString = new StringBuilder();
@@ -356,6 +375,7 @@ final class Property
         return newString.toString();
     }
 
+    // TODO Document.
     void set(Method method, Object bean, Object value) throws PathException
     {
         Object[] args = new Object[method.getParameterTypes().length];
@@ -374,6 +394,7 @@ final class Property
         }
     }
     
+    // TODO Document.
     Method explicitSet(Object bean, Type type, int indexLength) throws PathException
     {
         Class<?> cls = toClass(type);
@@ -384,7 +405,7 @@ final class Property
             Type[] types = method.getGenericParameterTypes();
             if (method.getName().equals(methodName)
                 && types.length == indexLength + 1
-                && (cls == null || isAssignableFrom(toClass(types[indexLength]), cls)))
+                && (cls == null || Objects.isAssignableFrom(toClass(types[indexLength]), cls)))
             {
                 for (int i = 0; i < indexLength; i++)
                 {
@@ -401,60 +422,5 @@ final class Property
             return writers.iterator().next();
         }
         return null;
-    }
-
-    /**
-     * Return true if the class given by <code>to</code> is either the same as,
-     * or is a superclass or superinterface of, the class or interface
-     * represented by the class given by <code>from</code>.
-     * <p>
-     * Unlike {@link Class#isAssignableFrom(Class)}, this method takes Java
-     * primitives into consideration.
-     * 
-     * @param to
-     *            The class to assign to.
-     * @param from
-     *            The class to assign from.
-     * @return True if to is the same as or is a superclass or superinterface of
-     *         from.
-     */
-    static final boolean isAssignableFrom(Class<?> to, Class<?> from)
-    {
-        if (to.isPrimitive())
-        {
-            if (long.class.isAssignableFrom(to))
-            {
-                return Long.class.isAssignableFrom(from);
-            }
-            else if (int.class.isAssignableFrom(to))
-            {
-                return Integer.class.isAssignableFrom(from);
-            }
-            else if (short.class.isAssignableFrom(to))
-            {
-                return Short.class.isAssignableFrom(from);
-            }
-            else if (char.class.isAssignableFrom(to))
-            {
-                return Character.class.isAssignableFrom(from);
-            }
-            else if (byte.class.isAssignableFrom(to))
-            {
-                return Byte.class.isAssignableFrom(from);
-            }
-            else if (boolean.class.isAssignableFrom(to))
-            {
-                return Boolean.class.isAssignableFrom(from);
-            }
-            else if (float.class.isAssignableFrom(to))
-            {
-                return Float.class.isAssignableFrom(from);
-            }
-            else // if (double.class.isAssignableFrom(to))
-            {
-                return Double.class.isAssignableFrom(from);
-            }
-        }
-        return to.isAssignableFrom(from);
     }
 }
