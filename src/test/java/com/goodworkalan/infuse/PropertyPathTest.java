@@ -112,7 +112,7 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to navigate path \"widget.foo\" in bean of class com.goodworkalan.dspl.Widget in order to determine type.");
+            assertEquals(e.getMessage(), "Unable to navigate path \"widget.foo\" in bean of class com.goodworkalan.infuse.Widget in order to determine type.");
             throw e;
         }
     }
@@ -467,7 +467,7 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to set value of class java.lang.String to list of type java.util.List<java.util.List<java.lang.String>> for path \"stringListList[0]\" in bean of class com.goodworkalan.dspl.Widget.");
+            assertEquals(e.getMessage(), "Unable to set value of class java.lang.String to list of type java.util.List<java.util.List<java.lang.String>> for path \"stringListList[0]\" in bean of class com.goodworkalan.infuse.Widget.");
             throw e;
         }
     }
@@ -485,7 +485,7 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to create path \"stringListList[0][0]\" part \"stringListList[0][0]\" in bean class of com.goodworkalan.dspl.Widget. Unable to create type of java.util.List<java.lang.String> to set list index \"stringListList[0]\".");
+            assertEquals(e.getMessage(), "Unable to create path \"stringListList[0][0]\" part \"stringListList[0][0]\" in bean class of com.goodworkalan.infuse.Widget. Unable to create type of java.util.List<java.lang.String> to set list index \"stringListList[0]\".");
             throw e;
         }
     }
@@ -536,7 +536,7 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to set value of class java.lang.String to map of type java.util.Map<java.lang.String, java.util.Map<java.lang.String, java.lang.String>> for path \"stringMapMap['bar']\" in bean of class com.goodworkalan.dspl.Widget.");
+            assertEquals(e.getMessage(), "Unable to set value of class java.lang.String to map of type java.util.Map<java.lang.String, java.util.Map<java.lang.String, java.lang.String>> for path \"stringMapMap['bar']\" in bean of class com.goodworkalan.infuse.Widget.");
             throw e;
         }
     }
@@ -570,7 +570,7 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to navigate path \"foo.bar\" in bean of class com.goodworkalan.dspl.Widget in order to set value of class java.lang.String.");
+            assertEquals(e.getMessage(), "Unable to navigate path \"foo.bar\" in bean of class com.goodworkalan.infuse.Widget in order to set value of class java.lang.String.");
             throw e;
         }
     }
@@ -603,7 +603,7 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to navigate path \"foo\" in bean of class com.goodworkalan.dspl.Widget in order to set value of class java.lang.String.");
+            assertEquals(e.getMessage(), "Unable to navigate path \"foo\" in bean of class com.goodworkalan.infuse.Widget in order to set value of class java.lang.String.");
             throw e;
         }
     }
@@ -696,7 +696,7 @@ public class PropertyPathTest
         }
         catch (PathException e)
         {
-            assertEquals(e.getMessage(), "Unable to create path \"widgetListList[1][1].number\" part \"widgetListList[1][1]\" in bean class of com.goodworkalan.dspl.Widget. Unable to create type of java.util.List<com.goodworkalan.dspl.Widget> to set list index \"widgetListList[1]\".");
+            assertEquals(e.getMessage(), "Unable to create path \"widgetListList[1][1].number\" part \"widgetListList[1][1]\" in bean class of com.goodworkalan.infuse.Widget. Unable to create type of java.util.List<com.goodworkalan.infuse.Widget> to set list index \"widgetListList[1]\".");
             throw e;
         }
     }
