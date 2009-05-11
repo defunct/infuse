@@ -1,7 +1,7 @@
-package com.goodworkalan.dspl;
+package com.goodworkalan.infuse;
 
-import static com.goodworkalan.dspl.Patterns.identifier;
-import static com.goodworkalan.dspl.Patterns.anyIndex;
+import static com.goodworkalan.infuse.Patterns.anyIndex;
+import static com.goodworkalan.infuse.Patterns.identifier;
 
 import java.util.ArrayList;
 import java.util.List;

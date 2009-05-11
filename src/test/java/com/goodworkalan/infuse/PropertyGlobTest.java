@@ -1,4 +1,4 @@
-package com.goodworkalan.dspl;
+package com.goodworkalan.infuse;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -8,6 +8,11 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.testng.annotations.Test;
+
+import com.goodworkalan.infuse.PathException;
+import com.goodworkalan.infuse.Patterns;
+import com.goodworkalan.infuse.PropertyGlob;
+import com.goodworkalan.infuse.PropertyPath;
 
 public class PropertyGlobTest
 {

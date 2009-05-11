@@ -1,4 +1,4 @@
-package com.goodworkalan.dspl;
+package com.goodworkalan.infuse;
 
 // TODO Document.
 public class FactoryException extends AbstractException

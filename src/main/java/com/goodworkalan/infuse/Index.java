@@ -1,4 +1,4 @@
-package com.goodworkalan.dspl;
+package com.goodworkalan.infuse;
 
 import java.lang.reflect.Type;
 import java.util.List;

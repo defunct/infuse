@@ -1,7 +1,7 @@
-package com.goodworkalan.dspl;
+package com.goodworkalan.infuse;
 
-import static com.goodworkalan.dspl.Objects.toClass;
-import static com.goodworkalan.dspl.Objects.toMap;
+import static com.goodworkalan.infuse.Objects.toClass;
+import static com.goodworkalan.infuse.Objects.toMap;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;

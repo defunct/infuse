@@ -1,4 +1,4 @@
-package com.goodworkalan.dspl;
+package com.goodworkalan.infuse;
 
 /**
  * The regular expressions that define DSPL.

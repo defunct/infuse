@@ -1,8 +1,11 @@
-package com.goodworkalan.dspl;
+package com.goodworkalan.infuse;
 
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
+
+import com.goodworkalan.infuse.GlobIndex;
+import com.goodworkalan.infuse.PathException;
 
 public class GlobIndexTest
 {

@@ -1,4 +1,4 @@
-package com.goodworkalan.dspl;
+package com.goodworkalan.infuse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,7 @@ class AbstractException extends Exception
     public String getMessage()
     {
         String key = Integer.toString(code);
-        ResourceBundle exceptions = ResourceBundle.getBundle("com.goodworkalan.dspl.exceptions");
+        ResourceBundle exceptions = ResourceBundle.getBundle("com.goodworkalan.infuse.exceptions");
         String format;
         try
         {

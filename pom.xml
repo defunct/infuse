@@ -8,7 +8,7 @@
     <packaging>jar</packaging>
     <version>0.1.X</version>
 
-    <name>dspl</name>
+    <name>infuse</name>
     <description>
         A  minimal bean path language for mapping flattened key value properties
         to beans properties in nested beans.

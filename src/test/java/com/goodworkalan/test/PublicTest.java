@@ -4,8 +4,8 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-import com.goodworkalan.dspl.PathException;
-import com.goodworkalan.dspl.PropertyPath;
+import com.goodworkalan.infuse.PathException;
+import com.goodworkalan.infuse.PropertyPath;
 
 public class PublicTest
 {

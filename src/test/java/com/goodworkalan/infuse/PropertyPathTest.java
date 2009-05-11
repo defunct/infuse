@@ -1,4 +1,4 @@
-package com.goodworkalan.dspl;
+package com.goodworkalan.infuse;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -19,6 +19,18 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.testng.annotations.Test;
+
+import com.goodworkalan.infuse.CoreObjectFactory;
+import com.goodworkalan.infuse.FactoryException;
+import com.goodworkalan.infuse.Index;
+import com.goodworkalan.infuse.ListIndex;
+import com.goodworkalan.infuse.MapIndex;
+import com.goodworkalan.infuse.Messages;
+import com.goodworkalan.infuse.ObjectFactory;
+import com.goodworkalan.infuse.Objects;
+import com.goodworkalan.infuse.PathException;
+import com.goodworkalan.infuse.Property;
+import com.goodworkalan.infuse.PropertyPath;
 
 public class PropertyPathTest
 {

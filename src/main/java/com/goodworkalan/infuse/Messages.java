@@ -1,4 +1,4 @@
-package com.goodworkalan.dspl;
+package com.goodworkalan.infuse;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
