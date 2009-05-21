@@ -21,7 +21,7 @@ public final class PathException extends AbstractException
     // TODO Document.
     public PathException add(Object argument)
     {
-        listOfArguments.add(argument);
+        arguments.add(argument);
         return this;
     }
 }

@@ -15,7 +15,7 @@ public class FactoryException extends AbstractException
     // TODO Document.
     public FactoryException add(Object argument)
     {
-        listOfArguments.add(argument);
+        arguments.add(argument);
         return this;
     }
 }
