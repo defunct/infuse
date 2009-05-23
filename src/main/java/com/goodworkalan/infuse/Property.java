@@ -22,26 +22,41 @@ import java.util.TreeMap;
 // TODO Document.
 final class Property
 {
-    // TODO Document.
+    /** The property name. */
     final String name;
     
-    // TODO Document.
+    /** The property indexes. */
     private final List<Index> indexes = new ArrayList<Index>();
-    
-    // TODO Document.
+
+    /**
+     * Create a new property with the given name and the given indexes.
+     * 
+     * @param name
+     *            The property name.
+     * @param indexes
+     *            The property indexes.
+     */
     public Property(String name, Index...indexes)
     {
         this.name = name;
         this.indexes.addAll(Arrays.asList(indexes));
     }
-    
-    // TODO Document.
+
+    /**
+     * Get the method name suffix for the property getter or setter method.
+     * 
+     * @return The method name suffix.
+     */
     public String methodName()
     {
         return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
 
-    // TODO Document.
+    /**
+     * Create a map of return types to Java bean getter names for this property.
+     * 
+     * @return A map of return types to Java getter names names.
+     */
     public Map<Class<?>, String> readMethodNames()
     {
         Map<Class<?>, String> map = new HashMap<Class<?>, String>();

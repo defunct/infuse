@@ -7,7 +7,11 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
-// TODO Document.
+/**
+ * An index that returns all of the elements in an indexed collection.
+ *  
+ * @author Alan Gutierrez
+ */
 class GlobIndex implements Index
 {
     /**
