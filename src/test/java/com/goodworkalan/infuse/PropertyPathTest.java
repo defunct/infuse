@@ -1,9 +1,8 @@
 package com.goodworkalan.infuse;
 
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.Matchers.anyObject;
-
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
@@ -13,24 +12,13 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.testng.annotations.Test;
-
-import com.goodworkalan.infuse.CoreObjectFactory;
-import com.goodworkalan.infuse.FactoryException;
-import com.goodworkalan.infuse.Index;
-import com.goodworkalan.infuse.ListIndex;
-import com.goodworkalan.infuse.MapIndex;
-import com.goodworkalan.infuse.Messages;
-import com.goodworkalan.infuse.ObjectFactory;
-import com.goodworkalan.infuse.Objects;
-import com.goodworkalan.infuse.PathException;
-import com.goodworkalan.infuse.Property;
-import com.goodworkalan.infuse.PropertyPath;
 
 public class PropertyPathTest
 {
@@ -122,7 +110,7 @@ public class PropertyPathTest
     {
         ObjectFactory factory = new CoreObjectFactory();
         assertEquals(factory.create(SortedMap.class).getClass(), TreeMap.class);
-        assertEquals(factory.create(Map.class).getClass(), HashMap.class);
+        assertEquals(factory.create(Map.class).getClass(), LinkedHashMap.class);
         assertEquals(factory.create(List.class).getClass(), ArrayList.class);
         assertNull(factory.create(new ArrayList<Object>().getClass().getTypeParameters()[0]));
     }
