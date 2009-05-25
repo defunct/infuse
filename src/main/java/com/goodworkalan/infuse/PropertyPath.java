@@ -3,7 +3,7 @@ package com.goodworkalan.infuse;
 import java.lang.reflect.Type;
 
 /**
- * A dirt simple bean property path navigator that gets and sets bean properties
+ * An infusion bean property path navigator that gets and sets bean properties
  * within object graphs.
  * <p>
  * Is is not entirely possible to check against an potential property path using

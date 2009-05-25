@@ -3,7 +3,7 @@ package com.goodworkalan.infuse;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -48,7 +48,7 @@ final class CoreObjectFactory implements ObjectFactory
         }
         else if (Map.class.isAssignableFrom(cls))
         {
-            return new HashMap<Object, Object>();
+            return new LinkedHashMap<Object, Object>();
         }
         else if (List.class.isAssignableFrom(cls))
         {
