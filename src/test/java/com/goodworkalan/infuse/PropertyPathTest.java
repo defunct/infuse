@@ -52,7 +52,7 @@ public class PropertyPathTest
         
     }
     
-    @Test(enabled = false) public void getChild() throws PathException
+    @Test public void getChild() throws PathException
     {
         Diffusion diffusion = new Diffusion("widget.string");
         

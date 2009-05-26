@@ -87,7 +87,7 @@ public class Diffusion
             }
             else
             {
-                return get(child, properties, index + i);
+                return get(child, properties, index + i + 1);
             }
         }
         return child;
