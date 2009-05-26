@@ -147,7 +147,7 @@ public class PropertyPathTest
         assertNull(Objects.toClass(type));
     }
     
-    @Test(enabled = false, expectedExceptions=PathException.class)
+    @Test(expectedExceptions=PathException.class)
     public void badNumericIndexAlphaNum() throws PathException
     {
         String part = "a[ 1i ] "; 

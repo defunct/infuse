@@ -73,7 +73,7 @@ public class Patterns
     {
         return
             globIndex(capture) + "|" + listIndex(capture) + "|" +
-                identifier(capture) + "|" +
+                "\\[\\s*" + identifier(capture) + "\\s*\\]|" +
                 stringIndex('\'', capture) + "|" + stringIndex('"', capture);
     }
     
