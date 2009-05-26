@@ -38,7 +38,7 @@ public class PropertyPathTest
         assertEquals(widget.getString(), "foo");
     }
     
-    @Test(enabled = false)
+    @Test
     public void self() throws PathException
     {
         Diffusion diffusion = new Diffusion("this.widget.this.string.this");

@@ -29,6 +29,10 @@ public class Diffusion
         Property property = properties.get(index);
         if (property.getName().equals("this") && !property.isIndex())
         {
+            if (index + 1 == properties.size())
+            {
+                return object;
+            }
             return get(object, properties, index + 1);
         }
         if (object instanceof Map)
