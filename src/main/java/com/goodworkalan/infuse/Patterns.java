@@ -73,6 +73,7 @@ public class Patterns
     {
         return
             globIndex(capture) + "|" + listIndex(capture) + "|" +
+                identifier(capture) + "|" +
                 stringIndex('\'', capture) + "|" + stringIndex('"', capture);
     }
     
@@ -107,6 +108,7 @@ public class Patterns
         return newString.toString();
     }
 
+    // FIXME Add valid Java identifier, unquoted as a valid type.
     // TODO Document.
     public static String stringIndex(char quote, boolean capture)
     {

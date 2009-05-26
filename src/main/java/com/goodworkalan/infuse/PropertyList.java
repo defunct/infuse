@@ -3,13 +3,14 @@ package com.goodworkalan.infuse;
 import static com.goodworkalan.infuse.Patterns.anyIndex;
 import static com.goodworkalan.infuse.Patterns.identifier;
 
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 // TODO Document.
-class PropertyList
+public class PropertyList extends AbstractList<Property>
 {
     /** The bean path. */
     protected final List<Property> properties = new ArrayList<Property>();
@@ -25,6 +26,18 @@ class PropertyList
     {
     }
     
+    @Override
+    public int size()
+    {
+        return properties.size();
+    }
+    
+    @Override
+    public Property get(int index)
+    {
+        return properties.get(index);
+    }
+    
     // TODO Document.
     private final static boolean moreIndexes(Matcher matcher)
     {
@@ -35,6 +48,79 @@ class PropertyList
     private final static boolean moreParts(Matcher matcher)
     {
         return ".".equals(matcher.group(matcher.groupCount()));
+    }
+    
+    // TODO Document.
+    final static String escape(String index)
+    {
+        return "'" + index.replaceAll("['\t\b\r\n\f]", "\\($1)") + "'";
+    }
+ 
+    // TODO Document.
+    final static String unescape(String key) throws ParseException
+    {
+        StringBuilder newKey = new StringBuilder();
+        int i = 0;
+        char quote = key.charAt(i++);
+        KEY: for (;;)
+        {
+            char ch = key.charAt(i++);
+            switch (ch)
+            {
+            case 0:
+                throw new ParseException(108).add(Messages.stringEscape(key));
+            case '\'':
+                // This noop is only to get 100% Corbertura coverage, sorry.
+                key.length();
+            case '"':
+                if (ch == quote)
+                {
+                    break KEY;
+                }
+                throw new ParseException(109).add(Messages.stringEscape(key))
+                                             .add(Messages.charEscape(ch))
+                                             .add(Messages.charEscape(quote));
+            case '\\':
+                ch = key.charAt(i++);
+                switch (ch)
+                {
+                case 'b':
+                    newKey.append('\b');
+                    break;
+                case 't':
+                    newKey.append('\t');
+                    break;
+                case 'n':
+                    newKey.append('\n');
+                    break;
+                case 'f':
+                    newKey.append('\f');
+                    break;
+                case 'r':
+                    newKey.append('\r');
+                    break;
+                case 'u':
+                    newKey.append((char) Integer.parseInt(key.substring(i, i += 4), 16));
+                    break;
+                case 'x':
+                    newKey.append((char) Integer.parseInt(key.substring(i, i += 2), 16));
+                    break;
+                case '\'':
+                    newKey.append('\'');
+                    break;
+                case '"':
+                    newKey.append('"');
+                    break;
+                default:
+                    throw new ParseException(110).add(Messages.stringEscape(key))
+                                                 .add("'\\" + ch + "'");
+                }
+                break;
+            default:
+                newKey.append(ch);
+            }
+        }
+        return newKey.toString();
     }
 
     /**
@@ -48,7 +134,7 @@ class PropertyList
      * @param path
      *            The bean path.
      */
-    protected PropertyList(String path, boolean isGlob) throws PathException
+    public PropertyList(String path, boolean isGlob) throws ParseException
     {
         if (path == null)
         {
@@ -64,16 +150,16 @@ class PropertyList
         {
             if (!name.find(nameStart))
             {
-                throw new PathException(125).add(Messages.stringEscape(path))
-                                            .add(nameStart);
+                throw new ParseException(125).add(Messages.stringEscape(path))
+                                             .add(nameStart);
             }
             if (name.start() != nameStart)
             {
-                throw new PathException(126);
+                throw new ParseException(126);
             }
             nameStart = name.end();
             
-            Property property = new Property(name.group(1));
+            properties.add(new Property(name.group(1), false, '\0'));
             
             int indexStart = name.end() - 1; 
             
@@ -82,40 +168,48 @@ class PropertyList
             {
                 if (!index.find(indexStart))
                 {
-                    throw new PathException(127).add(Messages.stringEscape(path))
-                                                .add(indexStart);
+                    throw new ParseException(127).add(Messages.stringEscape(path))
+                                                 .add(indexStart);
                 }
                 
                 if (index.group(1) != null)
                 {
                     if (!isGlob)
                     {
-                        throw new PathException(128);
+                        throw new ParseException(128);
                     }
-                    property.addIndex(new GlobIndex());
+                    properties.add(new Property("*", true, '\0'));
                 }
                 else if (index.group(2) != null)
                 {
-                    property.addIndex(new ListIndex(Integer.parseInt(index.group(2))));
+                    properties.add(new Property(index.group(2), true, '\0'));
                 }
                 else
                 {
+                    char quote = '\0';
                     String key = index.group(3);
                     if (key == null)
                     {
+                        quote = '\'';
                         key = index.group(4);
+                        if (key == null)
+                        {
+                            key = index.group(5);
+                            quote = '"';
+                        }
                     }
                     if (key != null)
                     {
                         try
                         {
-                            property.addIndex(new MapIndex(MapIndex.unescape(key)));
+                            key = quote == '\0' ? key : unescape(key);
                         }
-                        catch (PathException e)
+                        catch (ParseException e)
                         {
                             e.add(Messages.stringEscape(path)).add(indexStart);
                             throw e;
                         }
+                        properties.add(new Property(key, true, quote));
                     }
                 }
                 
@@ -124,17 +218,15 @@ class PropertyList
 
                 more = index;
             }
-
-            properties.add(property);
             
             moreParts = moreParts(more);
         }
         
         if (nameStart != path.length())
         {
-            throw new PathException(129).add(Messages.stringEscape(path))
-                                        .add(Messages.charEscape(path.charAt(nameStart)))
-                                        .add(nameStart);
+            throw new ParseException(129).add(Messages.stringEscape(path))
+                                         .add(Messages.charEscape(path.charAt(nameStart)))
+                                         .add(nameStart);
         }
     }
     
@@ -172,21 +264,38 @@ class PropertyList
         String separator = "";
         for (Property property : properties)
         {
-            newString.append(separator);
-            newString.append(property.name);
-            separator = ".";
+            if (!property.isIndex())
+            {
+                newString.append(separator);
+                newString.append(property.getName());
+                separator = ".";
+            }
         }
         return newString.toString();
     }
     
-    // TODO Document.
-    public List<String> toList(boolean escape)
+    public int arityAtIndex(int index)
     {
-        List<String> list = new ArrayList<String>();
-        for (Property property : properties)
+        if (index >= properties.size())
         {
-            property.toList(list, escape);
-       }
-        return list;
+            throw new IndexOutOfBoundsException();
+        }
+        if (properties.get(index).isIndex())
+        {
+            throw new IllegalArgumentException();
+        }
+        int arity = 0;
+        for (int i = index + 1; i < properties.size(); i++)
+        {
+            if (properties.get(i).isIndex())
+            {
+                arity++;
+            }
+            else
+            {
+                break;
+            }
+        }
+        return arity;
     }
 }

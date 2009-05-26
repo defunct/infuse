@@ -1,19 +1,25 @@
 package com.goodworkalan.infuse;
 
 // TODO Document.
-public class FactoryException extends PathException
+public final class NavigateException extends PathException
 {
     // TODO Document.
     private final static long serialVersionUID = 1L;
-
+        
     // TODO Document.
-    public FactoryException(int code, Throwable cause)
+    public NavigateException(int code)
+    {
+        super(code);
+    }
+    
+    // TODO Document.
+    public NavigateException(int code, Throwable cause)
     {
         super(code, cause);
     }
     
     // TODO Document.
-    public FactoryException add(Object argument)
+    public NavigateException add(Object argument)
     {
         arguments.add(argument);
         return this;
