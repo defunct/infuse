@@ -153,7 +153,7 @@ public class PropertyPathTest
         String part = "a[ 1i ] "; 
         try
         {
-            new PropertyList(part, false);
+            new Path(part, false);
         }
         catch (ParseException e)
         {
@@ -168,7 +168,7 @@ public class PropertyPathTest
         String part = "a[ 1i ["; 
         try
         {
-            new PropertyList(part, false);
+            new Path(part, false);
         }
         catch (ParseException e)
         {
@@ -184,7 +184,7 @@ public class PropertyPathTest
         String part = "a \"";
         try
         {
-            new PropertyList(part, false);
+            new Path(part, false);
         }
         catch (PathException e)
         {
@@ -199,7 +199,7 @@ public class PropertyPathTest
         String part = "a]";
         try
         {
-            new PropertyList(part, false);
+            new Path(part, false);
         }
         catch (PathException e)
         {
@@ -211,7 +211,7 @@ public class PropertyPathTest
     
     private void assertName(String part, String name) throws PathException
     {
-        PropertyList property = new PropertyList(part, false);
+        Path property = new Path(part, false);
         assertEquals(property.get(1).getName(), name);
     }
     
@@ -236,7 +236,7 @@ public class PropertyPathTest
     {
         try
         {
-            new PropertyList("a['a'a", false);
+            new Path("a['a'a", false);
         }
         catch (PathException e)
         {
@@ -251,7 +251,7 @@ public class PropertyPathTest
     {
         try
         {
-            new PropertyList("a['a", true);
+            new Path("a['a", true);
         }
         catch (PathException e)
         {
@@ -266,7 +266,7 @@ public class PropertyPathTest
     {
         try
         {
-            new PropertyList("a['a\"]", true);
+            new Path("a['a\"]", true);
         }
         catch (PathException e)
         {
@@ -280,7 +280,7 @@ public class PropertyPathTest
     {
         try
         {
-            new PropertyList("a['\\a']", true);
+            new Path("a['\\a']", true);
         }
         catch (PathException e)
         {
@@ -294,7 +294,7 @@ public class PropertyPathTest
     {
         try
         {
-            new PropertyList("a['\0']", true);
+            new Path("a['\0']", true);
         }
         catch (PathException e)
         {
@@ -306,7 +306,7 @@ public class PropertyPathTest
     @Test(expectedExceptions=NullPointerException.class)
     public void nullString() throws PathException
     {
-        new PropertyList((String) null, true);
+        new Path((String) null, true);
     }
 
     @Test(expectedExceptions=PathException.class)
@@ -314,7 +314,7 @@ public class PropertyPathTest
     {
         try
         {
-            new PropertyList("", true);
+            new Path("", true);
         }
         catch (PathException e)
         {
@@ -328,7 +328,7 @@ public class PropertyPathTest
     {
         try
         {
-            new PropertyList("1", true);
+            new Path("1", true);
         }
         catch (PathException e)
         {
@@ -503,7 +503,7 @@ public class PropertyPathTest
     public void stripIndexes() throws PathException
     {
         String path = " foo . bar [1] [   'Hello, World!\\n' ] [1] . baz [100] [  11 ]  ";
-        assertEquals(new PropertyList(path, false).withoutIndexes(), "foo.bar.baz");
+        assertEquals(new Path(path, false).withoutIndexes(), "foo.bar.baz");
     }
     
 //    @Test(expectedExceptions=PathException.class)

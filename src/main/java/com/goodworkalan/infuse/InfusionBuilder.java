@@ -9,12 +9,12 @@ public class InfusionBuilder
 {
     private final Map<String, Object> tree;
     
-    private final List<PropertyList> paths; 
+    private final List<Path> paths; 
     
     public InfusionBuilder()
     {
         this.tree = new LinkedHashMap<String, Object>();
-        this.paths = new ArrayList<PropertyList>();
+        this.paths = new ArrayList<Path>();
     }
     
     Map<String, Object> getTree()
@@ -22,14 +22,14 @@ public class InfusionBuilder
         return tree;
     }
     
-    List<PropertyList> getPaths()
+    List<Path> getPaths()
     {
         return paths;
     }
     
     public boolean set(String path, Object value) throws PathException
     {
-        PropertyList properties = new PropertyList(path, false);
+        Path properties = new Path(path, false);
         if (set(properties, tree, value, 0))
         {
             paths.add(properties);
@@ -40,7 +40,7 @@ public class InfusionBuilder
     
     public String get(String path) throws PathException
     {
-        return get(new PropertyList(path, false), tree, 0);
+        return get(new Path(path, false), tree, 0);
     }
     
     public Infusion getInstnace()
@@ -48,7 +48,7 @@ public class InfusionBuilder
         return new Infusion(tree, paths);
     }
     
-    private boolean set(PropertyList properties, Map<String, Object> map, Object value, int index)
+    private boolean set(Path properties, Map<String, Object> map, Object value, int index)
     {
         Property property = properties.get(index);
         if (index == properties.size() - 1)
@@ -73,7 +73,7 @@ public class InfusionBuilder
         return set(properties, Casts.toStringToObject(current), value, index + 1);
     }
     
-    private String get(PropertyList properties, Map<String, Object> map, int index)
+    private String get(Path properties, Map<String, Object> map, int index)
     {
         Property property = properties.get(index);
         Object current = map.get(property.getName());

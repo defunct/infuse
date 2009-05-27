@@ -11,7 +11,7 @@ public class Infusion
 {
     private final Map<String, Object> tree;
     
-    private final List<PropertyList> paths;
+    private final List<Path> paths;
     
     private final List<ObjectFactory> factories;
     
@@ -24,7 +24,7 @@ public class Infusion
         this.factories = new ArrayList<ObjectFactory>();
     }
 
-    public Infusion(Map<String, Object> tree, List<PropertyList> paths)
+    public Infusion(Map<String, Object> tree, List<Path> paths)
     {
         this.tree = tree;
         this.paths = paths;
@@ -33,13 +33,13 @@ public class Infusion
     
     public void infuse(Object object) throws NavigateException, FactoryException
     {
-        for (PropertyList properties : paths)
+        for (Path properties : paths)
         {
             set(object, tree, properties, 0, null);
         }
     }
 
-    private void set(Object object, Map<String, Object> map, PropertyList properties, int index, Type generics) throws NavigateException, FactoryException
+    private void set(Object object, Map<String, Object> map, Path properties, int index, Type generics) throws NavigateException, FactoryException
     {
         Property property = properties.get(index);
         if (property.getName().equals("this") && !property.isIndex())

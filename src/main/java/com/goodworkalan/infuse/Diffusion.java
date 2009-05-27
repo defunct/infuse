@@ -10,7 +10,7 @@ import java.util.Map;
 public class Diffusion
 {
     // TODO Document.
-    private final PropertyList properties;
+    private final Path properties;
     
     // TODO Document.
     public Diffusion(String path) throws ParseException
@@ -19,11 +19,11 @@ public class Diffusion
         {
             throw new NullPointerException();
         }
-        this.properties = new PropertyList(path, true);
+        this.properties = new Path(path, true);
     }
 
     // TODO Document.
-    public Diffusion(PropertyList properties)
+    public Diffusion(Path properties)
     {
         if (properties == null)
         {
@@ -45,7 +45,7 @@ public class Diffusion
     }
     
     // TODO Document.
-    private Object get(Object object, PropertyList properties, int index) throws NavigateException
+    private Object get(Object object, Path properties, int index) throws NavigateException
     {
         Property property = properties.get(index);
         if (property.getName().equals("this") && !property.isIndex())
@@ -121,11 +121,11 @@ public class Diffusion
     public List<Diffusion> all(Object object) throws NavigateException
     {
         List<Diffusion> diffusions = new ArrayList<Diffusion>();
-        glob(object, new PropertyList(), 0, diffusions);
+        glob(object, new Path(), 0, diffusions);
         return diffusions;
     }
     
-    public void glob(Object object, PropertyList base, int from, List<Diffusion> diffusions) throws NavigateException
+    public void glob(Object object, Path base, int from, List<Diffusion> diffusions) throws NavigateException
     {
         int i;
         for (i = from; i < properties.size(); i++)
@@ -133,9 +133,9 @@ public class Diffusion
             Property property = properties.get(i);
             if (property.isGlob())
             {
-                PropertyList subPath = properties.subPropertyList(from, i);
+                Path subPath = properties.subPropertyList(from, i);
                 Object collection = new Diffusion(subPath).get(object);
-                PropertyList path = base.append(subPath);
+                Path path = base.append(subPath);
                 if (collection instanceof List)
                 {
                     List<Object> list = Casts.toObjectList(collection);
@@ -144,7 +144,7 @@ public class Diffusion
                         Object item = list.get(j);
                         if (item != null)
                         {
-                            PropertyList unglobbed = path.append(new Property(Integer.toString(j), true, '\0'));
+                            Path unglobbed = path.append(new Property(Integer.toString(j), true, '\0'));
                             glob(item, unglobbed, i + 1, diffusions);
                         }
                     }
@@ -157,7 +157,7 @@ public class Diffusion
                         Object item = array[j];
                         if (item != null)
                         {
-                            PropertyList unglobbed = path.append(new Property(Integer.toString(j), true, '\0'));
+                            Path unglobbed = path.append(new Property(Integer.toString(j), true, '\0'));
                             glob(item, unglobbed, i + 1, diffusions);
                         }
                     }
@@ -169,7 +169,7 @@ public class Diffusion
                     {
                         if ((entry.getKey() instanceof String) && entry.getValue() != null)
                         {
-                            PropertyList unglobbed = path.append(new Property((String) entry.getKey(), true, '\0'));
+                            Path unglobbed = path.append(new Property((String) entry.getKey(), true, '\0'));
                             glob(entry.getValue(), unglobbed, i + 1, diffusions);
                         }
                     }
@@ -179,7 +179,7 @@ public class Diffusion
         }
         if (i == properties.size())
         {
-            PropertyList subPath = properties.subPropertyList(from, properties.size());
+            Path subPath = properties.subPropertyList(from, properties.size());
             if (new Diffusion(subPath).get(object) != null)
             {
                 diffusions.add(new Diffusion(base.append(subPath)));

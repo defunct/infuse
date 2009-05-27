@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 // TODO Document.
-public class PropertyList extends AbstractList<Property> implements RandomAccess
+public class Path extends AbstractList<Property> implements RandomAccess
 {
     /** The bean path. */
     protected final List<Property> properties;
@@ -22,7 +22,7 @@ public class PropertyList extends AbstractList<Property> implements RandomAccess
     // TODO Document.
     private final static Pattern INDEX = Pattern.compile("(?:" + anyIndex(true) + ")\\s*([\\[.]?)");
 
-    protected PropertyList()
+    protected Path()
     {
         this(new ArrayList<Property>());
     }
@@ -34,14 +34,14 @@ public class PropertyList extends AbstractList<Property> implements RandomAccess
      * 
      * @param properties
      */
-    protected PropertyList(List<Property> properties)
+    protected Path(List<Property> properties)
     {
         this.properties = properties;
     }
     
-    public PropertyList subPropertyList(int fromIndex, int toIndex)
+    public Path subPropertyList(int fromIndex, int toIndex)
     {
-        return new PropertyList(subList(fromIndex, toIndex));
+        return new Path(subList(fromIndex, toIndex));
     }
 
     /**
@@ -89,18 +89,18 @@ public class PropertyList extends AbstractList<Property> implements RandomAccess
         return false;
     }
     
-    public PropertyList append(Property property)
+    public Path append(Property property)
     {
         List<Property> newProperties = new ArrayList<Property>(properties);
         newProperties.add(property);
-        return new PropertyList(newProperties);
+        return new Path(newProperties);
     }
 
-    public PropertyList append(List<Property> append)
+    public Path append(List<Property> append)
     {
         List<Property> newProperties = new ArrayList<Property>(properties);
         newProperties.addAll(append);
-        return new PropertyList(newProperties);
+        return new Path(newProperties);
     }
 
     /**
@@ -221,7 +221,7 @@ public class PropertyList extends AbstractList<Property> implements RandomAccess
      * @param path
      *            The bean path.
      */
-    public PropertyList(String path, boolean isGlob) throws ParseException
+    public Path(String path, boolean isGlob) throws ParseException
     {
         List<Property> properties = new ArrayList<Property>();
         
