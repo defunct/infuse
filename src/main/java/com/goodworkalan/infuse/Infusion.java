@@ -1,6 +1,9 @@
 package com.goodworkalan.infuse;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -10,25 +13,25 @@ public class Infusion
     
     private final List<PropertyList> paths;
     
-    private final ObjectFactory factory;
+    private final List<ObjectFactory> factories;
     
-    public Infusion(String path, String value) throws PathException
+    public Infusion(String path, Object value) throws PathException
     {
         InfusionBuilder builder = new InfusionBuilder();
         builder.set(path, value);
         this.tree = builder.getTree();
         this.paths = builder.getPaths();
-        this.factory = new CoreObjectFactory();
+        this.factories = new ArrayList<ObjectFactory>();
     }
 
     public Infusion(Map<String, Object> tree, List<PropertyList> paths)
     {
         this.tree = tree;
         this.paths = paths;
-        this.factory = new CoreObjectFactory();
+        this.factories = new ArrayList<ObjectFactory>();
     }
     
-    public void infuse(Object object) throws PathException
+    public void infuse(Object object) throws NavigateException, FactoryException
     {
         for (PropertyList properties : paths)
         {
@@ -36,7 +39,7 @@ public class Infusion
         }
     }
 
-    private void set(Object object, Map<String, Object> map, PropertyList properties, int index, Class<?> generics) throws PathException
+    private void set(Object object, Map<String, Object> map, PropertyList properties, int index, Type generics) throws NavigateException, FactoryException
     {
         Property property = properties.get(index);
         if (property.getName().equals("this") && !property.isIndex())
@@ -92,7 +95,7 @@ public class Infusion
                         }
                         catch (Exception e)
                         {
-                            throw new PathException(100, e);
+                            throw new NavigateException(100, e);
                         }
                     }
                     if (index + i == properties.size() - 1)
@@ -120,7 +123,7 @@ public class Infusion
                         }
                         catch (Exception e)
                         {
-                            throw new PathException(100, e);
+                            throw new NavigateException(100, e);
                         }
                     }
                     else if (child == null)
@@ -131,7 +134,11 @@ public class Infusion
                         {
                             continue ARITY;
                         }
-                        child = factory.create(type);
+                        Iterator<ObjectFactory> eachFactory = factories.iterator();
+                        while (eachFactory.hasNext() && child == null)
+                        {
+                            child = eachFactory.next().create(type);
+                        }
                         Object[] setParameters = new Object[arity + 1];
                         System.arraycopy(parameters, 0, setParameters, 0, arity);
                         setParameters[arity] = child;
@@ -141,13 +148,13 @@ public class Infusion
                         }
                         catch (Exception e)
                         {
-                            throw new PathException(100, e);
+                            throw new NavigateException(100, e);
                         }
                     }
-                }
-                if (child != null)
-                {
-                    
+                    if (child != null)
+                    {
+                        set(child, map, properties, index + i + 1, getter.getGenericReturnType());
+                    }
                 }
             }
         }

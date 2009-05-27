@@ -6,45 +6,124 @@ import static com.goodworkalan.infuse.Patterns.identifier;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.RandomAccess;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 // TODO Document.
-public class PropertyList extends AbstractList<Property>
+public class PropertyList extends AbstractList<Property> implements RandomAccess
 {
     /** The bean path. */
-    protected final List<Property> properties = new ArrayList<Property>();
+    protected final List<Property> properties;
     
     // TODO Document.
     private final static Pattern NAME = Pattern.compile("\\s*" + identifier(true) + "\\s*([\\[.]?)");
 
     // TODO Document.
     private final static Pattern INDEX = Pattern.compile("(?:" + anyIndex(true) + ")\\s*([\\[.]?)");
-    
-    // TODO Document.
+
     protected PropertyList()
     {
+        this(new ArrayList<Property>());
+    }
+
+    /**
+     * Create a property path with the given property list. Used by the sub
+     * property list construction method {@link #subPropertyList(int, int)
+     * subPropertyList}.
+     * 
+     * @param properties
+     */
+    protected PropertyList(List<Property> properties)
+    {
+        this.properties = properties;
     }
     
+    public PropertyList subPropertyList(int fromIndex, int toIndex)
+    {
+        return new PropertyList(subList(fromIndex, toIndex));
+    }
+
+    /**
+     * Return the size of the property path. The size of the property path
+     * includes the count of property names and indexes.
+     * 
+     * @return The property path size.
+     */
     @Override
     public int size()
     {
         return properties.size();
     }
-    
+
+    /**
+     * Returns the element at the specified position in this list.
+     * 
+     * @param index
+     *            The index of element to return.
+     * 
+     * @return The element at the specified position in this list.
+     * @throws IndexOutOfBoundsException
+     *             if the given index is out of range.
+     */
     @Override
     public Property get(int index)
     {
         return properties.get(index);
     }
     
-    // TODO Document.
+    /**
+     * Return true if the property path is a globbing property path.
+     * 
+     * @return True if the property path is a glob.
+     */
+    public boolean isGlob()
+    {
+        for (Property property : properties)
+        {
+            if (property.isGlob())
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public PropertyList append(Property property)
+    {
+        List<Property> newProperties = new ArrayList<Property>(properties);
+        newProperties.add(property);
+        return new PropertyList(newProperties);
+    }
+
+    public PropertyList append(List<Property> append)
+    {
+        List<Property> newProperties = new ArrayList<Property>(properties);
+        newProperties.addAll(append);
+        return new PropertyList(newProperties);
+    }
+
+    /**
+     * Returns true if the last capture in the pattern has matched an open
+     * bracket indicating that there are more indices to process.
+     * 
+     * @param matcher
+     *            The index or name matcher.
+     * @return True if there are more indexes to match.
+     */
     private final static boolean moreIndexes(Matcher matcher)
     {
         return "[".equals(matcher.group(matcher.groupCount()));
     }
-    
-    // TODO Document.
+
+    /**
+     * Return true if the last capture in the name pattern has matched a dot
+     * indicating that there are more property path parts.
+     * 
+     * @param matcher
+     *            The index or name matcher.
+     * @return True if there are more parts to match.
+     */
     private final static boolean moreParts(Matcher matcher)
     {
         return ".".equals(matcher.group(matcher.groupCount()));
@@ -55,8 +134,16 @@ public class PropertyList extends AbstractList<Property>
     {
         return "'" + index.replaceAll("['\t\b\r\n\f]", "\\($1)") + "'";
     }
- 
-    // TODO Document.
+
+    /**
+     * Unescape a quoted hash key.
+     * 
+     * @param key
+     *            The hash key.
+     * @return The hash key with escape sequences converted into characters.
+     * @throws ParseException
+     *             If the key is not a valid Java string literal.
+     */
     final static String unescape(String key) throws ParseException
     {
         StringBuilder newKey = new StringBuilder();
@@ -136,6 +223,8 @@ public class PropertyList extends AbstractList<Property>
      */
     public PropertyList(String path, boolean isGlob) throws ParseException
     {
+        List<Property> properties = new ArrayList<Property>();
+        
         if (path == null)
         {
             throw new NullPointerException();
@@ -228,6 +317,8 @@ public class PropertyList extends AbstractList<Property>
                                          .add(Messages.charEscape(path.charAt(nameStart)))
                                          .add(nameStart);
         }
+        
+        this.properties = properties;
     }
     
     // TODO Document.

@@ -27,7 +27,7 @@ public class InfusionBuilder
         return paths;
     }
     
-    public boolean set(String path, String value) throws PathException
+    public boolean set(String path, Object value) throws PathException
     {
         PropertyList properties = new PropertyList(path, false);
         if (set(properties, tree, value, 0))
@@ -48,7 +48,7 @@ public class InfusionBuilder
         return new Infusion(tree, paths);
     }
     
-    private boolean set(PropertyList properties, Map<String, Object> map, String value, int index)
+    private boolean set(PropertyList properties, Map<String, Object> map, Object value, int index)
     {
         Property property = properties.get(index);
         if (index == properties.size() - 1)

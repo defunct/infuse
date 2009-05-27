@@ -25,13 +25,13 @@ public class PropertyGlobTest
     @Test
     public void constructor() throws PathException
     {
-        new PropertyGlob("foo[*].bar");
+        new Diffusion("foo[*].bar");
     }
     
     @Test(expectedExceptions=NullPointerException.class)
     public void nullGlob() throws PathException
     {
-        new PropertyGlob(null);
+        new Diffusion((String) null);
     }
     
     @Test(expectedExceptions=PathException.class)
@@ -39,7 +39,7 @@ public class PropertyGlobTest
     {
         try
         {
-            new PropertyGlob("!");
+            new Diffusion("!");
         }
         catch (PathException e)
         {
