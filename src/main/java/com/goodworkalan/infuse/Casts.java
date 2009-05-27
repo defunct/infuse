@@ -3,6 +3,7 @@ package com.goodworkalan.infuse;
 import java.util.List;
 import java.util.Map;
 
+// TODO Meld with Objects.
 public class Casts
 {
     @SuppressWarnings("unchecked")

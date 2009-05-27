@@ -14,14 +14,17 @@ import java.util.regex.Pattern;
 public class Path extends AbstractList<Part> implements RandomAccess
 {
     /** The bean path. */
-    protected final List<Part> properties;
+    protected final List<Part> parts;
     
-    // TODO Document.
+    /** Matches a part identifier in a path. */
     private final static Pattern NAME = Pattern.compile("\\s*" + identifier(true) + "\\s*([\\[.]?)");
 
-    // TODO Document.
+    /** Matches an index in a path. */
     private final static Pattern INDEX = Pattern.compile("(?:" + anyIndex(true) + ")\\s*([\\[.]?)");
 
+    /**
+     * Create an empty path.
+     */
     protected Path()
     {
         this(new ArrayList<Part>());
@@ -29,78 +32,125 @@ public class Path extends AbstractList<Part> implements RandomAccess
 
     /**
      * Create a property path with the given property list. Used by the sub
-     * property list construction method {@link #subPropertyList(int, int)
+     * property list construction method {@link #subPath(int, int)
      * subPropertyList}.
      * 
-     * @param properties
+     * @param parts
      */
-    protected Path(List<Part> properties)
+    protected Path(List<Part> parts)
     {
-        this.properties = properties;
-    }
-    
-    public Path subPropertyList(int fromIndex, int toIndex)
-    {
-        return new Path(subList(fromIndex, toIndex));
-    }
-
-    /**
-     * Return the size of the property path. The size of the property path
-     * includes the count of property names and indexes.
-     * 
-     * @return The property path size.
-     */
-    @Override
-    public int size()
-    {
-        return properties.size();
-    }
-
-    /**
-     * Returns the element at the specified position in this list.
-     * 
-     * @param index
-     *            The index of element to return.
-     * 
-     * @return The element at the specified position in this list.
-     * @throws IndexOutOfBoundsException
-     *             if the given index is out of range.
-     */
-    @Override
-    public Part get(int index)
-    {
-        return properties.get(index);
+        this.parts = parts;
     }
     
     /**
-     * Return true if the property path is a globbing property path.
+     * Create a bean path from the given path. If the given is glob parameter is
+     * true, the property list will permit glob wildcards.
+     * <p>
+     * The bean path is checked for syntax. The syntax check will not check the
+     * path against a particular bean path, merely that the syntax does not
+     * include invalid characters.
      * 
-     * @return True if the property path is a glob.
+     * @param path
+     *            The bean path.
      */
-    public boolean isGlob()
+    public Path(String path, boolean isGlob) throws ParseException
     {
-        for (Part property : properties)
+        List<Part> parts = new ArrayList<Part>();
+        
+        if (path == null)
         {
-            if (property.isGlob())
-            {
-                return true;
-            }
+            throw new NullPointerException();
         }
-        return false;
-    }
     
-    public Path append(Part property)
-    {
-        List<Part> newProperties = new ArrayList<Part>(properties);
-        newProperties.add(property);
-        return new Path(newProperties);
-    }
-
-    public Path append(List<Part> append)
-    {
-        List<Part> newProperties = new ArrayList<Part>(properties);
-        newProperties.addAll(append);
-        return new Path(newProperties);
+        Matcher name = NAME.matcher(path);
+        Matcher index = INDEX.matcher(path);
+        
+        int nameStart = 0;
+        boolean moreParts = true;
+        while (moreParts)
+        {
+            if (!name.find(nameStart))
+            {
+                throw new ParseException(125).add(Messages.stringEscape(path))
+                                             .add(nameStart);
+            }
+            if (name.start() != nameStart)
+            {
+                throw new ParseException(126);
+            }
+            nameStart = name.end();
+            
+            parts.add(new Part(name.group(1), false, '\0'));
+            
+            int indexStart = name.end() - 1; 
+            
+            Matcher more = name;
+            while (moreIndexes(more))
+            {
+                if (!index.find(indexStart))
+                {
+                    throw new ParseException(127).add(Messages.stringEscape(path))
+                                                 .add(indexStart);
+                }
+                
+                if (index.group(1) != null)
+                {
+                    if (!isGlob)
+                    {
+                        throw new ParseException(128);
+                    }
+                    parts.add(new Part("*", true, '\0'));
+                }
+                else if (index.group(2) != null)
+                {
+                    parts.add(new Part(index.group(2), true, '\0'));
+                }
+                else
+                {
+                    char quote = '\0';
+                    String key = index.group(3);
+                    if (key == null)
+                    {
+                        quote = '\'';
+                        key = index.group(4);
+                        if (key == null)
+                        {
+                            key = index.group(5);
+                            quote = '"';
+                        }
+                    }
+                    if (key != null)
+                    {
+                        try
+                        {
+                            key = quote == '\0' ? key : unescape(key);
+                        }
+                        catch (ParseException e)
+                        {
+                            e.add(Messages.stringEscape(path)).add(indexStart);
+                            throw e;
+                        }
+                        parts.add(new Part(key, true, quote));
+                    }
+                }
+                
+                nameStart = index.end();
+                indexStart = index.end() - 1;
+    
+                more = index;
+            }
+            
+            moreParts = moreParts(more);
+        }
+        
+        if (nameStart != path.length())
+        {
+            throw new ParseException(129).add(Messages.stringEscape(path))
+                                         .add(Messages.charEscape(path.charAt(nameStart)))
+                                         .add(nameStart);
+        }
+        
+        this.parts = parts;
     }
 
     /**
@@ -127,12 +177,6 @@ public class Path extends AbstractList<Part> implements RandomAccess
     private final static boolean moreParts(Matcher matcher)
     {
         return ".".equals(matcher.group(matcher.groupCount()));
-    }
-    
-    // TODO Document.
-    final static String escape(String index)
-    {
-        return "'" + index.replaceAll("['\t\b\r\n\f]", "\\($1)") + "'";
     }
 
     /**
@@ -210,127 +254,77 @@ public class Path extends AbstractList<Part> implements RandomAccess
         return newKey.toString();
     }
 
+    // TODO Document.
+    public Path subPath(int fromIndex, int toIndex)
+    {
+        return new Path(subList(fromIndex, toIndex));
+    }
+
     /**
-     * Create a bean path from the given path. If the given is glob parameter is
-     * true, the property list will permit glob wildcards.
-     * <p>
-     * The bean path is checked for syntax. The syntax check will not check the
-     * path against a particular bean path, merely that the syntax does not
-     * include invalid characters.
+     * Return the size of the property path. The size of the property path
+     * includes the count of property names and indexes.
      * 
-     * @param path
-     *            The bean path.
+     * @return The property path size.
      */
-    public Path(String path, boolean isGlob) throws ParseException
+    @Override
+    public int size()
     {
-        List<Part> properties = new ArrayList<Part>();
-        
-        if (path == null)
-        {
-            throw new NullPointerException();
-        }
+        return parts.size();
+    }
 
-        Matcher name = NAME.matcher(path);
-        Matcher index = INDEX.matcher(path);
-        
-        int nameStart = 0;
-        boolean moreParts = true;
-        while (moreParts)
+    /**
+     * Returns the element at the specified position in this list.
+     * 
+     * @param index
+     *            The index of element to return.
+     * 
+     * @return The element at the specified position in this list.
+     * @throws IndexOutOfBoundsException
+     *             if the given index is out of range.
+     */
+    @Override
+    public Part get(int index)
+    {
+        return parts.get(index);
+    }
+    
+    /**
+     * Return true if the property path is a globbing property path.
+     * 
+     * @return True if the property path is a glob.
+     */
+    public boolean isGlob()
+    {
+        for (Part property : parts)
         {
-            if (!name.find(nameStart))
+            if (property.isGlob())
             {
-                throw new ParseException(125).add(Messages.stringEscape(path))
-                                             .add(nameStart);
+                return true;
             }
-            if (name.start() != nameStart)
-            {
-                throw new ParseException(126);
-            }
-            nameStart = name.end();
-            
-            properties.add(new Part(name.group(1), false, '\0'));
-            
-            int indexStart = name.end() - 1; 
-            
-            Matcher more = name;
-            while (moreIndexes(more))
-            {
-                if (!index.find(indexStart))
-                {
-                    throw new ParseException(127).add(Messages.stringEscape(path))
-                                                 .add(indexStart);
-                }
-                
-                if (index.group(1) != null)
-                {
-                    if (!isGlob)
-                    {
-                        throw new ParseException(128);
-                    }
-                    properties.add(new Part("*", true, '\0'));
-                }
-                else if (index.group(2) != null)
-                {
-                    properties.add(new Part(index.group(2), true, '\0'));
-                }
-                else
-                {
-                    char quote = '\0';
-                    String key = index.group(3);
-                    if (key == null)
-                    {
-                        quote = '\'';
-                        key = index.group(4);
-                        if (key == null)
-                        {
-                            key = index.group(5);
-                            quote = '"';
-                        }
-                    }
-                    if (key != null)
-                    {
-                        try
-                        {
-                            key = quote == '\0' ? key : unescape(key);
-                        }
-                        catch (ParseException e)
-                        {
-                            e.add(Messages.stringEscape(path)).add(indexStart);
-                            throw e;
-                        }
-                        properties.add(new Part(key, true, quote));
-                    }
-                }
-                
-                nameStart = index.end();
-                indexStart = index.end() - 1;
-
-                more = index;
-            }
-            
-            moreParts = moreParts(more);
         }
-        
-        if (nameStart != path.length())
-        {
-            throw new ParseException(129).add(Messages.stringEscape(path))
-                                         .add(Messages.charEscape(path.charAt(nameStart)))
-                                         .add(nameStart);
-        }
-        
-        this.properties = properties;
+        return false;
     }
     
     // TODO Document.
-    void addProperty(Part property)
+    public Path append(Part property)
     {
-        properties.add(property);
+        List<Part> newProperties = new ArrayList<Part>(parts);
+        newProperties.add(property);
+        return new Path(newProperties);
     }
-    
+
     // TODO Document.
-    Part getLastProperty()
+    public Path append(List<Part> append)
     {
-        return properties.get(properties.size() - 1);
+        List<Part> newProperties = new ArrayList<Part>(parts);
+        newProperties.addAll(append);
+        return new Path(newProperties);
+    }
+
+    // TODO Document.
+    final static String escape(String index, char quote)
+    {
+        return quote + index.replaceAll("[" + quote + "\t\b\r\n\f]", "\\($1)") + quote;
     }
     
     // TODO Document.
@@ -339,11 +333,27 @@ public class Path extends AbstractList<Part> implements RandomAccess
     {
         StringBuilder newString = new StringBuilder();
         String separator = "";
-        for (Part property : properties)
+        for (Part part : parts)
         {
-            newString.append(separator);
-            newString.append(property.toString());
-            separator = ".";
+            if (part.isIndex())
+            {
+                if (part.getQuote() != '\0')
+                {
+                    newString.append("[").append(part.getName()).append("]");
+                }
+                else
+                {
+                    newString.append("[").append(part.getQuote())
+                             .append(part.getName())
+                             .append(part.getQuote()).append("]");
+                }
+            }
+            else
+            {
+                newString.append(separator);
+                newString.append(part.toString());
+                separator = ".";
+            }
         }
         return newString.toString();
     }
@@ -353,7 +363,7 @@ public class Path extends AbstractList<Part> implements RandomAccess
     {
         StringBuilder newString = new StringBuilder();
         String separator = "";
-        for (Part property : properties)
+        for (Part property : parts)
         {
             if (!property.isIndex())
             {
@@ -365,20 +375,21 @@ public class Path extends AbstractList<Part> implements RandomAccess
         return newString.toString();
     }
     
+    // TODO Document.
     public int arityAtIndex(int index)
     {
-        if (index >= properties.size())
+        if (index >= parts.size())
         {
             throw new IndexOutOfBoundsException();
         }
-        if (properties.get(index).isIndex())
+        if (parts.get(index).isIndex())
         {
             throw new IllegalArgumentException();
         }
         int arity = 0;
-        for (int i = index + 1; i < properties.size(); i++)
+        for (int i = index + 1; i < parts.size(); i++)
         {
-            if (properties.get(i).isIndex())
+            if (parts.get(i).isIndex())
             {
                 arity++;
             }

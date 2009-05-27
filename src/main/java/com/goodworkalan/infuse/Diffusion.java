@@ -133,7 +133,7 @@ public class Diffusion
             Part property = properties.get(i);
             if (property.isGlob())
             {
-                Path subPath = properties.subPropertyList(from, i);
+                Path subPath = properties.subPath(from, i);
                 Object collection = new Diffusion(subPath).get(object);
                 Path path = base.append(subPath);
                 if (collection instanceof List)
@@ -179,7 +179,7 @@ public class Diffusion
         }
         if (i == properties.size())
         {
-            Path subPath = properties.subPropertyList(from, properties.size());
+            Path subPath = properties.subPath(from, properties.size());
             if (new Diffusion(subPath).get(object) != null)
             {
                 diffusions.add(new Diffusion(base.append(subPath)));

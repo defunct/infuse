@@ -15,7 +15,7 @@ import java.util.TreeMap;
 
 import org.testng.annotations.Test;
 
-public class PropertyPathTest
+public class PathTest
 {
     @Test public void constructor() throws PathException 
     {
