@@ -1,7 +1,7 @@
 package com.goodworkalan.infuse;
 
 // TODO Document.
-final class Property implements Comparable<Property>
+final class Part implements Comparable<Part>
 {
     /** The property name. */
     private final String name;
@@ -18,7 +18,7 @@ final class Property implements Comparable<Property>
      * @param indexes
      *            The property indexes.
      */
-    public Property(String name, boolean index, char quote)
+    public Part(String name, boolean index, char quote)
     {
         this.name = name;
         this.index = index;
@@ -77,9 +77,9 @@ final class Property implements Comparable<Property>
     @Override
     public boolean equals(Object object)
     {
-        if (object instanceof Property)
+        if (object instanceof Part)
         {
-            Property property = (Property) object;
+            Part property = (Part) object;
             return name.equals(property.name) 
                 && index == property.index
                 && quote == property.quote;
@@ -97,7 +97,7 @@ final class Property implements Comparable<Property>
         return hash;
     }
     
-    public int compareTo(Property o)
+    public int compareTo(Part o)
     {
         int compare = name.compareTo(o.name);
         if (compare == 0)

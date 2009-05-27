@@ -47,7 +47,7 @@ public class Diffusion
     // TODO Document.
     private Object get(Object object, Path properties, int index) throws NavigateException
     {
-        Property property = properties.get(index);
+        Part property = properties.get(index);
         if (property.getName().equals("this") && !property.isIndex())
         {
             if (index + 1 == properties.size())
@@ -130,7 +130,7 @@ public class Diffusion
         int i;
         for (i = from; i < properties.size(); i++)
         {
-            Property property = properties.get(i);
+            Part property = properties.get(i);
             if (property.isGlob())
             {
                 Path subPath = properties.subPropertyList(from, i);
@@ -144,7 +144,7 @@ public class Diffusion
                         Object item = list.get(j);
                         if (item != null)
                         {
-                            Path unglobbed = path.append(new Property(Integer.toString(j), true, '\0'));
+                            Path unglobbed = path.append(new Part(Integer.toString(j), true, '\0'));
                             glob(item, unglobbed, i + 1, diffusions);
                         }
                     }
@@ -157,7 +157,7 @@ public class Diffusion
                         Object item = array[j];
                         if (item != null)
                         {
-                            Path unglobbed = path.append(new Property(Integer.toString(j), true, '\0'));
+                            Path unglobbed = path.append(new Part(Integer.toString(j), true, '\0'));
                             glob(item, unglobbed, i + 1, diffusions);
                         }
                     }
@@ -169,7 +169,7 @@ public class Diffusion
                     {
                         if ((entry.getKey() instanceof String) && entry.getValue() != null)
                         {
-                            Path unglobbed = path.append(new Property((String) entry.getKey(), true, '\0'));
+                            Path unglobbed = path.append(new Part((String) entry.getKey(), true, '\0'));
                             glob(entry.getValue(), unglobbed, i + 1, diffusions);
                         }
                     }

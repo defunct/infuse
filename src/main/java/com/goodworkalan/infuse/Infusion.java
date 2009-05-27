@@ -41,7 +41,7 @@ public class Infusion
 
     private void set(Object object, Map<String, Object> map, Path properties, int index, Type generics) throws NavigateException, FactoryException
     {
-        Property property = properties.get(index);
+        Part property = properties.get(index);
         if (property.getName().equals("this") && !property.isIndex())
         {
             set(object, map, properties, index + 1, generics);

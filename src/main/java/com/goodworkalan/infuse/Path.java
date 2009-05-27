@@ -11,10 +11,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 // TODO Document.
-public class Path extends AbstractList<Property> implements RandomAccess
+public class Path extends AbstractList<Part> implements RandomAccess
 {
     /** The bean path. */
-    protected final List<Property> properties;
+    protected final List<Part> properties;
     
     // TODO Document.
     private final static Pattern NAME = Pattern.compile("\\s*" + identifier(true) + "\\s*([\\[.]?)");
@@ -24,7 +24,7 @@ public class Path extends AbstractList<Property> implements RandomAccess
 
     protected Path()
     {
-        this(new ArrayList<Property>());
+        this(new ArrayList<Part>());
     }
 
     /**
@@ -34,7 +34,7 @@ public class Path extends AbstractList<Property> implements RandomAccess
      * 
      * @param properties
      */
-    protected Path(List<Property> properties)
+    protected Path(List<Part> properties)
     {
         this.properties = properties;
     }
@@ -67,7 +67,7 @@ public class Path extends AbstractList<Property> implements RandomAccess
      *             if the given index is out of range.
      */
     @Override
-    public Property get(int index)
+    public Part get(int index)
     {
         return properties.get(index);
     }
@@ -79,7 +79,7 @@ public class Path extends AbstractList<Property> implements RandomAccess
      */
     public boolean isGlob()
     {
-        for (Property property : properties)
+        for (Part property : properties)
         {
             if (property.isGlob())
             {
@@ -89,16 +89,16 @@ public class Path extends AbstractList<Property> implements RandomAccess
         return false;
     }
     
-    public Path append(Property property)
+    public Path append(Part property)
     {
-        List<Property> newProperties = new ArrayList<Property>(properties);
+        List<Part> newProperties = new ArrayList<Part>(properties);
         newProperties.add(property);
         return new Path(newProperties);
     }
 
-    public Path append(List<Property> append)
+    public Path append(List<Part> append)
     {
-        List<Property> newProperties = new ArrayList<Property>(properties);
+        List<Part> newProperties = new ArrayList<Part>(properties);
         newProperties.addAll(append);
         return new Path(newProperties);
     }
@@ -223,7 +223,7 @@ public class Path extends AbstractList<Property> implements RandomAccess
      */
     public Path(String path, boolean isGlob) throws ParseException
     {
-        List<Property> properties = new ArrayList<Property>();
+        List<Part> properties = new ArrayList<Part>();
         
         if (path == null)
         {
@@ -248,7 +248,7 @@ public class Path extends AbstractList<Property> implements RandomAccess
             }
             nameStart = name.end();
             
-            properties.add(new Property(name.group(1), false, '\0'));
+            properties.add(new Part(name.group(1), false, '\0'));
             
             int indexStart = name.end() - 1; 
             
@@ -267,11 +267,11 @@ public class Path extends AbstractList<Property> implements RandomAccess
                     {
                         throw new ParseException(128);
                     }
-                    properties.add(new Property("*", true, '\0'));
+                    properties.add(new Part("*", true, '\0'));
                 }
                 else if (index.group(2) != null)
                 {
-                    properties.add(new Property(index.group(2), true, '\0'));
+                    properties.add(new Part(index.group(2), true, '\0'));
                 }
                 else
                 {
@@ -298,7 +298,7 @@ public class Path extends AbstractList<Property> implements RandomAccess
                             e.add(Messages.stringEscape(path)).add(indexStart);
                             throw e;
                         }
-                        properties.add(new Property(key, true, quote));
+                        properties.add(new Part(key, true, quote));
                     }
                 }
                 
@@ -322,13 +322,13 @@ public class Path extends AbstractList<Property> implements RandomAccess
     }
     
     // TODO Document.
-    void addProperty(Property property)
+    void addProperty(Part property)
     {
         properties.add(property);
     }
     
     // TODO Document.
-    Property getLastProperty()
+    Part getLastProperty()
     {
         return properties.get(properties.size() - 1);
     }
@@ -339,7 +339,7 @@ public class Path extends AbstractList<Property> implements RandomAccess
     {
         StringBuilder newString = new StringBuilder();
         String separator = "";
-        for (Property property : properties)
+        for (Part property : properties)
         {
             newString.append(separator);
             newString.append(property.toString());
@@ -353,7 +353,7 @@ public class Path extends AbstractList<Property> implements RandomAccess
     {
         StringBuilder newString = new StringBuilder();
         String separator = "";
-        for (Property property : properties)
+        for (Part property : properties)
         {
             if (!property.isIndex())
             {

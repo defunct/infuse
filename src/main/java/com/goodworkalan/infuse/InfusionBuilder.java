@@ -50,7 +50,7 @@ public class InfusionBuilder
     
     private boolean set(Path properties, Map<String, Object> map, Object value, int index)
     {
-        Property property = properties.get(index);
+        Part property = properties.get(index);
         if (index == properties.size() - 1)
         {
             if (!map.containsKey(property.getName()))
@@ -75,7 +75,7 @@ public class InfusionBuilder
     
     private String get(Path properties, Map<String, Object> map, int index)
     {
-        Property property = properties.get(index);
+        Part property = properties.get(index);
         Object current = map.get(property.getName());
         if (current == null)
         {
