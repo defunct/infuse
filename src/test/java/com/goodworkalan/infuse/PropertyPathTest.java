@@ -147,7 +147,7 @@ public class PropertyPathTest
         assertNull(Objects.toClass(type));
     }
     
-    @Test(expectedExceptions=PathException.class)
+    @Test(expectedExceptions=ParseException.class)
     public void badNumericIndexAlphaNum() throws PathException
     {
         String part = "a[ 1i ] "; 
@@ -155,14 +155,14 @@ public class PropertyPathTest
         {
             new PropertyList(part, false);
         }
-        catch (PathException e)
+        catch (ParseException e)
         {
             assertEquals(e.getMessage(), "Unable to parse path \"a[ 1i ] \". Invalid index specification at index 1.");
             throw e;
         }
     }
     
-    @Test(enabled = false, expectedExceptions=PathException.class)
+    @Test(expectedExceptions=ParseException.class)
     public void badNumericIndexNonAlphaNum() throws PathException
     {
         String part = "a[ 1i ["; 
@@ -170,7 +170,7 @@ public class PropertyPathTest
         {
             new PropertyList(part, false);
         }
-        catch (PathException e)
+        catch (ParseException e)
         {
             assertEquals(e.getMessage(), "Unable to parse path \"a[ 1i [\". Invalid index specification at index 1.");
             assertEquals(e.getCode(), 127);
@@ -212,10 +212,10 @@ public class PropertyPathTest
     private void assertName(String part, String name) throws PathException
     {
         PropertyList property = new PropertyList(part, false);
-        assertEquals(property.get(1), name);
+        assertEquals(property.get(1).getName(), name);
     }
     
-    @Test(enabled = false)
+    @Test
     public void stringIndex() throws PathException
     {
         assertName("a ['a']", "a");
@@ -231,7 +231,7 @@ public class PropertyPathTest
         assertName("a ['\\x41']", "A");
     }
     
-    @Test(enabled = false, expectedExceptions=PathException.class)
+    @Test(expectedExceptions=PathException.class)
     public void stringIndexBadClosingBracket() throws PathException
     {
         try
@@ -246,7 +246,7 @@ public class PropertyPathTest
         }
     }
     
-    @Test(enabled = false, expectedExceptions=PathException.class)
+    @Test(expectedExceptions=PathException.class)
     public void stringIndexIncomplete() throws PathException
     {
         try
@@ -261,7 +261,7 @@ public class PropertyPathTest
         }
     }
 
-    @Test(enabled = false, expectedExceptions=PathException.class)
+    @Test(expectedExceptions=PathException.class)
     public void stringIndexMismatchQuotes() throws PathException
     {
         try
@@ -275,7 +275,7 @@ public class PropertyPathTest
         }
     }
     
-    @Test(enabled = false, expectedExceptions=PathException.class)
+    @Test(expectedExceptions=PathException.class)
     public void stringIndexBadEscape() throws PathException
     {
         try
