@@ -1,0 +1,13 @@
+<projectDescription>
+  <name>infuse-jpa</name>
+  <comment>Infuse a Java bean with objects retrieved by their identity from a JPA data store.</comment>
+  <projects/>
+  <buildSpec>
+    <buildCommand>
+      <name>org.eclipse.jdt.core.javabuilder</name>
+    </buildCommand>
+  </buildSpec>
+  <natures>
+    <nature>org.eclipse.jdt.core.javanature</nature>
+  </natures>
+</projectDescription>
