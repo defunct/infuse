@@ -9,9 +9,7 @@ import java.util.Map;
 
 public class Infusion
 {
-    private final Map<String, Object> tree;
-    
-    private final List<Path> paths;
+    private final InfusionBuilder builder;
     
     private final List<ObjectFactory> factories;
     
@@ -19,32 +17,31 @@ public class Infusion
     {
         InfusionBuilder builder = new InfusionBuilder();
         builder.set(path, value);
-        this.tree = builder.getTree();
-        this.paths = builder.getPaths();
+        
+        this.builder = builder;
         this.factories = new ArrayList<ObjectFactory>();
     }
 
-    public Infusion(Map<String, Object> tree, List<Path> paths)
+    public Infusion(InfusionBuilder builder)
     {
-        this.tree = tree;
-        this.paths = paths;
+        this.builder = builder;
         this.factories = new ArrayList<ObjectFactory>();
     }
     
     public void infuse(Object object) throws NavigateException, FactoryException
     {
-        for (Path properties : paths)
+        for (Path properties : builder)
         {
-            set(object, tree, properties, 0, null);
+            set(object, properties, 0, null);
         }
     }
 
-    private void set(Object object, Map<String, Object> map, Path properties, int index, Type generics) throws NavigateException, FactoryException
+    private void set(Object object,Path path, int index, Type generics) throws NavigateException, FactoryException
     {
-        Part property = properties.get(index);
+        Part property = path.get(index);
         if (property.getName().equals("this") && !property.isIndex())
         {
-            set(object, map, properties, index + 1, generics);
+            set(object, path, index + 1, generics);
         }
         else
         {
@@ -63,7 +60,7 @@ public class Infusion
             else
             {
                 PropertyInfo propertyInfo = new PropertyInfo(object.getClass(), property.getName());
-                int arity = properties.arityAtIndex(index);
+                int arity = path.arityAtIndex(index);
                 Object child = null;
                 ARITY: for (int i = arity; child == null && -1 < i; i--)
                 {
@@ -73,7 +70,7 @@ public class Infusion
                         continue ARITY;
                     }
                     Object[] parameters = new Object[i];
-                    if (index + i < properties.size() - 1)
+                    if (index + i < path.size() - 1)
                     {
                         for (int j = 0; j < parameters.length; j++)
                         {
@@ -81,7 +78,7 @@ public class Infusion
                             {
                                 try
                                 {
-                                    parameters[j] = new Transmutator().transmute(getter.getParameterTypes()[j], properties.get(index + j + 1).getName());
+                                    parameters[j] = new Transmutator().transmute(getter.getParameterTypes()[j], path.get(index + j + 1).getName());
                                 }
                                 catch (Exception e)
                                 {
@@ -98,7 +95,7 @@ public class Infusion
                             throw new NavigateException(100, e);
                         }
                     }
-                    if (index + i == properties.size() - 1)
+                    if (index + i == path.size() - 1)
                     {
                         Method setter = propertyInfo.getSetter(i, null);
                         if (setter == null)
@@ -111,7 +108,7 @@ public class Infusion
                         System.arraycopy(parameters, 0, setParameters, 0, arity);
                         try
                         {
-                            setParameters[arity] = new Transmutator().transmute(type, (String) new Diffusion(properties).get(map));
+                            setParameters[arity] = new Transmutator().transmute(type, builder.get(path));
                         }
                         catch (Exception e)
                         {
@@ -137,7 +134,7 @@ public class Infusion
                         Iterator<ObjectFactory> eachFactory = factories.iterator();
                         while (eachFactory.hasNext() && child == null)
                         {
-                            child = eachFactory.next().create(type);
+                            child = eachFactory.next().create(builder, type, path.subPath(0, index + i));
                         }
                         Object[] setParameters = new Object[arity + 1];
                         System.arraycopy(parameters, 0, setParameters, 0, arity);
@@ -153,7 +150,7 @@ public class Infusion
                     }
                     if (child != null)
                     {
-                        set(child, map, properties, index + i + 1, getter.getGenericReturnType());
+                        set(child, path, index + i + 1, getter.getGenericReturnType());
                     }
                 }
             }

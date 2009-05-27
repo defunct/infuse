@@ -14,7 +14,7 @@ import java.util.TreeMap;
 final class CoreObjectFactory implements ObjectFactory
 {
     // TODO Document.
-    public Object create(Type type) throws FactoryException
+    public Object create(InfusionBuilder builder, Type type, Path context) throws FactoryException
     {
         Object created = null;
         if (type instanceof ParameterizedType)

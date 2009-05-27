@@ -1,6 +1,8 @@
 package com.goodworkalan.infuse;
 
 import java.lang.reflect.Method;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class PropertyInfo
 {
@@ -8,10 +10,32 @@ public class PropertyInfo
     
     private final String name;
     
+    private final static Pattern PROPERTY = Pattern.compile("^(get|set|is)(.*)$");
+    
+    public PropertyInfo(Class<?> type, Method method)
+    {
+        Matcher matcher = PROPERTY.matcher(method.getName());
+        if (!matcher.matches())
+        {
+            throw new IllegalArgumentException();
+        }
+        else if (matcher.group(1).equals("is") && !(boolean.class.isAssignableFrom(method.getReturnType()) || Boolean.class.isAssignableFrom(method.getReturnType())))
+        {
+            throw new IllegalArgumentException();
+        }
+        this.type = type;
+        this.name = Character.toLowerCase(matcher.group(2).charAt(0)) + matcher.group(2).substring(1);
+    }
+
     public PropertyInfo(Class<?> type, String name)
     {
         this.type = type;
         this.name = name;
+    }
+    
+    public String getName()
+    {
+        return name;
     }
     
     private String methodName(String prefix)

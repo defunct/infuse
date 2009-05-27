@@ -1,7 +1,7 @@
 package com.goodworkalan.infuse;
 
 // TODO Document.
-final class Part implements Comparable<Part>
+public final class Part implements Comparable<Part>
 {
     /** The property name. */
     private final String name;
@@ -9,7 +9,20 @@ final class Part implements Comparable<Part>
     private final boolean index;
     
     private final char quote;
-    
+
+    /**
+     * Create a non-index part with the given name.
+     * 
+     * @param name
+     *            The part name.
+     */
+    public Part(String name)
+    {
+        this.name = name;
+        this.index = false;
+        this.quote = '\0';
+    }
+
     /**
      * Create a new property with the given name and the given indexes.
      * 

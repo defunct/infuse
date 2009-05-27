@@ -1,11 +1,12 @@
 package com.goodworkalan.infuse;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class InfusionBuilder
+public class InfusionBuilder implements Iterable<Path>
 {
     private final Map<String, Object> tree;
     
@@ -17,14 +18,9 @@ public class InfusionBuilder
         this.paths = new ArrayList<Path>();
     }
     
-    Map<String, Object> getTree()
+    public Iterator<Path> iterator()
     {
-        return tree;
-    }
-    
-    List<Path> getPaths()
-    {
-        return paths;
+        return paths.iterator();
     }
     
     public boolean set(String path, Object value) throws PathException
@@ -43,9 +39,14 @@ public class InfusionBuilder
         return get(new Path(path, false), tree, 0);
     }
     
+    public String get(Path path) throws PathException
+    {
+        return get(path, tree, 0);
+    }
+    
     public Infusion getInstnace()
     {
-        return new Infusion(tree, paths);
+        return new Infusion(this);
     }
     
     private boolean set(Path properties, Map<String, Object> map, Object value, int index)
