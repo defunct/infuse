@@ -56,10 +56,4 @@ final class CoreObjectFactory implements ObjectFactory
         }
         throw new UnsupportedOperationException();
     }
-    
-    // TODO Document.
-    public Object newBean()
-    {
-        return new ObjectMap();
-    }
 }
