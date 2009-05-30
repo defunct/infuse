@@ -1,13 +1,18 @@
 package com.goodworkalan.infuse;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class InfusionBuilder implements Iterable<Path>
 {
+    private final Set<ObjectFactory> factories;
+    
     private final Map<String, Object> tree;
     
     private final List<Path> paths; 
@@ -16,6 +21,17 @@ public class InfusionBuilder implements Iterable<Path>
     {
         this.tree = new LinkedHashMap<String, Object>();
         this.paths = new ArrayList<Path>();
+        this.factories = new LinkedHashSet<ObjectFactory>();
+    }
+    
+    public void addFactory(ObjectFactory factory)
+    {
+        factories.add(factory);
+    }
+    
+    public void addFactories(Collection<ObjectFactory> collection)
+    {
+        factories.addAll(collection);
     }
     
     public Iterator<Path> iterator()
@@ -34,19 +50,40 @@ public class InfusionBuilder implements Iterable<Path>
         return false;
     }
     
-    public String get(String path) throws PathException
+    // FIXME Put in subclass.
+    public Map<String, Object> getMap(Path path) throws PathException
+    {
+        Object object = get(path);
+        if (object instanceof ImmutableMap)
+        {
+            return (ImmutableMap) object;
+        }
+        return null;
+    }
+    
+    public Map<String, Object> getMap(String path) throws PathException
+    {
+        Object object = get(path);
+        if (object instanceof ImmutableMap)
+        {
+            return (ImmutableMap) object;
+        }
+        return null;
+    }
+    
+    public Object get(String path) throws PathException
     {
         return get(new Path(path, false), tree, 0);
     }
     
-    public String get(Path path) throws PathException
+    public Object get(Path path) throws PathException
     {
         return get(path, tree, 0);
     }
     
-    public Infusion getInstnace()
+    public Infusion getInstance()
     {
-        return new Infusion(this);
+        return new Infusion(factories, tree, paths);
     }
     
     private boolean set(Path properties, Map<String, Object> map, Object value, int index)
@@ -64,7 +101,7 @@ public class InfusionBuilder implements Iterable<Path>
         Object current = map.get(property.getName());
         if (current == null)
         {
-            current = new LinkedHashMap<String, Object>();
+            current = new ImmutableMap();
             map.put(property.getName(), current);
         }
         if (current instanceof String)

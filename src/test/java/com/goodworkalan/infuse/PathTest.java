@@ -19,7 +19,7 @@ public class PathTest
 {
     @Test public void constructor() throws PathException 
     {
-        new Infusion("name", "X");
+        Infusion.getInstance("name", "X");
     }
     
     @Test public void get() throws PathException
@@ -32,7 +32,7 @@ public class PathTest
     
     @Test public void set() throws PathException
     {
-        Infusion infusion = new Infusion("string", "foo");
+        Infusion infusion = Infusion.getInstance("string", "foo");
         Widget widget = new Widget();
         infusion.infuse(widget);
         assertEquals(widget.getString(), "foo");
@@ -66,7 +66,7 @@ public class PathTest
     
     @Test(enabled = false) public void setChild() throws PathException
     {
-        Infusion infusion = new Infusion("widget.string", "foo");
+        Infusion infusion = Infusion.getInstance("widget.string", "foo");
         
         Widget widget = new Widget();
         
@@ -77,7 +77,7 @@ public class PathTest
     @Test
     public void factory() throws Exception
     {
-        ObjectFactory factory = new CoreObjectFactory();
+        ObjectFactory factory = new BasicObjectFactory();
         assertEquals(factory.create(null, SortedMap.class, null).getClass(), TreeMap.class);
         assertEquals(factory.create(null, Map.class, null).getClass(), LinkedHashMap.class);
         assertEquals(factory.create(null, List.class, null).getClass(), ArrayList.class);
@@ -88,14 +88,14 @@ public class PathTest
     @Test(expectedExceptions=UnsupportedOperationException.class)
     public void notFound() throws Exception
     {
-        ObjectFactory factory = new CoreObjectFactory();
+        ObjectFactory factory = new BasicObjectFactory();
         factory.create(null, Runnable.class, null);
     }
 
     @Test(expectedExceptions=FactoryException.class)
     public void noDefaultConstructor() throws Exception
     {
-        ObjectFactory factory = new CoreObjectFactory();
+        ObjectFactory factory = new BasicObjectFactory();
         try
         {
             factory.create(null, Integer.class, null);
@@ -341,7 +341,7 @@ public class PathTest
     @Test(enabled = false, expectedExceptions=PathException.class)
     public void badListSetType() throws PathException
     {
-        Infusion infusion = new Infusion("stringListList[0]", "A");
+        Infusion infusion = Infusion.getInstance("stringListList[0]", "A");
         Widget widget = new Widget();
         try
         {
@@ -358,7 +358,7 @@ public class PathTest
     public void cannotConstructListValue() throws PathException
     {
 //        ObjectFactory factory = mock(ObjectFactory.class);
-        Infusion path = new Infusion("stringListList[0][0]", "foo");
+        Infusion path = Infusion.getInstance("stringListList[0][0]", "foo");
         Widget widget = new Widget();
         widget.setStringListList(new ArrayList<List<String>>());
         try
@@ -375,7 +375,7 @@ public class PathTest
     @Test(enabled = false, expectedExceptions=PathException.class)
     public void badMapSetType() throws PathException
     {
-        Infusion path = new Infusion("stringMapMap['bar']", "A");
+        Infusion path = Infusion.getInstance("stringMapMap['bar']", "A");
         Widget widget = new Widget();
         try
         {
@@ -392,7 +392,7 @@ public class PathTest
     public void cannotConstructMapValue() throws PathException
     {
 //        ObjectFactory factory = mock(ObjectFactory.class);
-        Infusion path = new Infusion("stringMapMap['bar']['baz']", "foo");
+        Infusion path = Infusion.getInstance("stringMapMap['bar']['baz']", "foo");
         Widget widget = new Widget();
         widget.setStringMapMap(new HashMap<String, Map<String,String>>());
         try
@@ -415,13 +415,13 @@ public class PathTest
     @Test(enabled = false, expectedExceptions=IllegalArgumentException.class)
     public void nullSet() throws PathException
     {
-        new Infusion("foo", null).infuse(null);
+        Infusion.getInstance("foo", null).infuse(null);
     }
     
     @Test(enabled = false, expectedExceptions=PathException.class)
     public void noSuchSetMethod() throws PathException
     {
-        Infusion infusion = new Infusion("foo", "foo");
+        Infusion infusion = Infusion.getInstance("foo", "foo");
         try
         {
             infusion.infuse(new Widget());

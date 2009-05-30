@@ -11,10 +11,10 @@ import java.util.TreeMap;
 
 
 // TODO Document.
-final class CoreObjectFactory implements ObjectFactory
+public final class BasicObjectFactory implements ObjectFactory
 {
     // TODO Document.
-    public Object create(InfusionBuilder builder, Type type, Path context) throws FactoryException
+    public Object create(Infusion infusion, Type type, Path context) throws FactoryException
     {
         Object created = null;
         if (type instanceof ParameterizedType)

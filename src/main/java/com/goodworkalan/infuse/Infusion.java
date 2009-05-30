@@ -2,37 +2,38 @@ package com.goodworkalan.infuse;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class Infusion
 {
-    private final InfusionBuilder builder;
+    private final List<Path> paths;
     
-    private final List<ObjectFactory> factories;
+    private final Map<String, Object> tree;
     
-    public Infusion(String path, Object value) throws PathException
+    private final Set<ObjectFactory> factories;
+    
+    public static Infusion getInstance(String path, Object value) throws PathException
     {
         InfusionBuilder builder = new InfusionBuilder();
         builder.set(path, value);
-        
-        this.builder = builder;
-        this.factories = new ArrayList<ObjectFactory>();
+        return builder.getInstance();
     }
 
-    public Infusion(InfusionBuilder builder)
+    Infusion(Set<ObjectFactory> factories, Map<String, Object> tree, List<Path> paths)
     {
-        this.builder = builder;
-        this.factories = new ArrayList<ObjectFactory>();
+        this.paths = paths;
+        this.tree = tree;
+        this.factories = factories;
     }
     
     public void infuse(Object object) throws NavigateException, FactoryException
     {
-        for (Path properties : builder)
+        for (Path path : paths)
         {
-            set(object, properties, 0, null);
+            set(object, path, 0, null);
         }
     }
 
@@ -108,7 +109,7 @@ public class Infusion
                         System.arraycopy(parameters, 0, setParameters, 0, arity);
                         try
                         {
-                            setParameters[arity] = new Transmutator().transmute(type, builder.get(path));
+                            setParameters[arity] = new Transmutator().transmute(type, get(path));
                         }
                         catch (Exception e)
                         {
@@ -134,7 +135,7 @@ public class Infusion
                         Iterator<ObjectFactory> eachFactory = factories.iterator();
                         while (eachFactory.hasNext() && child == null)
                         {
-                            child = eachFactory.next().create(builder, type, path.subPath(0, index + i));
+                            child = eachFactory.next().create(this, type, path.subPath(0, index + i));
                         }
                         Object[] setParameters = new Object[arity + 1];
                         System.arraycopy(parameters, 0, setParameters, 0, arity);
@@ -155,5 +156,34 @@ public class Infusion
                 }
             }
         }
+    }
+    
+    public String get(String path) throws PathException
+    {
+        return get(new Path(path, false), tree, 0);
+    }
+    
+    public String get(Path path) throws PathException
+    {
+        return get(path, tree, 0);
+    }
+
+    private String get(Path properties, Map<String, Object> map, int index)
+    {
+        Part property = properties.get(index);
+        Object current = map.get(property.getName());
+        if (current == null)
+        {
+            return null;
+        }
+        if (index == properties.size() - 1)
+        {
+            if (current instanceof Map)
+            {
+                return null;
+            }
+            return (String) current;
+        }
+        return get(properties, Casts.toStringToObject(current), index + 1);
     }
 }
