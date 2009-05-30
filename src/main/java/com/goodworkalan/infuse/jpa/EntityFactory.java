@@ -9,7 +9,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Id;
 
 import com.goodworkalan.infuse.FactoryException;
-import com.goodworkalan.infuse.InfusionBuilder;
+import com.goodworkalan.infuse.Infusion;
 import com.goodworkalan.infuse.ObjectFactory;
 import com.goodworkalan.infuse.Part;
 import com.goodworkalan.infuse.Path;
@@ -31,7 +31,7 @@ public class EntityFactory implements ObjectFactory
         this.em = em;
     }
 
-    public Object create(InfusionBuilder builder, Type type, Path context) throws FactoryException
+    public Object create(Infusion infusion, Type type, Path context) throws FactoryException
     {
         Class<?> clazz = null;
         if (type instanceof ParameterizedType)
@@ -56,7 +56,7 @@ public class EntityFactory implements ObjectFactory
                     Path idPath = context.append(new Part(propertyInfo.getName()));
                     try
                     {
-                        return em.find(clazz, builder.get(idPath));
+                        return em.find(clazz, infusion.get(idPath));
                     }
                     catch (PathException e)
                     {
