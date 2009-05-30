@@ -26,9 +26,16 @@
         </license>
     </licenses>
 
+	<repositories>
+        <repository>
+		  <id>jdkcn.com</id>
+          <url>http://maven.jdkcn.com/</url>
+        </repository>
+	</repositories>
+
     <dependencies>
         <dependency>
-            <groupId>com.google.code.guice</groupId>
+            <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
             <version>2.0</version>
         </dependency>
