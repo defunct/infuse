@@ -5,6 +5,8 @@ import java.util.Map;
 
 public class Widget
 {
+    private Map<Object, Object> map;
+    
     private String string;
     
     private int number;
@@ -116,5 +118,17 @@ public class Widget
     public String getString(int a, Integer b)
     {
         return stringListList.get(a).get(b);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map getMap()
+    {
+        return map;
+    }
+    
+    @SuppressWarnings("unchecked")
+    public void setMap(Map map)
+    {
+        this.map = map;
     }
 }

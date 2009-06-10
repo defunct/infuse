@@ -14,7 +14,7 @@ import java.util.TreeMap;
 public final class BasicObjectFactory implements ObjectFactory
 {
     // TODO Document.
-    public Object create(Infusion infusion, Type type, Path context) throws FactoryException
+    public Object create(Type type, Tree tree, Path context) throws FactoryException
     {
         Object created = null;
         if (type instanceof ParameterizedType)

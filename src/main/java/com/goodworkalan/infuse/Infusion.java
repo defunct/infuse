@@ -54,7 +54,7 @@ public class Infusion
         {
             if (object instanceof Map)
             {
-                if (generics == null)
+                if (generics instanceof Class)
                 {
                     throw new IllegalStateException();
                 }
@@ -78,7 +78,7 @@ public class Infusion
                         Iterator<ObjectFactory> eachFactory = factories.iterator();
                         while (eachFactory.hasNext() && child == null)
                         {
-                            child = eachFactory.next().create(this, type, path.subPath(0, index));
+                            child = eachFactory.next().create(type, tree, path.subPath(0, index));
                         }
                         if (child != null)
                         {
@@ -176,7 +176,7 @@ public class Infusion
                         Iterator<ObjectFactory> eachFactory = factories.iterator();
                         while (eachFactory.hasNext() && child == null)
                         {
-                            child = eachFactory.next().create(this, type, path.subPath(0, index + i));
+                            child = eachFactory.next().create(type, tree, path.subPath(0, index + i));
                         }
                         Object[] setParameters = new Object[i + 1];
                         System.arraycopy(parameters, 0, setParameters, 0, i);

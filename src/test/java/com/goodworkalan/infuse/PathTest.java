@@ -79,10 +79,10 @@ public class PathTest
     public void factory() throws Exception
     {
         ObjectFactory factory = new BasicObjectFactory();
-        assertEquals(factory.create(null, SortedMap.class, null).getClass(), TreeMap.class);
-        assertEquals(factory.create(null, Map.class, null).getClass(), LinkedHashMap.class);
-        assertEquals(factory.create(null, List.class, null).getClass(), ArrayList.class);
-        assertNull(factory.create(null, new ArrayList<Object>().getClass().getTypeParameters()[0], null));
+        assertEquals(factory.create(SortedMap.class, null, null).getClass(), TreeMap.class);
+        assertEquals(factory.create(Map.class, null, null).getClass(), LinkedHashMap.class);
+        assertEquals(factory.create(List.class, null, null).getClass(), ArrayList.class);
+        assertNull(factory.create(new ArrayList<Object>().getClass().getTypeParameters()[0], null, null));
     }
 
     // TODO Throw a FactoryException.
@@ -90,7 +90,7 @@ public class PathTest
     public void notFound() throws Exception
     {
         ObjectFactory factory = new BasicObjectFactory();
-        factory.create(null, Runnable.class, null);
+        factory.create(Runnable.class, null, null);
     }
 
     @Test(expectedExceptions=FactoryException.class)
@@ -99,7 +99,7 @@ public class PathTest
         ObjectFactory factory = new BasicObjectFactory();
         try
         {
-            factory.create(null, Integer.class, null);
+            factory.create(Integer.class, null, null);
         }
         catch (FactoryException e)
         {

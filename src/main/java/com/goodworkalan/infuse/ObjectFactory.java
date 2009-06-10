@@ -6,5 +6,5 @@ import java.lang.reflect.Type;
 public interface ObjectFactory
 {
     // TODO Document.
-    public Object create(Infusion builder, Type type, Path context) throws FactoryException;
+    public Object create(Type type, Tree tree, Path context) throws FactoryException;
 }
