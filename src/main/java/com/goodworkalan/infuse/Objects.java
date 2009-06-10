@@ -36,7 +36,25 @@ class Objects
     {
         return (Map) object;
     }
+    
+    @SuppressWarnings("unchecked")
+    public static Map<Object, Object> toObjectMap(Object map)
+    {
+        return (Map<Object, Object>) map;
+    }
 
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> toStringToObject(Object map)
+    {
+        return (Map<String, Object>) map;
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static List<Object> toObjectList(Object list)
+    {
+        return (List<Object>) list;
+    }
+    
     /**
      * Return true if the class given by <code>to</code> is either the same as,
      * or is a superclass or superinterface of, the class or interface

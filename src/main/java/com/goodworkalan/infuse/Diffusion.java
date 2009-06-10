@@ -58,7 +58,7 @@ public class Diffusion
         }
         if (object instanceof Map)
         {
-            Map<String, Object> map = Casts.toStringToObject(object);
+            Map<String, Object> map = Objects.toStringToObject(object);
             return map.get(property.getName());
         }
         else if (object instanceof List)
@@ -138,7 +138,7 @@ public class Diffusion
                 Path path = base.append(subPath);
                 if (collection instanceof List)
                 {
-                    List<Object> list = Casts.toObjectList(collection);
+                    List<Object> list = Objects.toObjectList(collection);
                     for (int j = 0; j < list.size(); j++)
                     {
                         Object item = list.get(j);
@@ -164,7 +164,7 @@ public class Diffusion
                 }
                 else if (collection instanceof Map)
                 {
-                    Map<Object, Object> map = Casts.toObjectMap(collection);
+                    Map<Object, Object> map = Objects.toObjectMap(collection);
                     for (Map.Entry<Object, Object> entry : map.entrySet())
                     {
                         if ((entry.getKey() instanceof String) && entry.getValue() != null)

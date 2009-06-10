@@ -184,6 +184,6 @@ public class Infusion
             }
             return (String) current;
         }
-        return get(properties, Casts.toStringToObject(current), index + 1);
+        return get(properties, Objects.toStringToObject(current), index + 1);
     }
 }

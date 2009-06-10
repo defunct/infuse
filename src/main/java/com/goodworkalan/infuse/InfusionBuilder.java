@@ -108,7 +108,7 @@ public class InfusionBuilder implements Iterable<Path>
         {
             return false;
         }
-        return set(properties, Casts.toStringToObject(current), value, index + 1);
+        return set(properties, Objects.toStringToObject(current), value, index + 1);
     }
     
     private String get(Path properties, Map<String, Object> map, int index)
@@ -127,6 +127,6 @@ public class InfusionBuilder implements Iterable<Path>
             }
             return (String) current;
         }
-        return get(properties, Casts.toStringToObject(current), index + 1);
+        return get(properties, Objects.toStringToObject(current), index + 1);
     }
 }
