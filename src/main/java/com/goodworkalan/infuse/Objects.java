@@ -22,21 +22,6 @@ class Objects
         return null;
     }
     
-    // TODO Document.
-    @SuppressWarnings("unchecked")
-    static List<Object> toList(Object object)
-    {
-        return (List) object;
-    }
-
-    // TODO Make Map<String, Object>
-    // TODO Document.
-    @SuppressWarnings("unchecked")
-    static Map<Object, Object> toMap(Object object)
-    {
-        return (Map) object;
-    }
-    
     @SuppressWarnings("unchecked")
     public static Map<Object, Object> toObjectMap(Object map)
     {

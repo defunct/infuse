@@ -135,7 +135,7 @@ public class Diffusion
             {
                 Path subPath = properties.subPath(from, i);
                 Object collection = new Diffusion(subPath).get(object);
-                Path path = base.append(subPath);
+                Path path = base.appendAll(subPath);
                 if (collection instanceof List)
                 {
                     List<Object> list = Objects.toObjectList(collection);
@@ -182,7 +182,7 @@ public class Diffusion
             Path subPath = properties.subPath(from, properties.size());
             if (new Diffusion(subPath).get(object) != null)
             {
-                diffusions.add(new Diffusion(base.append(subPath)));
+                diffusions.add(new Diffusion(base.appendAll(subPath)));
             }
         }
     }

@@ -2,6 +2,7 @@ package com.goodworkalan.infuse;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -9,40 +10,44 @@ import java.util.Set;
 
 public class Infusion
 {
-    private final List<Path> paths;
-    
-    private final Map<String, Object> tree;
+    private final Object root;
     
     private final Set<ObjectFactory> factories;
     
-    public static Infusion getInstance(String path, Object value) throws PathException
+    public static Infusion getInstance(Object root) throws PathException
     {
-        InfusionBuilder builder = new InfusionBuilder();
-        builder.set(path, value);
-        return builder.getInstance();
+        if (root == null)
+        {
+            throw new NullPointerException();
+        }
+        return new Infusion(Collections.<ObjectFactory>singleton(new BasicObjectFactory()), root);
     }
 
-    Infusion(Set<ObjectFactory> factories, Map<String, Object> tree, List<Path> paths)
+    Infusion(Set<ObjectFactory> factories, Object root)
     {
-        this.paths = paths;
-        this.tree = tree;
         this.factories = factories;
+        this.root = root;
     }
     
-    public void infuse(Object object) throws NavigateException, FactoryException
+    public void infuse(Tree tree) throws NavigateException, FactoryException
     {
-        for (Path path : paths)
+        for (Path path : tree)
         {
-            set(object, path, 0, null);
+            set(root, tree, path, 0, null);
         }
     }
+    
+    public void infuse(String path, Object value) throws NavigateException, FactoryException, ParseException
+    {
+        infuse(new Tree().add(path, value));
+    }
 
-    private void set(Object object,Path path, int index, Type generics) throws NavigateException, FactoryException
+    private void set(Object object, Tree tree, Path path, int index, Type generics) throws NavigateException, FactoryException
     {
         Part property = path.get(index);
         if (property.getName().equals("this") && !property.isIndex())
         {
-            set(object, path, index + 1, generics);
+            set(object, tree, path, index + 1, generics);
         }
         else
         {
@@ -109,7 +114,7 @@ public class Infusion
                         System.arraycopy(parameters, 0, setParameters, 0, arity);
                         try
                         {
-                            setParameters[arity] = new Transmutator().transmute(type, get(path));
+                            setParameters[arity] = new Transmutator().transmute(type, (String) tree.get(path));
                         }
                         catch (Exception e)
                         {
@@ -151,39 +156,39 @@ public class Infusion
                     }
                     if (child != null)
                     {
-                        set(child, path, index + i + 1, getter.getGenericReturnType());
+                        set(child, tree, path, index + i + 1, getter.getGenericReturnType());
                     }
                 }
             }
         }
     }
     
-    public String get(String path) throws PathException
-    {
-        return get(new Path(path, false), tree, 0);
-    }
-    
-    public String get(Path path) throws PathException
-    {
-        return get(path, tree, 0);
-    }
+//    public String get(String path) throws PathException
+//    {
+//        return get(new Path(path, false), tree, 0);
+//    }
+//    
+//    public String get(Path path) throws PathException
+//    {
+//        return get(path, tree, 0);
+//    }
 
-    private String get(Path properties, Map<String, Object> map, int index)
-    {
-        Part property = properties.get(index);
-        Object current = map.get(property.getName());
-        if (current == null)
-        {
-            return null;
-        }
-        if (index == properties.size() - 1)
-        {
-            if (current instanceof Map)
-            {
-                return null;
-            }
-            return (String) current;
-        }
-        return get(properties, Objects.toStringToObject(current), index + 1);
-    }
+//    private String get(Path path, Map<String, Object> map, int index)
+//    {
+//        Part property = path.get(index);
+//        Object current = map.get(property.getName());
+//        if (current == null)
+//        {
+//            return null;
+//        }
+//        if (index == path.size() - 1)
+//        {
+//            if (current instanceof Map)
+//            {
+//                return null;
+//            }
+//            return (String) current;
+//        }
+//        return get(path, Objects.toStringToObject(current), index + 1);
+//    }
 }

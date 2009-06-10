@@ -4,9 +4,9 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-import com.goodworkalan.infuse.InfusionBuilder;
-import com.goodworkalan.infuse.PathException;
 import com.goodworkalan.infuse.Path;
+import com.goodworkalan.infuse.PathException;
+import com.goodworkalan.infuse.Tree;
 
 public class PublicTest
 {
@@ -20,8 +20,7 @@ public class PublicTest
     @Test
     public void pathTree() throws PathException
     {
-        InfusionBuilder tree = new InfusionBuilder();
-        
+        Tree tree = new Tree();
         tree.set("widget.widget.number", "1");
     }
 }

@@ -19,7 +19,7 @@ public class PathTest
 {
     @Test public void constructor() throws PathException 
     {
-        Infusion.getInstance("name", "X");
+        Infusion.getInstance(new Object());
     }
     
     @Test public void get() throws PathException
@@ -32,9 +32,11 @@ public class PathTest
     
     @Test public void set() throws PathException
     {
-        Infusion infusion = Infusion.getInstance("string", "foo");
+        Tree tree = new Tree();
+        tree.set("string", "foo");
         Widget widget = new Widget();
-        infusion.infuse(widget);
+        Infusion infusion = Infusion.getInstance(widget);
+        infusion.infuse(tree);
         assertEquals(widget.getString(), "foo");
     }
     
@@ -66,11 +68,10 @@ public class PathTest
     
     @Test(enabled = false) public void setChild() throws PathException
     {
-        Infusion infusion = Infusion.getInstance("widget.string", "foo");
-        
         Widget widget = new Widget();
+        Infusion infusion = Infusion.getInstance(widget);
         
-        infusion.infuse(widget);
+        infusion.infuse(new Tree().add("widget.string", "foo"));
         assertEquals(widget.getWidget().getString(), "foo");
     }
 
@@ -341,11 +342,11 @@ public class PathTest
     @Test(enabled = false, expectedExceptions=PathException.class)
     public void badListSetType() throws PathException
     {
-        Infusion infusion = Infusion.getInstance("stringListList[0]", "A");
         Widget widget = new Widget();
+        Infusion infusion = Infusion.getInstance(widget);
         try
         {
-            infusion.infuse(widget);
+            infusion.infuse(new Tree().add("stringListList[0]", "A"));
         }
         catch (PathException e)
         {
@@ -358,12 +359,12 @@ public class PathTest
     public void cannotConstructListValue() throws PathException
     {
 //        ObjectFactory factory = mock(ObjectFactory.class);
-        Infusion path = Infusion.getInstance("stringListList[0][0]", "foo");
         Widget widget = new Widget();
+        Infusion path = Infusion.getInstance(widget);
         widget.setStringListList(new ArrayList<List<String>>());
         try
         {
-            path.infuse(widget);
+            path.infuse(new Tree().add("stringListList[0][0]", "foo"));
         }
         catch (PathException e)
         {
@@ -375,11 +376,11 @@ public class PathTest
     @Test(enabled = false, expectedExceptions=PathException.class)
     public void badMapSetType() throws PathException
     {
-        Infusion path = Infusion.getInstance("stringMapMap['bar']", "A");
         Widget widget = new Widget();
+        Infusion path = Infusion.getInstance(widget);
         try
         {
-            path.infuse(widget);
+            path.infuse(new Tree().add("stringMapMap['bar']", "A"));
         }
         catch (PathException e)
         {
@@ -392,12 +393,12 @@ public class PathTest
     public void cannotConstructMapValue() throws PathException
     {
 //        ObjectFactory factory = mock(ObjectFactory.class);
-        Infusion path = Infusion.getInstance("stringMapMap['bar']['baz']", "foo");
         Widget widget = new Widget();
+        Infusion path = Infusion.getInstance(widget);
         widget.setStringMapMap(new HashMap<String, Map<String,String>>());
         try
         {
-            path.infuse(widget);
+            path.infuse(new Tree().add("stringMapMap['bar']['baz']", "foo"));
         }
         catch (PathException e)
         {
@@ -412,19 +413,19 @@ public class PathTest
         new Diffusion("foo").get(null);
     }
     
-    @Test(enabled = false, expectedExceptions=IllegalArgumentException.class)
+    @Test(expectedExceptions=NullPointerException.class)
     public void nullSet() throws PathException
     {
-        Infusion.getInstance("foo", null).infuse(null);
+        Infusion.getInstance(null);
     }
     
     @Test(enabled = false, expectedExceptions=PathException.class)
     public void noSuchSetMethod() throws PathException
     {
-        Infusion infusion = Infusion.getInstance("foo", "foo");
+        Infusion infusion = Infusion.getInstance(new Widget());
         try
         {
-            infusion.infuse(new Widget());
+            infusion.infuse(new Tree().add("foo", "foo"));
         }
         catch (PathException e)
         {

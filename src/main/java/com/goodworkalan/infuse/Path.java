@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 // TODO Document.
-public class Path extends AbstractList<Part> implements RandomAccess
+public final class Path extends AbstractList<Part> implements RandomAccess
 {
     /** The bean path. */
     protected final List<Part> parts;
@@ -25,7 +25,7 @@ public class Path extends AbstractList<Part> implements RandomAccess
     /**
      * Create an empty path.
      */
-    protected Path()
+    public Path()
     {
         this(new ArrayList<Part>());
     }
@@ -35,9 +35,9 @@ public class Path extends AbstractList<Part> implements RandomAccess
      * property list construction method {@link #subPath(int, int)
      * subPropertyList}.
      * 
-     * @param parts
+     * @param parts The parts of the path.
      */
-    protected Path(List<Part> parts)
+    private Path(List<Part> parts)
     {
         this.parts = parts;
     }
@@ -254,7 +254,16 @@ public class Path extends AbstractList<Part> implements RandomAccess
         return newKey.toString();
     }
 
-    // TODO Document.
+    /**
+     * Create a path from the sub bath defined by the given from index to the
+     * given to index.
+     * 
+     * @param fromIndex
+     *            The start index of the sub path inclusive.
+     * @param toIndex
+     *            The end index of the sub path exclusive.
+     * @return A sub path.
+     */
     public Path subPath(int fromIndex, int toIndex)
     {
         return new Path(subList(fromIndex, toIndex));
@@ -314,7 +323,7 @@ public class Path extends AbstractList<Part> implements RandomAccess
     }
 
     // TODO Document.
-    public Path append(List<Part> append)
+    public Path appendAll(List<Part> append)
     {
         List<Part> newProperties = new ArrayList<Part>(parts);
         newProperties.addAll(append);
