@@ -9,12 +9,11 @@ import javax.persistence.EntityManager;
 import javax.persistence.Id;
 
 import com.goodworkalan.infuse.FactoryException;
-import com.goodworkalan.infuse.Infusion;
 import com.goodworkalan.infuse.ObjectFactory;
 import com.goodworkalan.infuse.Part;
 import com.goodworkalan.infuse.Path;
-import com.goodworkalan.infuse.PathException;
 import com.goodworkalan.infuse.PropertyInfo;
+import com.goodworkalan.infuse.Tree;
 
 /**
  * An infusion factory that will create objects by looking them up in a JPA data
@@ -31,7 +30,7 @@ public class EntityFactory implements ObjectFactory
         this.em = em;
     }
 
-    public Object create(Infusion infusion, Type type, Path context) throws FactoryException
+    public Object create(Type type, Tree tree, Path context) throws FactoryException
     {
         Class<?> clazz = null;
         if (type instanceof ParameterizedType)
@@ -54,14 +53,7 @@ public class EntityFactory implements ObjectFactory
                 {
                     PropertyInfo propertyInfo = new PropertyInfo(clazz, method);
                     Path idPath = context.append(new Part(propertyInfo.getName()));
-                    try
-                    {
-                        return em.find(clazz, infusion.get(idPath));
-                    }
-                    catch (PathException e)
-                    {
-                        throw new FactoryException(100, e);
-                    }
+                    return em.find(clazz, tree.get(idPath));
                 }
             }
         }
