@@ -1,6 +1,7 @@
 package com.goodworkalan.infuse;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Iterator;
@@ -14,7 +15,7 @@ public class Infusion
     
     private final Set<ObjectFactory> factories;
     
-    public static Infusion getInstance(Object root) throws PathException
+    public static Infusion getInstance(Object root)
     {
         if (root == null)
         {
@@ -44,8 +45,8 @@ public class Infusion
 
     private void set(Object object, Tree tree, Path path, int index, Type generics) throws NavigateException, FactoryException
     {
-        Part property = path.get(index);
-        if (property.getName().equals("this") && !property.isIndex())
+        Part part = path.get(index);
+        if (part.getName().equals("this") && !part.isIndex())
         {
             set(object, tree, path, index + 1, generics);
         }
@@ -53,7 +54,42 @@ public class Infusion
         {
             if (object instanceof Map)
             {
-                
+                if (generics == null)
+                {
+                    throw new IllegalStateException();
+                }
+                ParameterizedType pt = (ParameterizedType) generics;
+                Type type = pt.getActualTypeArguments()[1];
+                Map<Object, Object> map = Objects.toObjectMap(object);
+                if (index == path.size() - 1)
+                {
+                    Object value = tree.get(path);
+                    if (value != null && !Objects.toClass(type).isAssignableFrom(value.getClass()))
+                    {
+                        throw new IllegalStateException();
+                    }
+                    map.put(part.getName(), value);
+                }
+                else
+                {
+                    Object child = map.get(part.getName());
+                    if (child == null)
+                    {
+                        Iterator<ObjectFactory> eachFactory = factories.iterator();
+                        while (eachFactory.hasNext() && child == null)
+                        {
+                            child = eachFactory.next().create(this, type, path.subPath(0, index));
+                        }
+                        if (child != null)
+                        {
+                            map.put(part.getName(), child);
+                        }
+                    }
+                    if (child != null)
+                    {
+                        set(child, tree, path, index + 1, type);
+                    }
+                }
             }
             else if (object instanceof List)
             {
@@ -65,7 +101,7 @@ public class Infusion
             }
             else
             {
-                PropertyInfo propertyInfo = new PropertyInfo(object.getClass(), property.getName());
+                PropertyInfo propertyInfo = new PropertyInfo(object.getClass(), part.getName());
                 int arity = path.arityAtIndex(index);
                 Object child = null;
                 ARITY: for (int i = arity; child == null && -1 < i; i--)
@@ -142,9 +178,9 @@ public class Infusion
                         {
                             child = eachFactory.next().create(this, type, path.subPath(0, index + i));
                         }
-                        Object[] setParameters = new Object[arity + 1];
-                        System.arraycopy(parameters, 0, setParameters, 0, arity);
-                        setParameters[arity] = child;
+                        Object[] setParameters = new Object[i + 1];
+                        System.arraycopy(parameters, 0, setParameters, 0, i);
+                        setParameters[i] = child;
                         try
                         {
                             setter.invoke(object, setParameters);

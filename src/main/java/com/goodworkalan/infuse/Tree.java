@@ -61,12 +61,12 @@ public class Tree implements Iterable<Path>
         return null;
     }
     
-    public Object get(String path) throws PathException
+    public Object get(String path) throws ParseException
     {
         return get(new Path(path, false), tree, 0);
     }
     
-    public Object get(Path path) throws PathException
+    public Object get(Path path)
     {
         return get(path, tree, 0);
     }

@@ -1,4 +1,4 @@
-package com.goodworkalan.test;
+package com.goodworkalan.infuse.api;
 
 import static org.testng.Assert.assertEquals;
 
