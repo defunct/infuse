@@ -6,55 +6,58 @@ import java.util.List;
 import java.util.Map;
 
 
-// TODO Document.
+/**
+ * Extracts values from an object according to an object path.  
+ *
+ * @author Alan Gutierrez
+ */
 public class Diffusion
 {
-    // TODO Document.
-    private final Path properties;
+    /** The root object to navigate with this diffusion. */
+    private final Object root;
+
+    /**
+     * Create a diffusion that will extract values from the given root object.
+     * 
+     * @param root
+     *            The root object.
+     */
+    public Diffusion(Object root)
+    {
+        if (root == null)
+        {
+            throw new NullPointerException();
+        }
+        this.root = root;
+    }
     
     // TODO Document.
-    public Diffusion(String path) throws ParseException
+    public Object get(String path) throws ParseException, NavigateException
+    {
+        return get(root, new Path(path, false), 0);
+    }
+    
+    // TODO Document.
+    public Object get(Path path) throws NavigateException
     {
         if (path == null)
         {
             throw new NullPointerException();
         }
-        this.properties = new Path(path, true);
-    }
-
-    // TODO Document.
-    public Diffusion(Path properties)
-    {
-        if (properties == null)
-        {
-            throw new NullPointerException();
-        }
-        this.properties = properties;
+        return get(root, path, 0);
     }
     
     // TODO Document.
-    public String withoutIndexes()
+    private Object get(Object object, Path path, int index) throws NavigateException
     {
-        return properties.withoutIndexes();
-    }
-
-    // TODO Document.
-    public Object get(Object object) throws NavigateException
-    {
-        return get(object, properties, 0);
-    }
-    
-    // TODO Document.
-    private Object get(Object object, Path properties, int index) throws NavigateException
-    {
-        Part property = properties.get(index);
+        Part property = path.get(index);
         if (property.getName().equals("this") && !property.isIndex())
         {
-            if (index + 1 == properties.size())
+            if (index + 1 == path.size())
             {
                 return object;
             }
-            return get(object, properties, index + 1);
+            return get(object, path, index + 1);
         }
         if (object instanceof Map)
         {
@@ -70,7 +73,7 @@ public class Diffusion
             return null;
         }
         PropertyInfo propertyInfo = new PropertyInfo(object.getClass(), property.getName());
-        int arity = properties.arityAtIndex(index);
+        int arity = path.arityAtIndex(index);
         Object child = null;
         ARITY: for (int i = arity; child == null && -1 < i; i--)
         {
@@ -86,7 +89,7 @@ public class Diffusion
                 {
                     try
                     {
-                        parameters[j] = new Transmutator().transmute(getter.getParameterTypes()[j], properties.get(index + j + 1).getName());
+                        parameters[j] = new Transmutator().transmute(getter.getParameterTypes()[j], path.get(index + j + 1).getName());
                     }
                     catch (Exception e)
                     {
@@ -106,35 +109,42 @@ public class Diffusion
             {
                 continue ARITY;
             }
-            if (index + i == properties.size() - 1)
+            if (index + i == path.size() - 1)
             {
                 return child;
             }
             else
             {
-                return get(child, properties, index + i + 1);
+                return get(child, path, index + i + 1);
             }
         }
         return child;
     }
     
-    public List<Diffusion> all(Object object) throws NavigateException
+    public List<Path> all(String path) throws NavigateException, ParseException
     {
-        List<Diffusion> diffusions = new ArrayList<Diffusion>();
-        glob(object, new Path(), 0, diffusions);
-        return diffusions;
+        List<Path> paths = new ArrayList<Path>();
+        glob(root, new Path(path, true), new Path(), 0, paths);
+        return paths;
+    }
+
+    public List<Path> all(Path path) throws NavigateException
+    {
+        List<Path> paths = new ArrayList<Path>();
+        glob(root, path, new Path(), 0, paths);
+        return paths;
     }
     
-    public void glob(Object object, Path base, int from, List<Diffusion> diffusions) throws NavigateException
+    private void glob(Object object, Path fullPath, Path base, int from, List<Path> paths) throws NavigateException
     {
         int i;
-        for (i = from; i < properties.size(); i++)
+        for (i = from; i < fullPath.size(); i++)
         {
-            Part property = properties.get(i);
+            Part property = fullPath.get(i);
             if (property.isGlob())
             {
-                Path subPath = properties.subPath(from, i);
-                Object collection = new Diffusion(subPath).get(object);
+                Path subPath = fullPath.subPath(from, i);
+                Object collection = new Diffusion(object).get(subPath);
                 Path path = base.appendAll(subPath);
                 if (collection instanceof List)
                 {
@@ -145,7 +155,7 @@ public class Diffusion
                         if (item != null)
                         {
                             Path unglobbed = path.append(new Part(Integer.toString(j), true, '\0'));
-                            glob(item, unglobbed, i + 1, diffusions);
+                            glob(item, fullPath, unglobbed, i + 1, paths);
                         }
                     }
                 }
@@ -158,7 +168,7 @@ public class Diffusion
                         if (item != null)
                         {
                             Path unglobbed = path.append(new Part(Integer.toString(j), true, '\0'));
-                            glob(item, unglobbed, i + 1, diffusions);
+                            glob(item, fullPath, unglobbed, i + 1, paths);
                         }
                     }
                 }
@@ -170,19 +180,19 @@ public class Diffusion
                         if ((entry.getKey() instanceof String) && entry.getValue() != null)
                         {
                             Path unglobbed = path.append(new Part((String) entry.getKey(), true, '\0'));
-                            glob(entry.getValue(), unglobbed, i + 1, diffusions);
+                            glob(entry.getValue(), fullPath, unglobbed, i + 1, paths);
                         }
                     }
                 }
                 break;
             }
         }
-        if (i == properties.size())
+        if (i == fullPath.size())
         {
-            Path subPath = properties.subPath(from, properties.size());
-            if (new Diffusion(subPath).get(object) != null)
+            Path subPath = fullPath.subPath(from, fullPath.size());
+            if (new Diffusion(object).get(subPath) != null)
             {
-                diffusions.add(new Diffusion(base.appendAll(subPath)));
+                paths.add(base.appendAll(subPath));
             }
         }
     }

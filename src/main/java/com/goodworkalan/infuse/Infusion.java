@@ -11,10 +11,16 @@ import java.util.Set;
 
 public class Infusion
 {
+    /** The root object to populate with this infusion. */
     private final Object root;
     
+    /** A set of factories to use to create objects during an infusion. */
     private final Set<ObjectFactory> factories;
     
+    /**
+     * A tree that tracks the sizes of lists before they are expanded to 
+     * accommodate list items with indexed beyond the last index of the list. 
+     */
     private final Tree listSizes;
     
     public static Infusion getInstance(Object root)

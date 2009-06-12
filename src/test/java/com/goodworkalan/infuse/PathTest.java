@@ -24,10 +24,10 @@ public class PathTest
     
     @Test public void get() throws PathException
     {
-        Diffusion diffusion = new Diffusion("string");
         Widget widget = new Widget();
+        Diffusion diffusion = new Diffusion(widget);
         widget.setString("foo");
-        assertEquals(diffusion.get(widget), "foo");
+        assertEquals((String) diffusion.get("string"), "foo");
     }
     
     @Test public void set() throws PathException
@@ -43,27 +43,25 @@ public class PathTest
     @Test
     public void self() throws PathException
     {
-        Diffusion diffusion = new Diffusion("this.widget.this.string.this");
-        
         Widget widget = new Widget();
+        
         widget.setString("foo");
         Widget parent = new Widget();
         parent.setWidget(widget);
         
-        assertEquals(diffusion.get(parent), "foo");
+        Diffusion diffusion = new Diffusion(parent);
+        assertEquals(diffusion.get("this.widget.this.string.this"), "foo");
         
     }
     
     @Test public void getChild() throws PathException
     {
-        Diffusion diffusion = new Diffusion("widget.string");
-        
         Widget widget = new Widget();
         widget.setString("foo");
         Widget parent = new Widget();
         parent.setWidget(widget);
         
-        assertEquals(diffusion.get(parent), "foo");
+        assertEquals(new Diffusion(parent).get("widget.string"), "foo");
     }
     
     @Test(enabled = false) public void setChild() throws PathException
@@ -407,10 +405,10 @@ public class PathTest
         }
     }
     
-    @Test(enabled = false, expectedExceptions=IllegalArgumentException.class)
+    @Test(expectedExceptions=NullPointerException.class)
     public void nullGet() throws PathException
     {
-        new Diffusion("foo").get(null);
+        new Diffusion(new Object()).get((Path) null);
     }
     
     @Test(expectedExceptions=NullPointerException.class)

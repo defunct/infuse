@@ -8,7 +8,7 @@ import com.goodworkalan.infuse.Path;
 import com.goodworkalan.infuse.PathException;
 import com.goodworkalan.infuse.Tree;
 
-public class PublicTest
+public class PathTest
 {
     @Test
     public void test() throws PathException 
