@@ -76,7 +76,7 @@ public final class Part implements Comparable<Part>
      */
     public boolean isGlob()
     {
-        return quote == '\0' && name.equals("*");
+        return quote == '\0' && index && name.equals("*");
     }
 
     /**
