@@ -25,10 +25,14 @@ public class Tree implements Iterable<Path>
 
     public boolean set(String path, Object value) throws ParseException
     {
-        Path properties = new Path(path, false);
-        if (set(properties, tree, value, 0))
+        return set(new Path(path, false), value);
+    }
+    
+    public boolean set(Path path, Object value)
+    {
+        if (set(path, tree, value, 0))
         {
-            paths.add(properties);
+            paths.add(path);
             return true;
         }
         return false;
@@ -71,6 +75,11 @@ public class Tree implements Iterable<Path>
         return get(path, tree, 0);
     }
     
+    public boolean containsPath(Path path)
+    {
+        return containsPath(path, tree, 0);
+    }
+    
     private boolean set(Path properties, Map<String, Object> map, Object value, int index)
     {
         Part property = properties.get(index);
@@ -89,14 +98,14 @@ public class Tree implements Iterable<Path>
             current = new ImmutableMap();
             map.put(property.getName(), current);
         }
-        if (current instanceof String)
+        if (!(current instanceof ImmutableMap))
         {
             return false;
         }
         return set(properties, Objects.toStringToObject(current), value, index + 1);
     }
     
-    private String get(Path properties, Map<String, Object> map, int index)
+    private Object get(Path properties, Map<String, Object> map, int index)
     {
         Part property = properties.get(index);
         Object current = map.get(property.getName());
@@ -106,12 +115,33 @@ public class Tree implements Iterable<Path>
         }
         if (index == properties.size() - 1)
         {
-            if (current instanceof Map)
+            if (current instanceof ImmutableMap)
             {
                 return null;
             }
-            return (String) current;
+            return current;
         }
         return get(properties, Objects.toStringToObject(current), index + 1);
+    }
+    
+    private boolean containsPath(Path properties, Map<String, Object> map, int index)
+    {
+        Part property = properties.get(index);
+        Object current = map.get(property.getName());
+        if (current == null)
+        {
+            return false;
+        }
+        if (index == properties.size() - 1)
+        {
+            return map.containsKey(property.getName());
+        }
+        return containsPath(properties, Objects.toStringToObject(current), index + 1);
+    }
+    
+    public void clear()
+    {
+        tree.clear();
+        paths.clear();
     }
 }

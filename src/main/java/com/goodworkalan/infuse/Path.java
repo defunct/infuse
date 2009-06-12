@@ -360,7 +360,7 @@ public final class Path extends AbstractList<Part> implements RandomAccess
             else
             {
                 newString.append(separator);
-                newString.append(part.toString());
+                newString.append(part.getName());
                 separator = ".";
             }
         }

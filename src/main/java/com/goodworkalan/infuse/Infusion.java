@@ -15,6 +15,8 @@ public class Infusion
     
     private final Set<ObjectFactory> factories;
     
+    private final Tree listSizes;
+    
     public static Infusion getInstance(Object root)
     {
         if (root == null)
@@ -28,6 +30,7 @@ public class Infusion
     {
         this.factories = factories;
         this.root = root;
+        this.listSizes = new Tree();
     }
     
     public void infuse(Tree tree) throws NavigateException, FactoryException
@@ -45,6 +48,7 @@ public class Infusion
 
     private void set(Object object, Tree tree, Path path, int index, Type generics) throws NavigateException, FactoryException
     {
+        // FIXME Add "this". Or get rid of this. Why this?
         Part part = path.get(index);
         if (part.getName().equals("this") && !part.isIndex())
         {
@@ -93,7 +97,73 @@ public class Infusion
             }
             else if (object instanceof List)
             {
-                
+                if (generics instanceof Class)
+                {
+                    throw new IllegalStateException();
+                }
+                ParameterizedType pt = (ParameterizedType) generics;
+                Type type = pt.getActualTypeArguments()[0];
+                List<Object> list = Objects.toObjectList(object);
+                int i;
+                try
+                {
+                    i = Integer.parseInt(part.getName());
+                }
+                catch (NumberFormatException e)
+                {
+                    throw new IllegalStateException(e);
+                }
+                int size = 0;
+                Path sizePath = path.subPath(0, index).append(new Part("size"));
+                if (listSizes.containsPath(sizePath))
+                {
+                    size = (Integer) listSizes.get(sizePath);
+                }
+                else
+                {
+                    size = list.size();
+                    listSizes.set(sizePath, (Integer) size);
+                }
+                if (i >= size)
+                {
+                    int j;
+                    for (j = i - 1; j >= size; j--)
+                    {
+                        Path subPath = path.subPath(0, index).append(new Part(Integer.toString(j), true, '\0'));
+                        if (!tree.containsPath(subPath))
+                        {
+                            i--;
+                        }
+                    }
+                    while (list.size() <= i)
+                    {
+                        list.add(null);
+                    }
+                }
+                if (index == path.size() - 1)
+                {
+                    Object value = tree.get(path);
+                    if (value != null && !Objects.toClass(type).isAssignableFrom(value.getClass()))
+                    {
+                        throw new IllegalStateException();
+                    }
+                    list.set(i, value);
+                }
+                else
+                {
+                    Object child = list.get(i);
+                    if (child == null)
+                    {
+                        Iterator<ObjectFactory> eachFactory = factories.iterator();
+                        while (eachFactory.hasNext() && child == null)
+                        {
+                            child = eachFactory.next().create(type, tree, path.subPath(0, index));
+                        }
+                        list.set(i, child);
+                    }
+                    
+                    set(child, tree, path, index + 1, type);
+                }
             }
             else if (object.getClass().isArray())
             {
@@ -198,33 +268,4 @@ public class Infusion
             }
         }
     }
-    
-//    public String get(String path) throws PathException
-//    {
-//        return get(new Path(path, false), tree, 0);
-//    }
-//    
-//    public String get(Path path) throws PathException
-//    {
-//        return get(path, tree, 0);
-//    }
-
-//    private String get(Path path, Map<String, Object> map, int index)
-//    {
-//        Part property = path.get(index);
-//        Object current = map.get(property.getName());
-//        if (current == null)
-//        {
-//            return null;
-//        }
-//        if (index == path.size() - 1)
-//        {
-//            if (current instanceof Map)
-//            {
-//                return null;
-//            }
-//            return (String) current;
-//        }
-//        return get(path, Objects.toStringToObject(current), index + 1);
-//    }
 }
