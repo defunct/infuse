@@ -14,6 +14,17 @@ import com.goodworkalan.infuse.Widget;
 
 public class InfusionTest
 {
+    @Test void flavorsOfThis() throws NavigateException, FactoryException, ParseException
+    {
+        Widget widget = new Widget();
+        
+        Infusion infusion = Infusion.getInstance(widget);
+        
+        infusion.infuse("stringMapMap.this[\"this\"][\"world\"]", "Hello, World!");
+        
+        assertEquals(widget.getStringMapMap().get("this").get("world"), "Hello, World!");
+    }
+
     @Test
     public void stringMapMap() throws NavigateException, FactoryException, ParseException
     {
