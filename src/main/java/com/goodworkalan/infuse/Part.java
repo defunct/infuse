@@ -6,8 +6,10 @@ public final class Part implements Comparable<Part>
     /** The property name. */
     private final String name;
     
+    /** If true, the part was declared as an index. */
     private final boolean index;
     
+    /** The character used to quote the index value, or '\0' if not quoted. */
     private final char quote;
 
     /**
@@ -90,6 +92,10 @@ public final class Part implements Comparable<Part>
     @Override
     public boolean equals(Object object)
     {
+        if (object == this)
+        {
+            return true;
+        }
         if (object instanceof Part)
         {
             Part property = (Part) object;
@@ -99,7 +105,13 @@ public final class Part implements Comparable<Part>
         }
         return false;
     }
-    
+
+    /**
+     * Return a hash code that combines the hash code of the name property, with
+     * a hash code generated from the index and quote properties.
+     * 
+     * @return The hash code.
+     */
     @Override
     public int hashCode()
     {
@@ -109,16 +121,26 @@ public final class Part implements Comparable<Part>
         hash = hash * 37 + (int) quote;
         return hash;
     }
-    
-    public int compareTo(Part o)
+
+    /**
+     * Compare this part to another part, first comparing the name, then
+     * comparing the index property, where an index declared part is less than a
+     * bean property part, then comparing the quote characters.
+     * 
+     * @param part
+     *            The part to compare.
+     * @return A negative integer, zero, or a positive integer as this part is
+     *         less than, equal to, or greater than the given part.
+     */
+    public int compareTo(Part part)
     {
-        int compare = name.compareTo(o.name);
+        int compare = name.compareTo(part.name);
         if (compare == 0)
         {
-            compare = index == o.index ? 0 : index ? 1 : -1;
+            compare = index == part.index ? 0 : index ? -1 : 1;
             if (compare == 0)
             {
-                compare = (int) quote - (int) o.quote;
+                compare = (int) quote - (int) part.quote;
             }
         }
         return compare;
