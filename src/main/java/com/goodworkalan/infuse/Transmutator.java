@@ -3,7 +3,7 @@ package com.goodworkalan.infuse;
 
 public class Transmutator
 {
-    public Class<?> box(Class<?> type)
+    public static Class<?> box(Class<?> type)
     {
         if (type.isPrimitive())
         {
@@ -65,7 +65,7 @@ public class Transmutator
         }
         try
         {
-            return target.getConstructor(new Class<?>[] { String.class }).newInstance(target);
+            return target.getConstructor(new Class<?>[] { String.class }).newInstance(string);
         }
         catch (Exception e)
         {
