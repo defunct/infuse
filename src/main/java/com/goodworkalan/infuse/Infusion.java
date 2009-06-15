@@ -73,10 +73,14 @@ public class Infusion
                 Map<Object, Object> map = Objects.toObjectMap(object);
                 if (index == path.size() - 1)
                 {
-                    Object value = tree.get(path);
-                    if (value != null && !Objects.toClass(type).isAssignableFrom(value.getClass()))
+                    Object value;
+                    try
                     {
-                        throw new IllegalStateException();
+                        value = new Transmutator().transmute(Objects.toClass(type), (String) tree.get(path));
+                    }
+                    catch (TransmutationException e)
+                    {
+                        throw new NavigateException(PathException.NO_REAL_MESSAGE, e);
                     }
                     map.put(part.getName(), value);
                 }
@@ -148,10 +152,14 @@ public class Infusion
                 }
                 if (index == path.size() - 1)
                 {
-                    Object value = tree.get(path);
-                    if (value != null && !Objects.toClass(type).isAssignableFrom(value.getClass()))
+                    Object value;
+                    try
                     {
-                        throw new IllegalStateException();
+                        value = new Transmutator().transmute(Objects.toClass(type), (String) tree.get(path));
+                    }
+                    catch (TransmutationException e)
+                    {
+                        throw new NavigateException(PathException.NO_REAL_MESSAGE, e);
                     }
                     list.set(i, value);
                 }
@@ -182,27 +190,47 @@ public class Infusion
                 Object child = null;
                 ARITY: for (int i = arity; child == null && -1 < i; i--)
                 {
-                    Method getter = propertyInfo.getGetter(i);
-                    if (getter == null)
+                    boolean isFinal = index + i == path.size() - 1;
+                    if (isFinal)
                     {
-                        continue ARITY;
-                    }
-                    Object[] parameters = new Object[i];
-                    if (index + i < path.size() - 1)
-                    {
-                        for (int j = 0; j < parameters.length; j++)
+                        Method setter = propertyInfo.getSetter(i);
+                        if (setter == null)
                         {
-                            if (String.class.isAssignableFrom(getter.getParameterTypes()[j]))
-                            {
-                                try
-                                {
-                                    parameters[j] = new Transmutator().transmute(getter.getParameterTypes()[j], path.get(index + j + 1).getName());
-                                }
-                                catch (Exception e)
-                                {
-                                    continue ARITY;
-                                }
-                            }
+                            continue ARITY;
+                        }
+                        Object[] parameters;
+                        try
+                        {
+                            parameters = propertyInfo.getSetterParameters(path, setter, index, new Transmutator().transmute(Objects.toClass(setter.getParameterTypes()[i]), (String) tree.get(path)));
+                        }
+                        catch (TransmutationException e1)
+                        {
+                            continue ARITY;
+                        }
+                        if (parameters == null)
+                        {
+                            continue ARITY;
+                        }
+                        try
+                        {
+                            setter.invoke(object, parameters);
+                        }
+                        catch (Exception e)
+                        {
+                            throw new NavigateException(100, e);
+                        }
+                    }
+                    else
+                    {
+                        Method getter = propertyInfo.getGetter(i);
+                        if (getter == null)
+                        {
+                            continue ARITY;
+                        }
+                        Object[] parameters = propertyInfo.getGetterParameters(path, getter, index);
+                        if (parameters == null)
+                        {
+                            continue ARITY;
                         }
                         try
                         {
@@ -212,63 +240,37 @@ public class Infusion
                         {
                             throw new NavigateException(100, e);
                         }
-                    }
-                    if (index + i == path.size() - 1)
-                    {
-                        Method setter = propertyInfo.getSetter(i, null);
-                        if (setter == null)
+                        if (child == null)
                         {
-                            continue ARITY;
+                            Class<?> type = getter.getReturnType();
+                            Method setter = propertyInfo.getSetter(i);
+                            if (setter == null)
+                            {
+                                continue ARITY;
+                            }
+                            Iterator<ObjectFactory> eachFactory = factories.iterator();
+                            while (eachFactory.hasNext() && child == null)
+                            {
+                                child = eachFactory.next().create(type, tree, path.subPath(0, index + i));
+                            }
+                            parameters = propertyInfo.getSetterParameters(path, setter, index, child);
+                            if (parameters == null)
+                            {
+                                continue ARITY;
+                            }
+                            try
+                            {
+                                setter.invoke(object, parameters);
+                            }
+                            catch (Exception e)
+                            {
+                                throw new NavigateException(100, e);
+                            }
                         }
-                        Class<?>[] types = setter.getParameterTypes();
-                        Class<?> type = types[types.length - 1];
-                        Object[] setParameters = new Object[arity + 1];
-                        System.arraycopy(parameters, 0, setParameters, 0, arity);
-                        try
+                        if (child != null)
                         {
-                            setParameters[arity] = new Transmutator().transmute(type, (String) tree.get(path));
+                            set(child, tree, path, index + i + 1, getter.getGenericReturnType());
                         }
-                        catch (Exception e)
-                        {
-                            continue ARITY;
-                        }
-                        try
-                        {
-                            setter.invoke(object, setParameters);
-                        }
-                        catch (Exception e)
-                        {
-                            throw new NavigateException(100, e);
-                        }
-                    }
-                    else if (child == null)
-                    {
-                        Class<?> type = getter.getReturnType();
-                        Method setter = propertyInfo.getSetter(i, type);
-                        if (setter == null)
-                        {
-                            continue ARITY;
-                        }
-                        Iterator<ObjectFactory> eachFactory = factories.iterator();
-                        while (eachFactory.hasNext() && child == null)
-                        {
-                            child = eachFactory.next().create(type, tree, path.subPath(0, index + i));
-                        }
-                        Object[] setParameters = new Object[i + 1];
-                        System.arraycopy(parameters, 0, setParameters, 0, i);
-                        setParameters[i] = child;
-                        try
-                        {
-                            setter.invoke(object, setParameters);
-                        }
-                        catch (Exception e)
-                        {
-                            throw new NavigateException(100, e);
-                        }
-                    }
-                    if (child != null)
-                    {
-                        set(child, tree, path, index + i + 1, getter.getGenericReturnType());
                     }
                 }
             }

@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-public class PropertyInfo
+class PropertyInfo
 {
     private final Class<?> type;
     
@@ -47,6 +47,64 @@ public class PropertyInfo
     {
         return boolean.class.isAssignableFrom(method.getReturnType()) || Boolean.class.isAssignableFrom(method.getReturnType());
     }
+    
+    // FIXME It would be nice to choose the right setter. Should I guess? Or
+    // should I introduce an annotation? To guess would be to find the one
+    // setter that has a complimentary getter.
+    public Object[] getSetterParameters(Path path, Method setter, int index, Object object) throws NavigateException
+    {
+        int arity = setter.getParameterTypes().length - 1;
+
+        if (setter != null)
+        {
+            Object[] parameters = new Object[arity + 1];
+            if (index + arity < path.size())
+            {
+                for (int j = 0; j < parameters.length - 1; j++)
+                {
+                    try
+                    {
+                        parameters[j] = new Transmutator().transmute(setter.getParameterTypes()[j], path.get(index + j + 1).getName());
+                    }
+                    catch (TransmutationException e)
+                    {
+                        return null;
+                    }
+                }
+                parameters[parameters.length - 1] = object;
+                return parameters;
+            }
+        }
+
+        return null;
+    }
+    
+    public Object[] getGetterParameters(Path path, Method getter, int index)
+    {
+        int arity = getter.getParameterTypes().length;
+        
+        if (getter != null)
+        {
+            Object[] parameters = new Object[arity];
+            if (index + arity < path.size() - 1)
+            {
+                for (int j = 0; j < parameters.length; j++)
+                {
+                    try
+                    {
+                        parameters[j] = new Transmutator().transmute(getter.getParameterTypes()[j], path.get(index + j + 1).getName());
+                    }
+                    catch (TransmutationException e)
+                    {
+                        return null;
+                    }
+                }
+                return parameters;
+            }
+        }
+        
+        return null;
+    }
 
     /**
      * Return the getter method for the property. Need to add arity for indexes.
@@ -78,7 +136,7 @@ public class PropertyInfo
      * 
      * @return A setter method.
      */
-    public Method getSetter(int arity, Class<?> propertyType)
+    public Method getSetter(int arity)
     {
         for (Method method : type.getMethods())
         {

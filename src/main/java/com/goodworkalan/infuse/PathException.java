@@ -16,6 +16,9 @@ public class PathException extends Exception
     /** Serial version id. */
     private final static long serialVersionUID = 1L;
     
+    /** Used as a temporary error code. */
+    public final static int NO_REAL_MESSAGE = 1;
+    
     /** A list of arguments to the formatted error message. */
     protected final List<Object> arguments = new ArrayList<Object>(); 
     

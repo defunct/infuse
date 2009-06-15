@@ -1,5 +1,6 @@
 package com.goodworkalan.infuse;
 
+
 public class Transmutator
 {
     public Class<?> box(Class<?> type)
@@ -39,8 +40,16 @@ public class Transmutator
         return type;
     }
     
-    public Object transmute(Class<?> target, String string) throws Exception
+    public Object transmute(Class<?> target, String string) throws TransmutationException
     {
+        if (string == null)
+        {
+            if (target.isPrimitive())
+            {
+                throw new TransmutationException(PathException.NO_REAL_MESSAGE);
+            }
+            return null;
+        }
         target = box(target);
         if (target.equals(Object.class) || String.class.isAssignableFrom(target))
         {
@@ -52,8 +61,15 @@ public class Transmutator
             {
                 return new Character(string.charAt(0));
             }
-            throw new Exception();
+            throw new TransmutationException(PathException.NO_REAL_MESSAGE);
         }
-        return target.getConstructor(new Class<?>[] { String.class }).newInstance(target);
+        try
+        {
+            return target.getConstructor(new Class<?>[] { String.class }).newInstance(target);
+        }
+        catch (Exception e)
+        {
+            throw new TransmutationException(PathException.NO_REAL_MESSAGE, e);
+        }
     }
 }
