@@ -1,5 +1,7 @@
 package com.goodworkalan.infuse;
 
+import java.util.Date;
+
 
 public class Transmutator
 {
@@ -62,6 +64,10 @@ public class Transmutator
                 return new Character(string.charAt(0));
             }
             throw new TransmutationException(PathException.NO_REAL_MESSAGE);
+        }
+        else if (Date.class.isAssignableFrom(target))
+        {
+            return new Date((Long) transmute(Long.class, string));
         }
         try
         {

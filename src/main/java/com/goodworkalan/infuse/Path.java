@@ -391,10 +391,6 @@ public final class Path extends AbstractList<Part> implements RandomAccess
         {
             throw new IndexOutOfBoundsException();
         }
-        if (parts.get(index).isIndex())
-        {
-            throw new IllegalArgumentException();
-        }
         int arity = 0;
         for (int i = index + 1; i < parts.size(); i++)
         {

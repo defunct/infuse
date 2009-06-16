@@ -6,7 +6,7 @@ import java.util.Collections;
 
 import org.testng.annotations.Test;
 
-import com.goodworkalan.infuse.BasicObjectFactory;
+import com.goodworkalan.infuse.DefaultConstructorFactory;
 import com.goodworkalan.infuse.FactoryException;
 import com.goodworkalan.infuse.Infusion;
 import com.goodworkalan.infuse.InfusionBuilder;
@@ -22,7 +22,7 @@ public class InfusionBuilderTest
     {
         InfusionBuilder builder = new InfusionBuilder();
         
-        builder.addFactories(Collections.<ObjectFactory>singleton(new BasicObjectFactory()));
+        builder.addFactories(Collections.<ObjectFactory>singleton(new DefaultConstructorFactory()));
         
         Widget widget = new Widget();
         
@@ -37,7 +37,7 @@ public class InfusionBuilderTest
     {
         InfusionBuilder builder = new InfusionBuilder();
         
-        builder.addFactory(new BasicObjectFactory());
+        builder.addFactory(new DefaultConstructorFactory());
         
         Widget widget = new Widget();
         

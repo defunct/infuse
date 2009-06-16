@@ -76,7 +76,7 @@ public class PathTest
     @Test
     public void factory() throws Exception
     {
-        ObjectFactory factory = new BasicObjectFactory();
+        ObjectFactory factory = new DefaultConstructorFactory();
         assertEquals(factory.create(SortedMap.class, null, null).getClass(), TreeMap.class);
         assertEquals(factory.create(Map.class, null, null).getClass(), LinkedHashMap.class);
         assertEquals(factory.create(List.class, null, null).getClass(), ArrayList.class);
@@ -87,14 +87,14 @@ public class PathTest
     @Test(expectedExceptions=UnsupportedOperationException.class)
     public void notFound() throws Exception
     {
-        ObjectFactory factory = new BasicObjectFactory();
+        ObjectFactory factory = new DefaultConstructorFactory();
         factory.create(Runnable.class, null, null);
     }
 
     @Test(expectedExceptions=FactoryException.class)
     public void noDefaultConstructor() throws Exception
     {
-        ObjectFactory factory = new BasicObjectFactory();
+        ObjectFactory factory = new DefaultConstructorFactory();
         try
         {
             factory.create(Integer.class, null, null);

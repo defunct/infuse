@@ -3,8 +3,8 @@ package com.goodworkalan.infuse;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,7 +29,10 @@ public class Infusion
         {
             throw new NullPointerException();
         }
-        return new Infusion(Collections.<ObjectFactory>singleton(new BasicObjectFactory()), root);
+        Set<ObjectFactory> factories = new LinkedHashSet<ObjectFactory>();
+        factories.add(new CollectionFactory());
+        factories.add(new DefaultConstructorFactory());
+        return new Infusion(factories, root);
     }
 
     Infusion(Set<ObjectFactory> factories, Object root)
@@ -92,7 +95,7 @@ public class Infusion
                         Iterator<ObjectFactory> eachFactory = factories.iterator();
                         while (eachFactory.hasNext() && child == null)
                         {
-                            child = eachFactory.next().create(type, tree, path.subPath(0, index));
+                            child = eachFactory.next().create(type, tree, path.subPath(0, index + 1));
                         }
                         if (child != null)
                         {
@@ -171,7 +174,7 @@ public class Infusion
                         Iterator<ObjectFactory> eachFactory = factories.iterator();
                         while (eachFactory.hasNext() && child == null)
                         {
-                            child = eachFactory.next().create(type, tree, path.subPath(0, index));
+                            child = eachFactory.next().create(type, tree, path.subPath(0, index + 1));
                         }
                         list.set(i, child);
                     }
@@ -251,7 +254,7 @@ public class Infusion
                             Iterator<ObjectFactory> eachFactory = factories.iterator();
                             while (eachFactory.hasNext() && child == null)
                             {
-                                child = eachFactory.next().create(type, tree, path.subPath(0, index + i));
+                                child = eachFactory.next().create(type, tree, path.subPath(0, index + 1 + i));
                             }
                             parameters = propertyInfo.getSetterParameters(path, setter, index, child);
                             if (parameters == null)

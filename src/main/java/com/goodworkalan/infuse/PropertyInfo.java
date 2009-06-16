@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-class PropertyInfo
+public class PropertyInfo
 {
     private final Class<?> type;
     
@@ -46,6 +46,21 @@ class PropertyInfo
     private boolean isBooleanReturn(Method method)
     {
         return boolean.class.isAssignableFrom(method.getReturnType()) || Boolean.class.isAssignableFrom(method.getReturnType());
+    }
+    
+    public Class<?> getPropertyType()
+    {
+        Method getter = getGetter(0);
+        if (getter == null)
+        {
+            Method setter = getSetter(0);
+            if (setter == null)
+            {
+                return null;
+            }
+            return setter.getParameterTypes()[0];
+        }
+        return getter.getReturnType();
     }
     
     // FIXME It would be nice to choose the right setter. Should I guess? Or
