@@ -13,6 +13,8 @@ import com.goodworkalan.infuse.ObjectFactory;
 import com.goodworkalan.infuse.Part;
 import com.goodworkalan.infuse.Path;
 import com.goodworkalan.infuse.PropertyInfo;
+import com.goodworkalan.infuse.TransmutationException;
+import com.goodworkalan.infuse.Transmutator;
 import com.goodworkalan.infuse.Tree;
 
 /**
@@ -52,8 +54,19 @@ public class EntityFactory implements ObjectFactory
                 if (method.getAnnotation(Id.class) != null)
                 {
                     PropertyInfo propertyInfo = new PropertyInfo(clazz, method);
-                    Path idPath = context.append(new Part(propertyInfo.getName()));
-                    return em.find(clazz, tree.get(idPath));
+                    String value = (String) tree.get(context.append(new Part(propertyInfo.getName())));
+                    if (value == null)
+                    {
+                        return null;
+                    }
+                    try
+                    {
+                        return em.find(clazz, new Transmutator().transmute(propertyInfo.getPropertyType(), value));
+                    }
+                    catch (TransmutationException e)
+                    {
+                        return null;
+                    }
                 }
             }
         }
