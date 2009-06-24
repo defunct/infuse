@@ -59,6 +59,19 @@ public final class Part implements Comparable<Part>
     {
         return index;
     }
+
+    /**
+     * Return true if this part is an empty bracket set, the terminal part of a
+     * PHP array parameter path. This is from the PHP array construct
+     * "parameter[]=value".
+     * 
+     * @return True if this is an empty bracket set, indicating append the value
+     *         to an array.
+     */
+    public boolean isAppend()
+    {
+        return name.equals("");
+    }
     
     /**
      * Return the quote character used to quote the index value or '\0' if the

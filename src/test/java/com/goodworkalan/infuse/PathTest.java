@@ -2,6 +2,7 @@ package com.goodworkalan.infuse;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -227,6 +228,13 @@ public class PathTest
         assertName("a ['\\n']", "\n");
         assertName("a ['\\u0041']", "A");
         assertName("a ['\\x41']", "A");
+    }
+    
+    @Test
+    public void appendIndex() throws PathException
+    {
+        Path path = new Path("parameter[]", false);
+        assertTrue(path.get(1).isAppend());
     }
     
     @Test(expectedExceptions=PathException.class)

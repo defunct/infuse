@@ -65,7 +65,11 @@ public class Patterns
                     "\\*" +
                 (capture ? ")": "") +
             "\\s*\\]";
+    }
     
+    public static String appendIndex(boolean capture)
+    {
+        return "\\[" + (capture ? "(" : "") + "\\s*" + (capture ? ")" : "") + "\\]";
     }
     
     // TODO Document.
@@ -73,6 +77,7 @@ public class Patterns
     {
         return
             globIndex(capture) + "|" + listIndex(capture) + "|" +
+                appendIndex(capture) + "|" +
                 "\\[\\s*" + identifier(capture) + "\\s*\\]|" +
                 stringIndex('\'', capture) + "|" + stringIndex('"', capture);
     }

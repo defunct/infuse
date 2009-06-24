@@ -65,10 +65,16 @@ public final class Path extends AbstractList<Part> implements RandomAccess
         Matcher name = NAME.matcher(path);
         Matcher index = INDEX.matcher(path);
         
+        boolean appendIndex = false;
         int nameStart = 0;
         boolean moreParts = true;
         while (moreParts)
         {
+            if (appendIndex)
+            {
+                throw new ParseException(0);
+            }
+
             if (!name.find(nameStart))
             {
                 throw new ParseException(125).add(Messages.stringEscape(path))
@@ -105,17 +111,22 @@ public final class Path extends AbstractList<Part> implements RandomAccess
                 {
                     parts.add(new Part(index.group(2), true, '\0'));
                 }
+                else if (index.group(3) != null)
+                {
+                    parts.add(new Part(index.group(3).trim(), true, '\0'));
+                    appendIndex = true;
+                }
                 else
                 {
                     char quote = '\0';
-                    String key = index.group(3);
+                    String key = index.group(4);
                     if (key == null)
                     {
                         quote = '\'';
-                        key = index.group(4);
+                        key = index.group(5);
                         if (key == null)
                         {
-                            key = index.group(5);
+                            key = index.group(6);
                             quote = '"';
                         }
                     }

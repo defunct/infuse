@@ -72,6 +72,15 @@ public class Infusion
                     throw new IllegalStateException();
                 }
                 ParameterizedType pt = (ParameterizedType) generics;
+                Object key;
+                try
+                {
+                    key = new Transmutator().transmute(Objects.toClass(pt.getActualTypeArguments()[0]), part.getName());
+                }
+                catch (TransmutationException e)
+                {
+                    throw new NavigateException(PathException.NO_REAL_MESSAGE, e);
+                }
                 Type type = pt.getActualTypeArguments()[1];
                 Map<Object, Object> map = Objects.toObjectMap(object);
                 if (index == path.size() - 1)
@@ -85,11 +94,11 @@ public class Infusion
                     {
                         throw new NavigateException(PathException.NO_REAL_MESSAGE, e);
                     }
-                    map.put(part.getName(), value);
+                    map.put(key, value);
                 }
                 else
                 {
-                    Object child = map.get(part.getName());
+                    Object child = map.get(key);
                     if (child == null)
                     {
                         Iterator<ObjectFactory> eachFactory = factories.iterator();
@@ -99,7 +108,7 @@ public class Infusion
                         }
                         if (child != null)
                         {
-                            map.put(part.getName(), child);
+                            map.put(key, child);
                         }
                     }
                     if (child != null)
@@ -118,42 +127,7 @@ public class Infusion
                 Type type = pt.getActualTypeArguments()[0];
                 List<Object> list = Objects.toObjectList(object);
                 int i;
-                try
-                {
-                    i = Integer.parseInt(part.getName());
-                }
-                catch (NumberFormatException e)
-                {
-                    throw new IllegalStateException(e);
-                }
-                int size = 0;
-                Path sizePath = path.subPath(0, index).append(new Part("size"));
-                if (listSizes.containsPath(sizePath))
-                {
-                    size = (Integer) listSizes.get(sizePath);
-                }
-                else
-                {
-                    size = list.size();
-                    listSizes.set(sizePath, (Integer) size);
-                }
-                if (i >= size)
-                {
-                    int j;
-                    for (j = i - 1; j >= size; j--)
-                    {
-                        Path subPath = path.subPath(0, index).append(new Part(Integer.toString(j), true, '\0'));
-                        if (!tree.containsPath(subPath))
-                        {
-                            i--;
-                        }
-                    }
-                    while (list.size() <= i)
-                    {
-                        list.add(null);
-                    }
-                }
-                if (index == path.size() - 1)
+                if (part.isAppend())
                 {
                     Object value;
                     try
@@ -164,22 +138,73 @@ public class Infusion
                     {
                         throw new NavigateException(PathException.NO_REAL_MESSAGE, e);
                     }
-                    list.set(i, value);
+                    list.add(value);
                 }
                 else
                 {
-                    Object child = list.get(i);
-                    if (child == null)
+                    try
                     {
-                        Iterator<ObjectFactory> eachFactory = factories.iterator();
-                        while (eachFactory.hasNext() && child == null)
-                        {
-                            child = eachFactory.next().create(type, tree, path.subPath(0, index + 1));
-                        }
-                        list.set(i, child);
+                        i = Integer.parseInt(part.getName());
                     }
-                    
-                    set(child, tree, path, index + 1, type);
+                    catch (NumberFormatException e)
+                    {
+                        throw new IllegalStateException(e);
+                    }
+                    int size = 0;
+                    Path sizePath = path.subPath(0, index).append(new Part("size"));
+                    if (listSizes.containsPath(sizePath))
+                    {
+                        size = (Integer) listSizes.get(sizePath);
+                    }
+                    else
+                    {
+                        size = list.size();
+                        listSizes.set(sizePath, (Integer) size);
+                    }
+                    if (i >= size)
+                    {
+                        int j;
+                        for (j = i - 1; j >= size; j--)
+                        {
+                            Path subPath = path.subPath(0, index).append(new Part(Integer.toString(j), true, '\0'));
+                            if (!tree.containsPath(subPath))
+                            {
+                                i--;
+                            }
+                        }
+                        while (list.size() <= i)
+                        {
+                            list.add(null);
+                        }
+                    }
+                    if (index == path.size() - 1)
+                    {
+                        Object value;
+                        try
+                        {
+                            value = new Transmutator().transmute(Objects.toClass(type), (String) tree.get(path));
+                        }
+                        catch (TransmutationException e)
+                        {
+                            throw new NavigateException(PathException.NO_REAL_MESSAGE, e);
+                        }
+                        list.set(i, value);
+                    }
+                    else
+                    {
+                        Object child = list.get(i);
+                        if (child == null)
+                        {
+                            Iterator<ObjectFactory> eachFactory = factories.iterator();
+                            while (eachFactory.hasNext() && child == null)
+                            {
+                                child = eachFactory.next().create(type, tree, path.subPath(0, index + 1));
+                            }
+                            list.set(i, child);
+                        }
+                        
+                        set(child, tree, path, index + 1, type);
+                    }
                 }
             }
             else if (object.getClass().isArray())
