@@ -59,12 +59,12 @@ public class Diffusion
             }
             return get(object, path, index + 1);
         }
-        if (object instanceof Map)
+        if (object instanceof Map<?, ?>)
         {
             Map<String, Object> map = Objects.toStringToObject(object);
             return map.get(property.getName());
         }
-        else if (object instanceof List)
+        else if (object instanceof List<?>)
         {
             return null;
         }
@@ -146,7 +146,7 @@ public class Diffusion
                 Path subPath = fullPath.subPath(from, i);
                 Object collection = new Diffusion(object).get(subPath);
                 Path path = base.appendAll(subPath);
-                if (collection instanceof List)
+                if (collection instanceof List<?>)
                 {
                     List<Object> list = Objects.toObjectList(collection);
                     for (int j = 0; j < list.size(); j++)
@@ -172,7 +172,7 @@ public class Diffusion
                         }
                     }
                 }
-                else if (collection instanceof Map)
+                else if (collection instanceof Map<?, ?>)
                 {
                     Map<Object, Object> map = Objects.toObjectMap(collection);
                     for (Map.Entry<Object, Object> entry : map.entrySet())

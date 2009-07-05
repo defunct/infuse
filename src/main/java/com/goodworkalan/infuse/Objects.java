@@ -11,7 +11,7 @@ class Objects
     // TODO Document.
     static Class<?> toClass(Type type)
     {
-        if (type instanceof Class)
+        if (type instanceof Class<?>)
         {
             return (Class<?>) type;
         }

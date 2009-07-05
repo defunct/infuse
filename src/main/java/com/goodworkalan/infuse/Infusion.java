@@ -65,9 +65,9 @@ public class Infusion
         }
         else
         {
-            if (object instanceof Map)
+            if (object instanceof Map<?, ?>)
             {
-                if (generics instanceof Class)
+                if (generics instanceof Class<?>)
                 {
                     throw new IllegalStateException();
                 }
@@ -117,9 +117,9 @@ public class Infusion
                     }
                 }
             }
-            else if (object instanceof List)
+            else if (object instanceof List<?>)
             {
-                if (generics instanceof Class)
+                if (generics instanceof Class<?>)
                 {
                     throw new IllegalStateException();
                 }
