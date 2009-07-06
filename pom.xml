@@ -67,7 +67,7 @@
 
     <distributionManagement>
       <repository>
-        <id>ssh-repository</id>
+        <id>goodworkalan-repository</id>
         <url>scpexe://ljubljana.blogometer.com${distribution.repository.path}</url>
       </repository>
     </distributionManagement>

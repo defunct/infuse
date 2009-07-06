@@ -39,7 +39,7 @@ public class EntityFactory implements ObjectFactory
         {
             clazz = (Class<?>) ((ParameterizedType) type).getRawType();
         }
-        else if (type instanceof Class)
+        else if (type instanceof Class<?>)
         {
             clazz = (Class<?>) type;
         }
