@@ -26,12 +26,12 @@
         </license>
     </licenses>
 
-	<repositories>
+    <repositories>
         <repository>
-		  <id>jdkcn.com</id>
-          <url>http://maven.jdkcn.com/</url>
+            <id>goodworkalan.com</id>
+            <url>http://goodworkalan.com/m2/repository/</url>
         </repository>
-	</repositories>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -61,7 +61,7 @@
 
     <distributionManagement>
       <repository>
-        <id>ssh-repository</id>
+        <id>goodworkalan-repository</id>
         <url>scpexe://ljubljana.blogometer.com${distribution.repository.path}</url>
       </repository>
     </distributionManagement>
