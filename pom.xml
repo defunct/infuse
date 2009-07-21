@@ -70,7 +70,7 @@
         <site.javadoc.show>protected</site.javadoc.show>
         <site.javadoc.visiblity>public</site.javadoc.visiblity>
         <version.suffix>-SNAPSHOT</version.suffix>
-        <distribution.repository.path>/data/transient/www/static/goodworkalan/m2/snapshots</distribution.repository.path>
+        <distribution.repository.path>/opt/var/www/static/goodworkalan/m2/snapshots</distribution.repository.path>
     </properties>
 
     <build>
