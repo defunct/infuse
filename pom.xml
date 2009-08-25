@@ -46,7 +46,7 @@
     <distributionManagement>
       <repository>
         <id>goodworkalan-repository</id>
-        <url>scpexe://ljubljana.blogometer.com${distribution.repository.path}</url>
+        <url>scpexe://portoroz.blogometer.com${distribution.repository.path}</url>
       </repository>
     </distributionManagement>
 
