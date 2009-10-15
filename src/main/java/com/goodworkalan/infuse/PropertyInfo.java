@@ -79,7 +79,7 @@ public class PropertyInfo
                 {
                     try
                     {
-                        parameters[j] = new Transmutator().transmute(setter.getParameterTypes()[j], path.get(index + j + 1).getName());
+                        parameters[j] = new Converter().fromString(setter.getParameterTypes()[j], path.get(index + j + 1).getName());
                     }
                     catch (TransmutationException e)
                     {
@@ -107,7 +107,7 @@ public class PropertyInfo
                 {
                     try
                     {
-                        parameters[j] = new Transmutator().transmute(getter.getParameterTypes()[j], path.get(index + j + 1).getName());
+                        parameters[j] = new Converter().fromString(getter.getParameterTypes()[j], path.get(index + j + 1).getName());
                     }
                     catch (TransmutationException e)
                     {

@@ -89,7 +89,7 @@ public class Diffusion
                 {
                     try
                     {
-                        parameters[j] = new Transmutator().transmute(getter.getParameterTypes()[j], path.get(index + j + 1).getName());
+                        parameters[j] = new Converter().fromString(getter.getParameterTypes()[j], path.get(index + j + 1).getName());
                     }
                     catch (Exception e)
                     {

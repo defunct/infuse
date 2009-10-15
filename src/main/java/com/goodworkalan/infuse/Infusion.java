@@ -75,7 +75,7 @@ public class Infusion
                 Object key;
                 try
                 {
-                    key = new Transmutator().transmute(Objects.toClass(pt.getActualTypeArguments()[0]), part.getName());
+                    key = new Converter().fromString(Objects.toClass(pt.getActualTypeArguments()[0]), part.getName());
                 }
                 catch (TransmutationException e)
                 {
@@ -88,7 +88,7 @@ public class Infusion
                     Object value;
                     try
                     {
-                        value = new Transmutator().transmute(Objects.toClass(type), (String) tree.get(path));
+                        value = new Converter().fromString(Objects.toClass(type), (String) tree.get(path));
                     }
                     catch (TransmutationException e)
                     {
@@ -132,7 +132,7 @@ public class Infusion
                     Object value;
                     try
                     {
-                        value = new Transmutator().transmute(Objects.toClass(type), (String) tree.get(path));
+                        value = new Converter().fromString(Objects.toClass(type), (String) tree.get(path));
                     }
                     catch (TransmutationException e)
                     {
@@ -182,7 +182,7 @@ public class Infusion
                         Object value;
                         try
                         {
-                            value = new Transmutator().transmute(Objects.toClass(type), (String) tree.get(path));
+                            value = new Converter().fromString(Objects.toClass(type), (String) tree.get(path));
                         }
                         catch (TransmutationException e)
                         {
@@ -229,7 +229,7 @@ public class Infusion
                         Object[] parameters;
                         try
                         {
-                            parameters = propertyInfo.getSetterParameters(path, setter, index, new Transmutator().transmute(Objects.toClass(setter.getParameterTypes()[i]), (String) tree.get(path)));
+                            parameters = propertyInfo.getSetterParameters(path, setter, index, new Converter().fromString(Objects.toClass(setter.getParameterTypes()[i]), (String) tree.get(path)));
                         }
                         catch (TransmutationException e1)
                         {
