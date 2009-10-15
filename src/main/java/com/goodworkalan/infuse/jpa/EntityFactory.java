@@ -14,7 +14,7 @@ import com.goodworkalan.infuse.Part;
 import com.goodworkalan.infuse.Path;
 import com.goodworkalan.infuse.PropertyInfo;
 import com.goodworkalan.infuse.TransmutationException;
-import com.goodworkalan.infuse.Transmutator;
+import com.goodworkalan.infuse.Converter;
 import com.goodworkalan.infuse.Tree;
 
 /**
@@ -61,7 +61,7 @@ public class EntityFactory implements ObjectFactory
                     }
                     try
                     {
-                        return em.find(clazz, new Transmutator().transmute(propertyInfo.getPropertyType(), value));
+                        return em.find(clazz, new Converter().fromString(propertyInfo.getPropertyType(), value));
                     }
                     catch (TransmutationException e)
                     {
