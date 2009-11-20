@@ -1,4 +1,4 @@
-package com.goodworkalan.go.go.mix;
+package com.goodworkalan.infuse.mix;
 
 import com.goodworkalan.go.go.Artifact;
 import com.goodworkalan.mix.ProjectModule;
