@@ -19,7 +19,7 @@ public class InfuseGuiceProject extends ProjectModule {
                     .end()
                 .test()
                     .depends()
-                        .artifact(new Artifact("org.testng/testng/5.10"))
+                        .artifact(new Artifact("org.testng/testng/5.10/jdk15"))
                         .artifact(new Artifact("org.mockito/mockito-core/1.6"))
                         .end()
                     .end()
