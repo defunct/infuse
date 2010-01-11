@@ -14,12 +14,17 @@ public class PropertyInfo
     
     public PropertyInfo(Class<?> type, Method method)
     {
+        // This is because JavaNCSS gets confused parsing it where I use
+        // it down below.
+        Class<?> nativeBoolean = boolean.class;
+        // No other reason for this local variable.
+
         Matcher matcher = PROPERTY.matcher(method.getName());
         if (!matcher.matches())
         {
             throw new IllegalArgumentException();
         }
-        else if (matcher.group(1).equals("is") && !(boolean.class.isAssignableFrom(method.getReturnType()) || Boolean.class.isAssignableFrom(method.getReturnType())))
+        else if (matcher.group(1).equals("is") && !(nativeBoolean.isAssignableFrom(method.getReturnType()) || Boolean.class.isAssignableFrom(method.getReturnType())))
         {
             throw new IllegalArgumentException();
         }
