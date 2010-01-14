@@ -159,7 +159,7 @@ public class Infusion
                     else
                     {
                         size = list.size();
-                        listSizes.set(sizePath, (Integer) size);
+                        listSizes.set(sizePath, size);
                     }
                     if (i >= size)
                     {

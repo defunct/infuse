@@ -131,7 +131,7 @@ public final class Part implements Comparable<Part>
         int hash = 694847539;
         hash = hash * 37 + name.hashCode();
         hash = hash * 37 + (index ? 533000401 : 553105243);
-        hash = hash * 37 + (int) quote;
+        hash = hash * 37 + quote;
         return hash;
     }
 
@@ -153,7 +153,7 @@ public final class Part implements Comparable<Part>
             compare = index == part.index ? 0 : index ? -1 : 1;
             if (compare == 0)
             {
-                compare = (int) quote - (int) part.quote;
+                compare = quote - part.quote;
             }
         }
         return compare;

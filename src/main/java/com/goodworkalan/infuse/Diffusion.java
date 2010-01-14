@@ -113,10 +113,7 @@ public class Diffusion
             {
                 return child;
             }
-            else
-            {
-                return get(child, path, index + i + 1);
-            }
+            return get(child, path, index + i + 1);
         }
         return child;
     }

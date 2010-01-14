@@ -25,14 +25,14 @@ public class ConverterTest {
     @Test
     public void transmuteBoolean() throws TransmutationException {
         Converter converter = new Converter();
-        assertEquals((Boolean) converter.fromString(boolean.class, "true"), (Boolean) true);
+        assertEquals(converter.fromString(boolean.class, "true"), true);
     }
 
     @Test
     public void transmuteCharacter() throws TransmutationException {
         Converter converter = new Converter() {
         };
-        assertEquals((Character) converter.fromString(char.class, "a"), (Character) 'a');
+        assertEquals(converter.fromString(char.class, "a"), 'a');
     }
 
     @Test
