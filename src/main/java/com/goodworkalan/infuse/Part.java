@@ -61,6 +61,27 @@ public final class Part implements Comparable<Part>
     }
 
     /**
+     * Return true if the index is an integer index.
+     * 
+     * @return True if the index is an integer index.
+     */
+    public boolean isInteger() {
+        if (index && quote == '\0') {
+            int ch = 0;
+            if (name.charAt(ch) == '-' || name.charAt(ch) == '+') {
+                ch++;
+            }
+            for (;ch < name.length(); ch++) {
+                if (!Character.isDigit(name.charAt(ch))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Return true if this part is an empty bracket set, the terminal part of a
      * PHP array parameter path. This is from the PHP array construct
      * "parameter[]=value".

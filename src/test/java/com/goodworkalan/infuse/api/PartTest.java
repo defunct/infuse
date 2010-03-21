@@ -30,6 +30,16 @@ public class PartTest
     }
     
     @Test
+    public void isInteger() {
+        assertTrue(new Part("0", true, '\0').isInteger());
+        assertFalse(new Part("0", false, '\0').isInteger());
+        assertFalse(new Part("0", true, '"').isInteger());
+        assertFalse(new Part("a", true, '\0').isInteger());
+        assertTrue(new Part("+1", true, '\0').isInteger());
+        assertTrue(new Part("-1", true, '\0').isInteger());
+    }
+    
+    @Test
     public void equals()
     {
         Part part = new Part("name", true, '"');
