@@ -43,7 +43,7 @@ public class Patterns
         return
             "\\[\\s*" +
                 (capture ? "(" : "") +
-                    "\\d+" +
+                    "-?\\d+" +
                 (capture ? ")" : "") +
             "\\s*\\]";
     }

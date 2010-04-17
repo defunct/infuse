@@ -20,7 +20,7 @@ public final class Path extends AbstractList<Part> implements RandomAccess
     private final static Pattern NAME = Pattern.compile("\\s*" + identifier(true) + "\\s*([\\[.]?)");
 
     /** Matches an index in a path. */
-    private final static Pattern INDEX = Pattern.compile("(?:" + anyIndex(true) + ")\\s*([\\[.]?)");
+    private final static Pattern INDEX = Pattern.compile("\\s*(?:" + anyIndex(true) + ")\\s*([\\[.]?)");
 
     /**
      * Create an empty path.
@@ -93,7 +93,7 @@ public final class Path extends AbstractList<Part> implements RandomAccess
             Matcher more = name;
             while (moreIndexes(more))
             {
-                if (!index.find(indexStart))
+                if (!index.find(indexStart) || index.start() != indexStart)
                 {
                     throw new ParseException(127).add(Messages.stringEscape(path))
                                                  .add(indexStart);

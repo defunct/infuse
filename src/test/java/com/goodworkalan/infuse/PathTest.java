@@ -177,6 +177,25 @@ public class PathTest
         }
     }
     
+    @Test(expectedExceptions=ParseException.class)
+    public void badIndexValue() throws PathException {
+        String part = "a[@2][b]";
+        try {
+            new Path(part, false);
+        } catch (ParseException e) {
+            assertEquals(e.getMessage(), "Unable to parse path \"a[@2][b]\". Invalid index specification at index 1.");
+            assertEquals(e.getCode(), 127);
+            throw e;
+        }
+    }
+    
+    public void negativeInteger() throws PathException {
+        Path path = new Path("a[-2][b]", false);
+        assertEquals(path.get(1).getName(), "-2"); 
+        assertTrue(path.get(1).isInteger()); 
+
+    }
+    
     @Test(expectedExceptions=PathException.class)
     public void badIndexAlphaNum() throws PathException
     {

@@ -1,5 +1,6 @@
 package com.goodworkalan.infuse;
 
+// FIXME Rename to path parse exception.
 public class ParseException extends PathException
 {
     private static final long serialVersionUID = 1L;
