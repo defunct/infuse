@@ -46,7 +46,7 @@ public class Infuser {
             try {
                 infuser = reflective.getConstructor(infuserClass, Class.class).newInstance(type);
             } catch (ReflectiveException e) {
-                throw new InfusionException(0, e, infuserClass, type);
+                throw new InfusionException(Infuser.class, "new.infuser", e, infuserClass, type);
             }
             infusers.put(type, infuser);
         }

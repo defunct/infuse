@@ -15,17 +15,6 @@ public class StringConstructorInfuser implements ObjectInfuser {
     private final Constructor<?> constructor;
 
     /**
-     * Create a string constructor infuser using the given single string
-     * argument constructor.
-     * 
-     * @param constructor
-     *            The constructor.
-     */
-    public StringConstructorInfuser(Constructor<?> constructor) {
-        this.constructor = constructor;
-    }
-
-    /**
      * Create a string constructor converter that converts strings to the given
      * type. The given type must implement a public single string argument
      * constructor.
@@ -61,7 +50,7 @@ public class StringConstructorInfuser implements ObjectInfuser {
         try {
             this.constructor = reflective.getConstructor(type, String.class);
         } catch (ReflectiveException e) {
-            throw new InfusionException(0, e, type);
+            throw new InfusionException(StringConstructorInfuser.class, "get.constructor", e, type);
         }
     }
 
@@ -84,7 +73,7 @@ public class StringConstructorInfuser implements ObjectInfuser {
         try {
             return constructor.newInstance(string);
         } catch (ReflectiveException e) {
-            throw new InfusionException(0, e, string);
+            throw new InfusionException(StringConstructorInfuser.class, "new.instance", e, constructor.getNative().getDeclaringClass(), string);
         }
     }
 }

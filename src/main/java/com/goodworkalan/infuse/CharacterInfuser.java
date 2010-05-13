@@ -37,8 +37,12 @@ public class CharacterInfuser implements ObjectInfuser {
             return type.isPrimitive() ? ((char) 0) : null;
         }
 
+        if (string.length() == 0) {
+            throw new InfusionException(CharacterInfuser.class, "character.zero");
+        }
+        
         if (string.length() != 1) {
-            throw new InfusionException(0, string);
+            throw new InfusionException(CharacterInfuser.class, "character.length", string);
         }
         
         return string.charAt(0);

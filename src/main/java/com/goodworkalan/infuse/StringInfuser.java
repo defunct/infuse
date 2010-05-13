@@ -21,8 +21,8 @@ public class StringInfuser implements ObjectInfuser {
     /**
      * Performs no conversion, simply return the given string.
      * 
-     * @param The
-     *            string to convert.
+     * @param string
+     *            The string to convert.
      * @return The given string.
      */
     public Object infuse(String string) {

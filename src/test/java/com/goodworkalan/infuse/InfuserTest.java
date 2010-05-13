@@ -1,10 +1,16 @@
 package com.goodworkalan.infuse;
-import static org.testng.Assert.*;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.testng.annotations.Test;
+
+import com.goodworkalan.reflective.Constructor;
+import com.goodworkalan.reflective.ReflectiveException;
+import com.goodworkalan.reflective.ReflectiveFactory;
 
 /**
  * Unit tests for the {@link Infuser} class.
@@ -12,7 +18,7 @@ import org.testng.annotations.Test;
  * @author Alan Gutierrez
  */
 public class InfuserTest {
-    /** Test coversion to integer.  */
+    /** Test conversion to integer.  */
     @Test
     public void defaults() throws MalformedURLException {
         Infuser infuser = new Infuser();
@@ -25,5 +31,75 @@ public class InfuserTest {
         assertEquals(infuser.infuse(URL.class, "http://hello.com"), new URL("http://hello.com"));
         assertNull(infuser.infuse(Integer.class, null));
         assertEquals(infuser.infuse(String.class, "1"), "1");
+    }
+    
+    /** Cannot convert character */
+    @Test(expectedExceptions = InfusionException.class)
+    public void badCharacter() {
+        exceptional(new Runnable() {
+            public void run() {
+                new Infuser().infuse(char.class, "00");
+            }
+        }, "CharacterInfuser/character.length", "The string value [00] is too long to convert to a character.");
+    }
+    
+    /** Cannot zero length character */
+    @Test(expectedExceptions = InfusionException.class)
+    public void zeroCharacter() {
+        exceptional(new Runnable() {
+            public void run() {
+                new Infuser().infuse(char.class, "");
+            }
+        }, "CharacterInfuser/character.zero", "Unable to convert zero length string into a character.");
+    }
+    
+    /** Cannot create an object infuser. */
+    @Test(expectedExceptions = InfusionException.class)
+    public void cannotCreateObjectInfuser() {
+        exceptional(new Runnable() {
+            public void run() {
+                Infuser infuser = new Infuser(new ReflectiveFactory() {
+                    public <T> Constructor<T> getConstructor(Class<T> type, Class<?>... initargs)
+                    throws ReflectiveException {
+                        try {
+                            throw new NoSuchMethodException();
+                        } catch (NoSuchMethodException e) {
+                            throw new ReflectiveException(ReflectiveException.NO_SUCH_METHOD, e);
+                        }
+                    }
+                });
+                infuser.getInfuser(int.class);
+            }
+        }, "Infuser/new.infuser", "Cannot create a new object infuser of type [com.goodworkalan.infuse.PrimitiveInfuser].");
+    }
+    
+    /** Test set infuser. */
+    @Test
+    public void setInfuser() {
+        Infuser infuser = new Infuser();
+        infuser.setInfuser(String.class, BogusInfuser.class);
+        assertEquals(infuser.infuse(String.class, "a"), new Integer(1));
+    }
+
+    /**
+     * Run the given runnable and catch an infusion exception, asserting that
+     * the exception message key and message are equal to the given message key
+     * and given message.
+     * 
+     * @param runnable
+     *            The exception throwing code.
+     * @param messageKey
+     *            The expected message key.
+     * @param message
+     *            The expected message.
+     */
+    public static void exceptional(Runnable runnable, String messageKey, String message) {
+        try {
+            runnable.run();
+        } catch (InfusionException e) {
+            assertEquals(e.getMessageKey(), messageKey);
+            assertEquals(e.getMessage(), message);
+            throw e;
+        }
     }
 }
