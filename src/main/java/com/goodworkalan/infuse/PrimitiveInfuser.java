@@ -1,6 +1,5 @@
 package com.goodworkalan.infuse;
 
-import com.goodworkalan.reflective.ReflectiveFactory;
 import com.goodworkalan.utility.Primitives;
 
 public class PrimitiveInfuser implements ObjectInfuser {
@@ -9,10 +8,6 @@ public class PrimitiveInfuser implements ObjectInfuser {
     private final String defaultValue;
     
     public PrimitiveInfuser(Class<?> type) {
-        this(new ReflectiveFactory(), type);
-    }
-    
-    public PrimitiveInfuser(ReflectiveFactory reflective, Class<?> type) {
         this.infuser = new StringConstructorInfuser(Primitives.box(type));
         this.defaultValue = type.isPrimitive() ? "0" : null;
     }

@@ -8,10 +8,6 @@ import java.net.URL;
 
 import org.testng.annotations.Test;
 
-import com.goodworkalan.reflective.Constructor;
-import com.goodworkalan.reflective.ReflectiveException;
-import com.goodworkalan.reflective.ReflectiveFactory;
-
 /**
  * Unit tests for the {@link Infuser} class.
  *
@@ -51,26 +47,6 @@ public class InfuserTest {
                 new Infuser().infuse(char.class, "");
             }
         }, "CharacterInfuser/character.zero", "Unable to convert zero length string into a character.");
-    }
-    
-    /** Cannot create an object infuser. */
-    @Test(expectedExceptions = InfusionException.class)
-    public void cannotCreateObjectInfuser() {
-        exceptional(new Runnable() {
-            public void run() {
-                Infuser infuser = new Infuser(new ReflectiveFactory() {
-                    public <T> Constructor<T> getConstructor(Class<T> type, Class<?>... initargs)
-                    throws ReflectiveException {
-                        try {
-                            throw new NoSuchMethodException();
-                        } catch (NoSuchMethodException e) {
-                            throw new ReflectiveException(ReflectiveException.NO_SUCH_METHOD, e);
-                        }
-                    }
-                });
-                infuser.getInfuser(int.class);
-            }
-        }, "Infuser/new.infuser", "Cannot create a new object infuser of type [com.goodworkalan.infuse.PrimitiveInfuser].");
     }
     
     /** Test set infuser. */

@@ -3,25 +3,17 @@ package com.goodworkalan.infuse;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.goodworkalan.reflective.Reflective;
 import com.goodworkalan.reflective.ReflectiveException;
-import com.goodworkalan.reflective.ReflectiveFactory;
 import com.goodworkalan.utility.ClassAssociation;
 import com.goodworkalan.utility.Primitives;
 
 public class Infuser {
-    private final ReflectiveFactory reflective;
-    
     private final ConcurrentMap<Class<?>, ObjectInfuser> infusers = new ConcurrentHashMap<Class<?>, ObjectInfuser>();
 
     private final ClassAssociation<Class<? extends ObjectInfuser>> associations = new ClassAssociation<Class<? extends ObjectInfuser>>();
     
     public Infuser() {
-        this(new ReflectiveFactory());
-    }
-    
-    Infuser(ReflectiveFactory reflective) {
-        this.reflective = reflective;
-        
         associations.assignable(Boolean.class, PrimitiveInfuser.class);
         associations.assignable(Byte.class, PrimitiveInfuser.class);
         associations.assignable(Character.class, CharacterInfuser.class);
@@ -39,12 +31,16 @@ public class Infuser {
         associations.assignable(type, infuser);
     }
     
-    public ObjectInfuser getInfuser(Class<?> type) {
+    public ObjectInfuser getInfuser(final Class<?> type) {
         ObjectInfuser infuser = infusers.get(type);
         if (infuser == null) {
             Class<? extends ObjectInfuser> infuserClass = associations.get(Primitives.box(type));
             try {
-                infuser = reflective.getConstructor(infuserClass, Class.class).newInstance(type);
+                try {
+                    infuser = infuserClass.getConstructor(Class.class).newInstance(type);
+                } catch (Throwable e) {
+                    throw new ReflectiveException(Reflective.encode(e), e);
+                }
             } catch (ReflectiveException e) {
                 throw new InfusionException(Infuser.class, "new.infuser", e, infuserClass, type);
             }

@@ -1,8 +1,9 @@
 package com.goodworkalan.infuse;
 
-import com.goodworkalan.reflective.Constructor;
+import java.lang.reflect.Constructor;
+
+import com.goodworkalan.reflective.Reflective;
 import com.goodworkalan.reflective.ReflectiveException;
-import com.goodworkalan.reflective.ReflectiveFactory;
 
 /**
  * Converts strings to objects by calling the single string argument constructor
@@ -25,30 +26,13 @@ public class StringConstructorInfuser implements ObjectInfuser {
      *                If a public single string argument constructor cannot be
      *                found for the target type.
      */
-    public StringConstructorInfuser(Class<?> type) {
-        this(new ReflectiveFactory(), type);
-    }
-
-    /**
-     * Create a string constructor converter that converts strings to the given
-     * type that discovers the constructor using the given reflective factory.
-     * The given type must implement a public single string argument
-     * constructor.
-     * <p>
-     * The reflective factory is used in unit testing to simulate reflection
-     * failures.
-     * 
-     * @param reflective
-     *            The reflective factory to use for reflection.
-     * @param type
-     *            The type to convert to.
-     * @exception InfusionException
-     *                If a public single string argument constructor cannot be
-     *                found for the target type.
-     */
-    public StringConstructorInfuser(ReflectiveFactory reflective, Class<?> type) {
+    public StringConstructorInfuser(final Class<?> type) {
         try {
-            this.constructor = reflective.getConstructor(type, String.class);
+            try {
+                this.constructor = type.getConstructor(String.class);
+            } catch (Throwable e) {
+                throw new ReflectiveException(Reflective.encode(e), e);
+            }
         } catch (ReflectiveException e) {
             throw new InfusionException(StringConstructorInfuser.class, "get.constructor", e, type);
         }
@@ -66,14 +50,19 @@ public class StringConstructorInfuser implements ObjectInfuser {
      *                If the reflective constructor invocation raises an
      *                exception.
      */
-    public Object infuse(String string) {
+    public Object infuse(final String string) {
         if (string == null) {
             return null;
         }
         try {
-            return constructor.newInstance(string);
+            try {
+                return constructor.newInstance(string);
+            } catch (Throwable e) {
+                throw new ReflectiveException(Reflective.encode(e), e);
+            }
         } catch (ReflectiveException e) {
-            throw new InfusionException(StringConstructorInfuser.class, "new.instance", e, constructor.getNative().getDeclaringClass(), string);
+            throw new InfusionException(StringConstructorInfuser.class, "new.instance", constructor.getDeclaringClass(), string);
         }
+
     }
 }
