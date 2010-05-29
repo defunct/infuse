@@ -11,9 +11,10 @@ import com.goodworkalan.utility.Primitives;
 public class Infuser {
     private final ConcurrentMap<Class<?>, ObjectInfuser> infusers = new ConcurrentHashMap<Class<?>, ObjectInfuser>();
 
-    private final ClassAssociation<Class<? extends ObjectInfuser>> associations = new ClassAssociation<Class<? extends ObjectInfuser>>();
+    private final ClassAssociation<Class<? extends ObjectInfuser>> associations;
     
     public Infuser() {
+        associations = new ClassAssociation<Class<? extends ObjectInfuser>>();
         associations.assignable(Boolean.class, PrimitiveInfuser.class);
         associations.assignable(Byte.class, PrimitiveInfuser.class);
         associations.assignable(Character.class, CharacterInfuser.class);
@@ -26,8 +27,12 @@ public class Infuser {
         associations.assignable(Object.class, StringConstructorInfuser.class);
     }
     
+    public Infuser(Infuser infuser) {
+        associations = new ClassAssociation<Class<? extends ObjectInfuser>>(infuser.associations);
+    }
+    
     public void setInfuser(Class<?> type, Class<? extends ObjectInfuser> infuser) {
-        infusers.clear();
+        infusers.clear(); // XXX What is this for?
         associations.assignable(type, infuser);
     }
     
