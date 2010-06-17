@@ -38,18 +38,18 @@ public class StringConstructorInfuser implements ObjectInfuser {
         }
     }
 
-    /**
-     * Convert the given string into the type associated with this object
-     * infuser by calling the single string argument constructor for the target
-     * type. Returns null if the given string is null.
-     * 
-     * @param The
-     *            string to convert.
-     * @return An instance of the target type or null.
-     * @exception InfusionException
-     *                If the reflective constructor invocation raises an
-     *                exception.
-     */
+	/**
+	 * Convert the given string into the type associated with this object
+	 * infuser by calling the single string argument constructor for the target
+	 * type. Returns null if the given string is null.
+	 * 
+	 * @param string
+	 *            The string to convert.
+	 * @return An instance of the target type or null.
+	 * @exception InfusionException
+	 *                If the reflective constructor invocation raises an
+	 *                exception.
+	 */
     public Object infuse(final String string) {
         if (string == null) {
             return null;

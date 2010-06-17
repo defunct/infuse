@@ -1,9 +1,5 @@
 package com.goodworkalan.infuse;
 
-import java.util.ResourceBundle;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 import com.goodworkalan.danger.ContextualDanger;
 
 /**
@@ -14,9 +10,6 @@ import com.goodworkalan.danger.ContextualDanger;
 public class InfusionException extends ContextualDanger {
     /** Serial version id. */
     private static final long serialVersionUID = -1L;
-
-    /** The cache of message exception resource bundles. */
-    private final static ConcurrentMap<String, ResourceBundle> BUNDLES = new ConcurrentHashMap<String, ResourceBundle>();
 
     /**
      * Create an infusion exception with the given context, the given message
@@ -30,7 +23,7 @@ public class InfusionException extends ContextualDanger {
      *            The positioned format arguments.
      */
     public InfusionException(Class<?> contextClass, String messageKey, Object... arguments) {
-        super(BUNDLES, contextClass, messageKey, null, arguments);
+        super(contextClass, messageKey, null, arguments);
     }
 
     /**
@@ -47,6 +40,6 @@ public class InfusionException extends ContextualDanger {
      *            The positioned format arguments.
      */
     public InfusionException(Class<?> contextClass, String messageKey, Throwable cause, Object...arguments) {
-        super(BUNDLES, contextClass, messageKey, cause, arguments);
+        super(contextClass, messageKey, cause, arguments);
     }
 }
