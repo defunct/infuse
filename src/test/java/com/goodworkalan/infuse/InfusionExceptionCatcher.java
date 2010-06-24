@@ -2,6 +2,7 @@ package com.goodworkalan.infuse;
 
 import static org.testng.Assert.assertEquals;
 
+// TODO Document.
 public class InfusionExceptionCatcher {
     /** The expected message key. */
     private String messageKey;

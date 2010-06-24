@@ -8,11 +8,15 @@ import com.goodworkalan.reflective.ReflectiveException;
 import com.goodworkalan.utility.ClassAssociation;
 import com.goodworkalan.utility.Primitives;
 
+// TODO Document.
 public class Infuser {
+    // TODO Document.
     private final ConcurrentMap<Class<?>, ObjectInfuser> infusers = new ConcurrentHashMap<Class<?>, ObjectInfuser>();
 
+    // TODO Document.
     private final ClassAssociation<Class<? extends ObjectInfuser>> associations;
     
+    // TODO Document.
     public Infuser() {
         associations = new ClassAssociation<Class<? extends ObjectInfuser>>();
         associations.assignable(Boolean.class, PrimitiveInfuser.class);
@@ -27,15 +31,18 @@ public class Infuser {
         associations.assignable(Object.class, StringConstructorInfuser.class);
     }
     
+    // TODO Document.
     public Infuser(Infuser infuser) {
         associations = new ClassAssociation<Class<? extends ObjectInfuser>>(infuser.associations);
     }
     
+    // TODO Document.
     public void setInfuser(Class<?> type, Class<? extends ObjectInfuser> infuser) {
         infusers.clear(); // XXX What is this for?
         associations.assignable(type, infuser);
     }
     
+    // TODO Document.
     public ObjectInfuser getInfuser(final Class<?> type) {
         ObjectInfuser infuser = infusers.get(type);
         if (infuser == null) {
@@ -54,6 +61,7 @@ public class Infuser {
         return infuser;
     }
 
+    // TODO Document.
     public Object infuse(Class<?> type, String string) {
         return getInfuser(type).infuse(string);
     }
