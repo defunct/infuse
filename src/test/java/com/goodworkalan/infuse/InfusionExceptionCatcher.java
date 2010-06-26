@@ -2,7 +2,12 @@ package com.goodworkalan.infuse;
 
 import static org.testng.Assert.assertEquals;
 
-// TODO Document.
+/**
+ * Captures an {@link InfusionException} that is run in a <code>Runnable</code>
+ * implementation and checks the message and error code.
+ * 
+ * @author Alan Gutierrez
+ */
 public class InfusionExceptionCatcher {
     /** The expected message key. */
     private String messageKey;
