@@ -1,10 +1,10 @@
 package com.goodworkalan.infuse;
 
+import static com.goodworkalan.infuse.InfusionException.$;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.goodworkalan.reflective.Reflective;
-import com.goodworkalan.reflective.ReflectiveException;
 import com.goodworkalan.utility.ClassAssociation;
 import com.goodworkalan.utility.Primitives;
 
@@ -106,13 +106,9 @@ public class Infuser {
         if (infuser == null) {
             Class<? extends ObjectInfuser> infuserClass = associations.get(Primitives.box(type));
             try {
-                try {
-                    infuser = infuserClass.getConstructor(Class.class).newInstance(type);
-                } catch (Throwable e) {
-                    throw new ReflectiveException(Reflective.encode(e), e);
-                }
-            } catch (ReflectiveException e) {
-                throw new InfusionException(Infuser.class, "new.infuser", e, infuserClass, type);
+                infuser = infuserClass.getConstructor(Class.class).newInstance(type);
+            } catch (Throwable e) {
+                throw new InfusionException($(e), Infuser.class, "new.infuser", e, infuserClass, type);
             }
             infusers.put(type, infuser);
         }

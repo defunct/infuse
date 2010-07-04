@@ -36,7 +36,7 @@ public class InfuserTest {
             public void run() {
                 new Infuser().infuse(char.class, "00");
             }
-        }, "CharacterInfuser/character.length", "The string value [00] is too long to convert to a character.");
+        }, CharacterInfuser.class, "character.length", "The string value [00] is too long to convert to a character.");
     }
     
     /** Cannot zero length character */
@@ -46,7 +46,7 @@ public class InfuserTest {
             public void run() {
                 new Infuser().infuse(char.class, "");
             }
-        }, "CharacterInfuser/character.zero", "Unable to convert zero length string into a character.");
+        }, CharacterInfuser.class, "character.zero", "Unable to convert zero length string into a character.");
     }
     
     /** Test set infuser. */
@@ -64,16 +64,19 @@ public class InfuserTest {
      * 
      * @param runnable
      *            The exception throwing code.
-     * @param messageKey
-     *            The expected message key.
+     * @param contextClass
+     *            The expected context class.
+     * @param code
+     *            The expected error code.
      * @param message
      *            The expected message.
      */
-    public static void exceptional(Runnable runnable, String messageKey, String message) {
+    public static void exceptional(Runnable runnable, Class<?> contextClass, String code, String message) {
         try {
             runnable.run();
         } catch (InfusionException e) {
-            assertEquals(e.getMessageKey(), messageKey);
+            assertEquals(e.contextClass, contextClass);
+            assertEquals(e.code, code);
             assertEquals(e.getMessage(), message);
             throw e;
         }

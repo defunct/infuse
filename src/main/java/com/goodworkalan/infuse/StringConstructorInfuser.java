@@ -1,9 +1,8 @@
 package com.goodworkalan.infuse;
 
-import java.lang.reflect.Constructor;
+import static com.goodworkalan.infuse.InfusionException.$;
 
-import com.goodworkalan.reflective.Reflective;
-import com.goodworkalan.reflective.ReflectiveException;
+import java.lang.reflect.Constructor;
 
 /**
  * Converts strings to objects by calling the single string argument constructor
@@ -28,13 +27,9 @@ public class StringConstructorInfuser implements ObjectInfuser {
      */
     public StringConstructorInfuser(final Class<?> type) {
         try {
-            try {
-                this.constructor = type.getConstructor(String.class);
-            } catch (Throwable e) {
-                throw new ReflectiveException(Reflective.encode(e), e);
-            }
-        } catch (ReflectiveException e) {
-            throw new InfusionException(StringConstructorInfuser.class, "get.constructor", e, type);
+            this.constructor = type.getConstructor(String.class);
+        } catch (Throwable e) {
+            throw new InfusionException($(e), StringConstructorInfuser.class, "get.constructor", e, type);
         }
     }
 
@@ -55,14 +50,9 @@ public class StringConstructorInfuser implements ObjectInfuser {
             return null;
         }
         try {
-            try {
-                return constructor.newInstance(string);
-            } catch (Throwable e) {
-                throw new ReflectiveException(Reflective.encode(e), e);
-            }
-        } catch (ReflectiveException e) {
-            throw new InfusionException(StringConstructorInfuser.class, "new.instance", constructor.getDeclaringClass(), string);
+            return constructor.newInstance(string);
+        } catch (Throwable e) {
+            throw new InfusionException($(e), StringConstructorInfuser.class, "new.instance", constructor.getDeclaringClass(), string);
         }
-
     }
 }

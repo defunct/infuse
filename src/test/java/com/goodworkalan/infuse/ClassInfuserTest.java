@@ -20,10 +20,10 @@ public class ClassInfuserTest {
     /** Test failure to load a class. */
     @Test(expectedExceptions = InfusionException.class)
     public void notFound() {
-        new InfusionExceptionCatcher(new Runnable() {
+        InfuserTest.exceptional(new Runnable() {
             public void run() {
                 new ClassInfuser(null).infuse("this.class.cannot.Exist");
             }
-        }, "ClassInfuser/classNotFound", "Cannot find class [this.class.cannot.Exist].").run();
+        }, ClassInfuser.class, "classNotFound", "Cannot find class [this.class.cannot.Exist].");
     }
 }
