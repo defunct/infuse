@@ -1,8 +1,6 @@
 package com.goodworkalan.infuse;
 
 import java.util.Locale;
-import java.util.MissingFormatArgumentException;
-import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 /**
