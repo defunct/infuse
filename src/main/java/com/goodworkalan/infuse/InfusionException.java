@@ -78,7 +78,7 @@ public class InfusionException extends RuntimeException {
     
     /**
      * Assert that the given exception is a reflection related
-     * <code>Exception</code>. .
+     * <code>Exception</code>. (FIXME Outgoing!)
      * 
      * @param e
      *            The throwable.
