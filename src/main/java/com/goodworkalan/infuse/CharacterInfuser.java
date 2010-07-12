@@ -1,5 +1,7 @@
 package com.goodworkalan.infuse;
 
+import com.goodworkalan.danger.Danger;
+
 /**
  * Converts a string containing a single character into the single character.
  * 
@@ -38,11 +40,11 @@ public class CharacterInfuser implements ObjectInfuser {
         }
 
         if (string.length() == 0) {
-            throw new InfusionException(CharacterInfuser.class, "character.zero");
+            throw new Danger(CharacterInfuser.class, "character.zero");
         }
         
         if (string.length() != 1) {
-            throw new InfusionException(CharacterInfuser.class, "character.length", string);
+            throw new Danger(CharacterInfuser.class, "character.length", string);
         }
         
         return string.charAt(0);

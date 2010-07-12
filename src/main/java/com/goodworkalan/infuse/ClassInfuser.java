@@ -1,5 +1,7 @@
 package com.goodworkalan.infuse;
 
+import com.goodworkalan.danger.Danger;
+
 /**
  * An infuser that loads a class from a class name.
  *
@@ -27,7 +29,7 @@ public class ClassInfuser implements ObjectInfuser {
         try {
             return Thread.currentThread().getContextClassLoader().loadClass(string);
         } catch (ClassNotFoundException e) {
-            throw new InfusionException(ClassInfuser.class, "classNotFound", string);
+            throw new Danger(e, ClassInfuser.class, "classNotFound", string);
         }
     }
 }

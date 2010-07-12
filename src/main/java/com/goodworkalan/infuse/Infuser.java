@@ -1,10 +1,9 @@
 package com.goodworkalan.infuse;
 
-import static com.goodworkalan.infuse.InfusionException.$;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.goodworkalan.danger.Danger;
 import com.goodworkalan.utility.ClassAssociation;
 import com.goodworkalan.utility.Primitives;
 
@@ -107,8 +106,8 @@ public class Infuser {
             Class<? extends ObjectInfuser> infuserClass = associations.get(Primitives.box(type));
             try {
                 infuser = infuserClass.getConstructor(Class.class).newInstance(type);
-            } catch (Throwable e) {
-                throw new InfusionException($(e), Infuser.class, "new.infuser", e, infuserClass, type);
+            } catch (Exception e) {
+                throw new Danger(e, Infuser.class, "new.infuser", e, infuserClass, type);
             }
             infusers.put(type, infuser);
         }

@@ -1,8 +1,8 @@
 package com.goodworkalan.infuse;
 
-import static com.goodworkalan.infuse.InfusionException.$;
-
 import java.lang.reflect.Constructor;
+
+import com.goodworkalan.danger.Danger;
 
 /**
  * Converts strings to objects by calling the single string argument constructor
@@ -28,8 +28,8 @@ public class StringConstructorInfuser implements ObjectInfuser {
     public StringConstructorInfuser(final Class<?> type) {
         try {
             this.constructor = type.getConstructor(String.class);
-        } catch (Throwable e) {
-            throw new InfusionException($(e), StringConstructorInfuser.class, "get.constructor", e, type);
+        } catch (Exception e) {
+            throw new Danger(e, StringConstructorInfuser.class, "get.constructor", e, type);
         }
     }
 
@@ -51,8 +51,8 @@ public class StringConstructorInfuser implements ObjectInfuser {
         }
         try {
             return constructor.newInstance(string);
-        } catch (Throwable e) {
-            throw new InfusionException($(e), StringConstructorInfuser.class, "new.instance", constructor.getDeclaringClass(), string);
+        } catch (Exception e) {
+            throw new Danger(e, StringConstructorInfuser.class, "new.instance", constructor.getDeclaringClass(), string);
         }
     }
 }

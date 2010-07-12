@@ -4,6 +4,8 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
+import com.goodworkalan.danger.Danger;
+
 /**
  * Unit tests for the {@link ClassInfuser} class.
  *
@@ -18,7 +20,7 @@ public class ClassInfuserTest {
     }
     
     /** Test failure to load a class. */
-    @Test(expectedExceptions = InfusionException.class)
+    @Test(expectedExceptions = Danger.class)
     public void notFound() {
         InfuserTest.exceptional(new Runnable() {
             public void run() {

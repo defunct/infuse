@@ -8,6 +8,8 @@ import java.net.URL;
 
 import org.testng.annotations.Test;
 
+import com.goodworkalan.danger.Danger;
+
 /**
  * Unit tests for the {@link Infuser} class.
  *
@@ -30,7 +32,7 @@ public class InfuserTest {
     }
     
     /** Cannot convert character */
-    @Test(expectedExceptions = InfusionException.class)
+    @Test(expectedExceptions = Danger.class)
     public void badCharacter() {
         exceptional(new Runnable() {
             public void run() {
@@ -40,7 +42,7 @@ public class InfuserTest {
     }
     
     /** Cannot zero length character */
-    @Test(expectedExceptions = InfusionException.class)
+    @Test(expectedExceptions = Danger.class)
     public void zeroCharacter() {
         exceptional(new Runnable() {
             public void run() {
@@ -74,7 +76,7 @@ public class InfuserTest {
     public static void exceptional(Runnable runnable, Class<?> contextClass, String code, String message) {
         try {
             runnable.run();
-        } catch (InfusionException e) {
+        } catch (Danger e) {
             assertEquals(e.contextClass, contextClass);
             assertEquals(e.code, code);
             assertEquals(e.getMessage(), message);
