@@ -1,8 +1,8 @@
-package com.goodworkalan.infuse.mix;
+package com.goodworkalan.infuse;
 
-import com.goodworkalan.mix.ProjectModule;
-import com.goodworkalan.mix.builder.Builder;
-import com.goodworkalan.mix.cookbook.JavaProject;
+import com.goodworkalan.cafe.ProjectModule;
+import com.goodworkalan.cafe.builder.Builder;
+import com.goodworkalan.cafe.outline.JavaProject;
 
 /**
  * Builds the project definition for Infuse.
@@ -19,7 +19,7 @@ public class InfuseProject implements ProjectModule {
     public void build(Builder builder) {
         builder
             .cookbook(JavaProject.class)
-                .produces("com.github.bigeasy.infuse/infuse/0.1.1.6")
+                .produces("com.github.bigeasy.infuse/infuse/0.1.1.7")
                 .depends()
                     .production("com.github.bigeasy.class/class-boxer/0.+1")
                     .production("com.github.bigeasy.danger/danger/0.+3")
